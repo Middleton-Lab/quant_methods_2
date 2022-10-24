@@ -4,6 +4,7 @@ subtitle: "Introduction"
 author: "Elizabeth King and Kevin Middleton"
 format:
   revealjs:
+    self-contained: true
     footer: "Data visualization"
 ---
 

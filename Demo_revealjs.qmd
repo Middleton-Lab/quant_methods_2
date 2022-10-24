@@ -2,7 +2,8 @@
 title: "Demo"
 format:
   revealjs:
-    logo: logo.png
+    self-contained: true
+#    logo: logo.png
     footer: "Demo slides"
 ---
 
