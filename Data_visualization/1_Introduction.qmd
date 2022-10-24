@@ -1,0 +1,15 @@
+---
+title: "What do you want to say with your plot?"
+subtitle: "Introduction"
+author: "Elizabeth King and Kevin Middleton"
+format:
+  revealjs:
+    footer: "Data visualization"
+---
+
+## Prerequisites
+
+## Resources
+
+## Plotting options in R
+

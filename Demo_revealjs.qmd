@@ -1,0 +1,139 @@
+---
+title: "Demo"
+format:
+  revealjs:
+    logo: logo.png
+    footer: "Demo slides"
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+
+## Bullets / Incremental lists
+
+::: {.incremental}
+-   Content authored with markdown
+-   Output from executable code
+:::
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+## Slide with a pause
+
+content before the pause
+
+. . .
+
+content after the pause
+
+## Columns
+
+:::: {.columns}
+
+::: {.column width="40%"}
+Left column
+:::
+
+::: {.column width="60%"}
+Right column
+:::
+
+::::
+
+## Smaller {.smaller}
+
+Amet mattis placerat malesuada sagittis sollicitudin luctus blandit leo cum primis metus ad aliquam facilisis. Dis nam class tristique nullam dapibus blandit dapibus lectus. Hendrerit erat pellentesque orci metus est! Aliquet faucibus tincidunt facilisi ornare conubia aliquet risus eleifend per potenti placerat morbi fames pulvinar!
+
+Adipiscing luctus tortor nascetur malesuada dui ante quisque mattis! Volutpat etiam semper et ac aptent congue convallis dui quam non. Gravida lectus conubia conubia blandit id id ornare quisque. Litora nisi cras accumsan eleifend ornare purus molestie tortor suspendisse!
+
+## Scrollable {.scrollable}
+
+Amet mattis placerat malesuada sagittis sollicitudin luctus blandit leo cum primis metus ad aliquam facilisis. Dis nam class tristique nullam dapibus blandit dapibus lectus. Hendrerit erat pellentesque orci metus est! Aliquet faucibus tincidunt facilisi ornare conubia aliquet risus eleifend per potenti placerat morbi fames pulvinar!
+
+Adipiscing luctus tortor nascetur malesuada dui ante quisque mattis! Volutpat etiam semper et ac aptent congue convallis dui quam non. Gravida lectus conubia conubia blandit id id ornare quisque. Litora nisi cras accumsan eleifend ornare purus molestie tortor suspendisse!
+
+Amet mattis placerat malesuada sagittis sollicitudin luctus blandit leo cum primis metus ad aliquam facilisis. Dis nam class tristique nullam dapibus blandit dapibus lectus. Hendrerit erat pellentesque orci metus est! Aliquet faucibus tincidunt facilisi ornare conubia aliquet risus eleifend per potenti placerat morbi fames pulvinar!
+
+Adipiscing luctus tortor nascetur malesuada dui ante quisque mattis! Volutpat etiam semper et ac aptent congue convallis dui quam non. Gravida lectus conubia conubia blandit id id ornare quisque. Litora nisi cras accumsan eleifend ornare purus molestie tortor suspendisse!
+
+## Aside
+
+Slide content
+
+::: aside
+Some additional commentary of more peripheral interest.
+:::
+
+## Footnote
+
+- Green ^[A footnote]
+- Brown
+- Purple
+
+::: aside
+Some additional commentary of more peripheral interest.
+:::
+
+## Line highlight 1
+
+```{.python code-line-numbers="6-8"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## Line highlight 2
+
+```{.python code-line-numbers="|6|7|8"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## Tabset
+
+::: {.panel-tabset}
+
+### Code
+
+```{{r}}
+plot(1:10)
+```
+
+### Output
+
+```{r}
+
+plot(1:10)
+
+```
+
+:::
+
+## Fenced clode blocks
+
+```{r}
+#| echo: fenced
+1 + 1
+```
