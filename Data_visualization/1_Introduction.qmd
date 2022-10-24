@@ -2,13 +2,16 @@
 title: "What do you want to say with your plot?"
 subtitle: "Introduction"
 author: "Elizabeth King and Kevin Middleton"
+affiliation: "Division of Biological Sciences"
 format:
   revealjs:
-    self-contained: true
+    standalone: true
     footer: "Data visualization"
 ---
 
-## Prerequisites
+## Overview
+
+## Module prerequisites
 
 ## Resources
 
