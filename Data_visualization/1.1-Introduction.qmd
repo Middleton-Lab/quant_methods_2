@@ -1,0 +1,33 @@
+---
+title: "What do you want to say with your plot?"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    standalone: true
+    footer: "Data visualization"
+    logo: QMLS_Logo.png
+---
+
+## Module overview
+
+1. What do you want to say with your plot?
+2. Conveying information with aesthetics
+3. Constructing complex plots
+4. Designing reusable plotting code
+5. Finishing touches
+
+## Module prerequisites
+
+- *Quantitative Methods in Life Sciences I*
+- Basics of data import and manipulation
+- Basics of `ggplot`
+
+## Relevant *Quantitative Methods I* lectures
+
+## Resources
+
+## Plotting options in R
+

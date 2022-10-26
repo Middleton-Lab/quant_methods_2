@@ -1,0 +1,14 @@
+---
+title: "Styles of plots"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    standalone: true
+    footer: "Data visualization"
+    logo: QMLS_Logo.png
+---
+
+## Styles
+
