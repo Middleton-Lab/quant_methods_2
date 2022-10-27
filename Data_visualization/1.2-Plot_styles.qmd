@@ -8,7 +8,184 @@ format:
     standalone: true
     footer: "Data visualization"
     logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
 ---
 
-## Styles
+## General caveat to keep in mind
+
+Many ways to accomplish the same goal in R / ggplot.
+
+- Some might be faster than others
+  - Unless you are working at large scale, it might not matter
+  - Plotting 10^5^ or 10^6^ points? It might.
+- Some might be more or less convoluted
+  - Pre-compute quantities or use a within-plot function?
+
+Our way might not be the "best" way (for some definition of "best").
+
+## Plots convey information
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+First think about what information you want to convey to yourself or the reader.
+
+## Kinds of data
+
+- Numerical / Quantitative
+  - Continuous, discrete
+- Categorical / Qualitative
+  - Unordered, ordered / nominal
+
+The type of data gives clues about what plots will show, how you set them up, and what elements they include.
+
+## `palmerpenguins`
+
+[https://allisonhorst.github.io/palmerpenguins/](https://allisonhorst.github.io/palmerpenguins/)
+
+```{{r}}
+install.packages("palmerpenguins")
+```
+
+Look at `penguins`
+
+```{r, echo=TRUE}
+library(palmerpenguins)
+penguins <- penguins |> 
+  mutate(sex = if_else(sex == "female", "Female", "Male"))
+names(penguins)
+```
+
+## `palmerpenguins` {.smaller}
+
+Mix of categorical (`species`, `island`, `sex`) and continuous (`bill...`, `flipper_length_mm`, `body_mass_g`) variables
+
+- Integer: `year`
+- Note: we don't recommend including units in variable names
+
+```{r}
+penguins
+```
+
+## `palmerpenguins`
+
+Explore:
+
+```{r, echo=TRUE}
+penguins |> 
+  group_by(species, island, sex) |> 
+  count()
+```
+
+## A (not exhaustive) menu of plot elements (`geoms`)
+
+- points
+- lines (straight, curved)
+- bars (histograms)
+- densities
+- boxes
+- annotations
+
+## What information do I want to convey?
+
+- Associations between measurements
+- Differences in measurements between species
+- Differences in measurements between sexes (within species?)
+- Changes in measurements across time
+
+## Associations between measurements
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, bill_length_mm, sex) |> 
+  ggplot(aes(x = body_mass_g, y = bill_length_mm)) +
+  geom_point() +
+  labs(x = "Body Mass (g)", y = "Bill Length (mm)")
+```
+
+## Associations between measurements
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, bill_length_mm, sex) |> 
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  geom_point() +
+  labs(x = "Body Mass (g)", y = "Bill Length (mm)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species")
+```
+
+## Associations between measurements
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, bill_length_mm, sex) |> 
+  ggplot(aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  geom_point() +
+  labs(x = "Body Mass (g)", y = "Bill Length (mm)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  facet_grid(sex ~ .)
+```
+
+## Differences in measurements between species
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, sex) |> 
+  ggplot(aes(x = species, y = body_mass_g, shape = sex)) +
+  geom_point(position = position_jitter()) +
+  labs(x = "Species", y = "Body Mass (g)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  scale_shape_manual(values = c(1, 16), name = "Sex")
+```
+
+## Differences in measurements between sexes within species
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, sex) |> 
+  ggplot(aes(x = species, y = body_mass_g, color = species,
+             group = sex, shape = sex)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) +
+  labs(x = "Species", y = "Body Mass (g)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  scale_shape_manual(values = c(1, 16), name = "Sex")
+```
+
+## Changes in measurements across time
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, sex) |> 
+  mutate(year = factor(year)) |> 
+  ggplot(aes(x = year, y = body_mass_g, color = species)) +
+  geom_point(position = position_jitter(width = 0.1)) +
+  labs(x = "Year", y = "Body Mass (g)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  scale_shape_manual(values = c(1, 16), name = "Sex") +
+  facet_grid(species ~ sex)
+```
+
+## Plots gone wrong
+
+```{r}
+penguins |> 
+  drop_na(body_mass_g, sex) |> 
+  ggplot(aes(x = species, y = body_mass_g, color = species,
+             group = sex, shape = sex)) +
+  geom_boxplot() +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) +
+  labs(x = "Species", y = "Body Mass (g)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  scale_shape_manual(values = c(1, 16), name = "Sex")
+```
 
