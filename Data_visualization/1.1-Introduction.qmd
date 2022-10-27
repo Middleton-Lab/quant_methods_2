@@ -7,6 +7,7 @@ author:
 format:
   revealjs:
     standalone: true
+    self-contained: true
     footer: "Data visualization"
     logo: QMLS_Logo.png
     slide-number: true
