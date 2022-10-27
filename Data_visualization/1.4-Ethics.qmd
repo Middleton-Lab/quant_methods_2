@@ -1,5 +1,6 @@
 ---
 title: "Ethics in plotting"
+subtitle: "Communication & Deception"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -8,7 +9,14 @@ format:
     standalone: true
     footer: "Data visualization"
     logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
 ---
 
 ## Responsibility
+
+## Readings
+
+- [Data science ethics](https://mdsr-book.github.io/mdsr2e/ch-ethics.html) in *Modern Data Science with R* by Baumer, Kaplan, and Horton
+- [The Ethics of Data Visualization](https://medium.com/@peter.haferl/the-ethical-responsibilities-of-data-visualization-4d12b7c9640d)
 
