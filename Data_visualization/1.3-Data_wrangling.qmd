@@ -32,9 +32,8 @@ ggplot2::theme_set(theme_cowplot())
 
 ```{r}
 library(palmerpenguins)
-penguins <- penguins |> 
-  mutate(sex = if_else(sex == "female", "Female", "Male"))
 penguins2 <- penguins |> 
+mutate(sex = if_else(sex == "female", "Female", "Male")) |> 
   select(species, island, sex, year) |> 
   drop_na() |> 
   rename(Species = species,
@@ -42,7 +41,8 @@ penguins2 <- penguins |>
          Sex = sex,
          Year = year)
 
-penguins2 |>   slice(1:11) |> 
+penguins2 |>
+  slice(1:11) |> 
   knitr::kable()
 ```
 
