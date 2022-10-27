@@ -63,6 +63,8 @@ ggplot2::theme_set(theme_cowplot())
 - Lattice
 - `ggplot` and the `tidyverse`
 
+For entertainment: [http://varianceexplained.org/r/why-I-use-ggplot2/](http://varianceexplained.org/r/why-I-use-ggplot2/)
+
 ## Packages we will use often
 
 - [tidyverse](https://www.tidyverse.org/) Data wrangling
