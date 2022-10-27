@@ -9,9 +9,459 @@ format:
     standalone: true
     footer: "Data visualization"
     logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
 ---
 
 ## Why does data shape matter?
 
-## Wide vs. long data
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
 
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+## Wide vs. long data {.smaller}
+
+```{r}
+library(palmerpenguins)
+penguins <- penguins |> 
+  mutate(sex = if_else(sex == "female", "Female", "Male"))
+penguins2 <- penguins |> 
+  select(species, island, sex, year) |> 
+  drop_na() |> 
+  rename(Species = species,
+         Island = island,
+         Sex = sex,
+         Year = year)
+
+penguins2 |>   slice(1:11) |> 
+  knitr::kable()
+```
+
+## Bar charts for counts
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+p <- ggplot(penguins2, aes(x = Species)) +
+  geom_bar() +
+  labs(y = "Count")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Grouped bar charts
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+p <- ggplot(penguins2, aes(x = Species, fill = Sex)) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = c("navy", "darkred")) +
+  labs(y = "Count")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Grouped bar charts
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+p <- ggplot(penguins2, aes(x = Species, fill = Island)) +
+  geom_bar(position = "dodge") +
+  labs(y = "Count") +
+  facet_grid(Sex ~ .) +
+  scale_fill_paletteer_d(`"beyonce::X56"`)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Stacked bar charts
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+#| code-line-numbers: "|2|6"
+p <- ggplot(penguins2, aes(x = Species, fill = Island)) +
+  geom_bar(position = "fill") +
+  labs(y = "Count") +
+  facet_grid(Sex ~ .) +
+  scale_fill_paletteer_d(`"beyonce::X56"`) +
+  scale_y_continuous(name = "Percent", labels = scales::percent)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Aggregating to get counts
+
+```{r}
+#| echo: true
+
+penguin_counts <- penguins2 |> 
+  group_by(Species, Island, Sex) |> 
+  count()
+```
+
+<br />
+
+```{r}
+penguin_counts
+```
+
+## Aggregating counts
+
+```{r}
+#| echo: true
+
+penguin_counts_by_year <- penguins2 |> 
+  group_by(Species, Island, Sex, Year) |> 
+  count()
+```
+
+<br />
+
+```{r}
+penguin_counts_by_year
+```
+
+## Working with aggregated data {.scrollable}
+
+```{r}
+library(Data4Ecologists)
+gala2 <- gala |> 
+  mutate(Island = str_replace_all(Island, fixed("."), " ")) |> 
+  select(1:5)
+gala2 |> knitr::kable()
+```
+
+## Bar charts for aggregated data
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+p <- ggplot(gala2, aes(x = Island, y = Species)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1, vjust = 0.5))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Bar charts for counts
+
+::: {.panel-tabset}
+
+### Code 
+
+Arranging `Species` counts.
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+p <- gala2 |> 
+  arrange(desc(Species)) |> 
+  ggplot(aes(x = Island, y = Species)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1, vjust = 0.5))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Bar charts for counts
+
+::: {.panel-tabset}
+
+### Code 
+
+Explicitly defining factors.
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3"
+p <- gala2 |> 
+  arrange(desc(Species)) |> 
+  mutate(Island = fct_inorder(Island)) |> 
+  ggplot(aes(x = Island, y = Species)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1, vjust = 0.5))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Bar charts for counts
+
+::: {.panel-tabset}
+
+### Code 
+
+Rotating the axes
+
+```{r}
+#| echo: true
+p_rotated <- p +
+  coord_flip()
+```
+
+### Plot
+
+```{r}
+p_rotated
+```
+
+:::
+
+## Bar charts for counts
+
+::: {.panel-tabset}
+
+### Code 
+
+Reversing the `x` axis
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3"
+p_rotated_rev <- p +
+  coord_flip() +
+  scale_x_discrete(limits = rev)
+```
+
+### Plot
+
+```{r}
+p_rotated_rev
+```
+
+:::
+
+## Pivoting data
+
+Wide to long:
+
+- Multiple columns into rows
+
+Long to wide:
+
+- Multiple rows into columns
+
+## Multiple columns to rows
+
+```{r}
+#| echo: true
+penguins3 <- penguins |> 
+  select(species, starts_with("bill")) |> 
+  drop_na() |> 
+  rename(Species = species,
+         `Bill length` = bill_length_mm,
+         `Bill depth` = bill_depth_mm)
+
+penguins3
+```
+
+## Multiple columns to rows
+
+```{r}
+#| echo: true
+penguins_long <- penguins3 |> 
+  pivot_longer(cols = -Species,
+               names_to = "Type",
+               values_to = "Measure")
+
+penguins_long
+```
+
+## Plotting long data
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(penguins_long,
+            aes(x = Type, y = Measure, color = Species)) +
+  geom_point(position = position_jitter(width = 0.1)) +
+  facet_wrap("Species") +
+  scale_color_paletteer_d(`"beyonce::X56"`) +
+  theme(axis.title.x = element_blank()) +
+  labs(y = "Measurement (mm)")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Splitting or Joining Columns {.scrollable}
+
+```{r}
+set.seed(326463)
+M <- tribble(
+  ~ Year, ~ Month, ~ Day, ~ ID, ~ Count,
+  2022, 7, 1, "A-1", sample(10:20, 1), 
+  2022, 7, 2, "A-1", sample(10:20, 1), 
+  2022, 7, 3, "A-1", sample(10:20, 1), 
+  2022, 7, 4, "A-1", sample(10:20, 1), 
+  2022, 7, 5, "A-1", sample(10:20, 1), 
+  2022, 7, 1, "B-1", sample(1:10, 1), 
+  2022, 7, 2, "B-1", sample(1:10, 1), 
+  2022, 7, 3, "B-1", sample(1:10, 1), 
+  2022, 7, 4, "B-1", sample(1:10, 1), 
+  2022, 7, 5, "B-1", sample(1:10, 1),
+  2022, 7, 11, "A-2", sample(10:20, 1), 
+  2022, 7, 12, "A-2", sample(10:20, 1), 
+  2022, 7, 13, "A-2", sample(10:20, 1), 
+  2022, 7, 14, "A-2", sample(10:20, 1), 
+  2022, 7, 15, "A-2", sample(10:20, 1),
+  2022, 7, 11, "B-2", sample(1:10, 1), 
+  2022, 7, 12, "B-2", sample(1:10, 1), 
+  2022, 7, 13, "B-2", sample(1:10, 1), 
+  2022, 7, 14, "B-2", sample(1:10, 1), 
+  2022, 7, 15, "B-2", sample(1:10, 1)
+)
+
+M
+```
+
+## Joining with `unite()`
+
+```{r}
+#| echo: true
+library(lubridate)
+M <- M |> 
+  unite(col = "Date", c(Year, Month, Day), sep = "-") |> 
+  mutate(Date = ymd(Date))
+```
+
+```{r}
+M
+```
+
+## Splitting with `separate()`
+
+```{r}
+#| echo: true
+M <- M |> 
+  separate(ID, sep = "-", into = c("Replicate", "Timepoint"))
+```
+
+```{r}
+M
+```
+
+## Plotting dates
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(M, aes(x = Date, y = Count, color = Replicate)) +
+  geom_point() +
+  geom_path() +
+  scale_x_date(date_labels = "%m/%d", date_breaks = "1 day")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Plotting dates
+
+::: {.panel-tabset}
+
+### Code
+
+Plot shapes: [https://r-graphics.org/recipe-scatter-shapes](https://r-graphics.org/recipe-scatter-shapes)
+
+```{r}
+#| echo: true
+p <- ggplot(M, aes(x = Date, y = Count, shape = Replicate)) +
+  geom_point(size = 4) +
+  scale_shape_manual(values = c(0, 15)) +
+  scale_x_date(date_labels = "%m/%d", date_breaks = "1 day")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
