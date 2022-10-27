@@ -11,13 +11,23 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
-
 ---
 
 ## Module overview
 
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
 1. What do you want to say with your plot?
-2. Conveying information with aesthetics
+2. Mapping information onto a plot
 3. Constructing complex plots
 4. Designing reusable plotting code
 5. Finishing touches
@@ -25,12 +35,78 @@ format:
 ## Module prerequisites
 
 - *Quantitative Methods in Life Sciences I*
+- Updated R and RStudio
 - Basics of data import and manipulation
 - Basics of `ggplot`
 
-## Relevant *Quantitative Methods I* lectures
+## Relevant *Quantitative Methods I* course materials
+
+- Week 2: Data organization, loading, visualization
+- Week 3: Tidy data and transformations
+- [Course files on Github](https://github.com/kmiddleton/quant_methods)
+  - Clone to your computer for reference
+- [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
 
 ## Resources
 
+- [R for Data Science](https://r4ds.had.co.nz/)
+- [ggplot2](https://ggplot2-book.org/)
+  - In-progress version of the 3rd edition
+- [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/)
+- [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html)
+- [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
+- [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
+- [Tidyverse style guide](https://style.tidyverse.org/)
+
 ## Plotting options in R
+
+- Base R
+- Lattice
+- `ggplot` and the `tidyverse`
+
+## Packages we will use often
+
+- [tidyverse](https://www.tidyverse.org/)
+- [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html)
+- [patchwork](https://patchwork.data-imaginist.com/)
+- [paletteer](https://emilhvitfeldt.github.io/paletteer/)
+
+## Why visualize data? {.scrollable}
+
+```{r}
+ds <- read_csv("Data/Datasaurus_data.csv",
+               col_names = c("x1","x2"),
+               show_col_types = FALSE)
+knitr::kable(ds)
+```
+
+## Why visualize data? {.scrollable}
+
+```{r}
+ds |> 
+  summarize(across(.cols = everything(),
+                   .fns = list(Mean = mean, `Std. Dev.` = sd))) |> 
+  mutate(across(.fns = round, digits = 2)) |> 
+  knitr::kable()
+```
+
+. . .
+
+What is the correlation?
+
+```{r}
+#| echo: true
+with(ds, cor.test(x1, x2))
+```
+
+## Visualization reveals patterns
+
+```{r}
+ggplot(ds, aes(x = x1, y = x2)) +
+  geom_point(color = "navy") +
+  scale_x_continuous(limits = c(0, 100)) +
+  scale_y_continuous(limits = c(0, 100)) +
+  coord_fixed() +
+  labs(title = expression(paste("Alberto Cairo's ",italic("Datasaurus"))))
+```
 
