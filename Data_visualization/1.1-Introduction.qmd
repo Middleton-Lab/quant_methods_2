@@ -50,8 +50,7 @@ ggplot2::theme_set(theme_cowplot())
 ## Resources
 
 - [R for Data Science](https://r4ds.had.co.nz/)
-- [ggplot2](https://ggplot2-book.org/)
-  - In-progress version of the 3rd edition
+- [ggplot2](https://ggplot2-book.org/) *In-progress* 3rd edition
 - [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/)
 - [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html)
 - [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
@@ -66,10 +65,13 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Packages we will use often
 
-- [tidyverse](https://www.tidyverse.org/)
-- [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html)
-- [patchwork](https://patchwork.data-imaginist.com/)
-- [paletteer](https://emilhvitfeldt.github.io/paletteer/)
+- [tidyverse](https://www.tidyverse.org/) Data wrangling
+  - tidyr
+  - dplyr
+  - etc.
+- [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html) Compositing and refining plots
+- [patchwork](https://patchwork.data-imaginist.com/) Compositing and refining plots
+- [paletteer](https://emilhvitfeldt.github.io/paletteer/) Unifies color palette options
 
 ## Why visualize data? {.scrollable}
 
