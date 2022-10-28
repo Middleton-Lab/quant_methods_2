@@ -1,0 +1,521 @@
+---
+title: "Aesthetics: Mapping information onto a plot"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## `geom_`s
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+```
+
+
+- The geometric building blocks of a plot
+- [List of `geom_`s](https://ggplot2-book.org/individual-geoms.html)
+- Some `geom_`s are the building blocks of other `geom_`s
+  - `geom_smooth()` adds a line based on a formula and some kind of regression
+  - `geom_rect()` adds a box made of lines
+
+## Aesthetics: `aes()`
+
+- Map columns of data to elements (`geom_`s) on a plot
+- Some are common to many/most `geom_`s:
+  - `x`, `y`, `color`, `size`, `alpha`, `group`
+- Others are `geom`-specific
+  - `xmin`, `xmax`, `xend`, `yend`, `linetype`, `fill`, `shape`
+
+Look to the [ggplot function reference](https://ggplot2.tidyverse.org/reference/index.html) when in doubt.
+
+## `geom_ribbon()`
+
+![](Images/geom_ribbon.png)
+
+## Thinking about aesthetics
+
+- Start with `x` and `y`
+  - Or just one for univariate plots (histograms, densities, etc.)
+  - Can be categorical variables (factors or characters coerced to factors within ggplot)
+- Then think about how to best encode other information
+  - Color, shape, size, linetype, alpha
+  - Facets (next lecture)
+
+## Working with aesthetics
+
+Bee pollen removal experiment^[Harder, LD and Thomson, JD. 1989. Evolutionary options for maximizing pollen dispersal of animal-pollinated plants. *Am Nat*, 133(3), 323-344.]
+
+```{r}
+bp <- beepollen |> 
+  mutate(Bee_type = if_else(queen == 0, "Worker", "Queen")) |> 
+  rename(Prop_removed = removed,
+         Duration = duration) |> 
+  select(-queen) |> 
+  as_tibble()
+
+str(bp)
+```
+
+<br />
+
+What kind of plot would best represent these data?
+
+## Working with aesthetics
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(bp,
+            aes(x = Duration, y = Prop_removed, color = Bee_type)) +
+  geom_point(size = 3)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Working with aesthetics
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(bp,
+            aes(x = Duration, y = Prop_removed, shape = Bee_type)) +
+  geom_point(size = 3)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Reversing the variables
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(bp,
+            aes(x = Prop_removed, y = Duration, color = Bee_type)) +
+  geom_point(size = 3)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## What is `x` and what is `y`?
+
+By convention:
+
+- `y` is the variable of primary interest
+- `x` is what predicts `y` or the grouping of interest
+
+## Applying aesthetics
+
+Generate some data to work with
+
+```{r}
+#| echo: true
+
+set.seed(126633)
+n <- 50
+M <- tibble(
+  x1 = runif(n, min = 0, max = 10),
+  y = 2 * x1 + rnorm(n, mean = 0, sd = 1),
+  x2 = sample(1:4, size = n, replace = TRUE),
+  x3 = sample(LETTERS[1:4], size = n, replace = TRUE),
+  x4 = runif(n, min = 0, max = 1)) |> 
+  arrange(x1)
+```
+
+```{r}
+head(M)
+```
+
+## Color
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                color = x2)) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Color
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                color = x3)) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Color
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "4"
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                color = factor(x2))) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Color
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "4"
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                color = factor(x4))) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Size
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "5"
+p <- ggplot(M,
+            aes(x = x1,
+                y = y, 
+                color = x3, 
+                size = x2)) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Size
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "6"
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y,
+                color = x3, 
+                size = x2)) +
+  geom_point()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Size
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "5"
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y,
+                color = x3,
+                size = x4)) +
+  geom_point()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Shape
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "4"
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                shape = x3)) +
+  geom_point(size = 5)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Shape
+
+```{{r}}
+p <- ggplot(M,
+            aes(x = x1, 
+                y = y, 
+                shape = x2)) +
+  geom_point(size = 5)
+```
+
+<br />
+
+::: {style="color:#cc0000; font-family: monospace"}
+
+Error in scale_f():
+
+! A continuous variable can not be mapped to shape
+
+:::
+
+## Fill
+
+::: {.panel-tabset}
+
+### Code
+
+Most often used for bars:
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x3, fill = x3)) +
+  geom_bar()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Fill
+
+::: {.panel-tabset}
+
+### Code
+
+We make this mistake every time:
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x3, color = x3)) +
+  geom_bar()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Fill
+
+::: {.panel-tabset}
+
+### Code
+
+Can also fill point shapes:
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x = x1, y = y,
+                color = x3,
+                fill = factor(x2))) +
+  geom_point(pch = 21, size = 10)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Linetype
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(M,
+            aes(x = x1,
+                y = y,
+                linetype = x3)) +
+  geom_path()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Alpha
+
+::: {.panel-tabset}
+
+### Code
+
+`alpha` encodes transparency from 0 (transparent) to 1 (opaque)
+
+```{r}
+#| echo: true
+#| code-line-numbers: "5"
+
+p <- ggplot(M,
+            aes(x = x1,
+                y = y,
+                color = x3,
+                alpha = x4)) +
+  geom_point(size = 10)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Setting an aesthetic vs. modifying a `geom_`
+
+Compare:
+
+```
+...aes(x = x, y = y, color = x3, size = x4))
+  + geom_point()
+```
+
+and
+
+```
+...aes(x = x, y = y))
+  + geom_point(color = "darkred", size = 10)
+```
