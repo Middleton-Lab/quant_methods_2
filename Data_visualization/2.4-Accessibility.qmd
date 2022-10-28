@@ -1,0 +1,33 @@
+---
+title: "Accessibility: Inclusion in visualization"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    standalone: true
+    self-contained: true
+    footer: "Data visualization"
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Title
+
+## Color considerations
+
+- Challenges distinguishing colors impact a large proportion of people
+
+## Shape considerations
+
+- Most useful when color is not an option
+  - Color page charges in journals
+- 
+
+## Size considerations
+
+## Linetype considerations
+
+## Alpha considerations
+
