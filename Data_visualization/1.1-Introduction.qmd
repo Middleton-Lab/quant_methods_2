@@ -57,6 +57,20 @@ ggplot2::theme_set(theme_cowplot())
 - [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
 - [Tidyverse style guide](https://style.tidyverse.org/)
 
+## Graphics vs. infographics
+
+## What we cover and don't cover
+
+Do:
+
+- Basics pretty broadly
+- Common cases you will encounter
+
+Don't:
+
+- Every possible use case
+
+
 ## Plotting options in R
 
 - Base R
