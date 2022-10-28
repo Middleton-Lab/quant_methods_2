@@ -1,0 +1,382 @@
+---
+title: "Repeating plots by a factor"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    standalone: true
+    self-contained: true
+    footer: "Data visualization"
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Getting more information into a plot
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+```
+
+- Aesthetics only go so far
+  - More than about 2 becomes unwieldy
+- Dodging and facetting can provide more options
+
+## Bear movement
+
+Black bear movements in northern Minnesota ^[Ditmer, MA, et a.. 2015. Behavioral and physiological responses of American black bears to landscape features within an agricultural region. *Ecosphere* 6: 1-21.]
+
+```{r}
+bear <- bearmove |> 
+  rename(log_Move = log.move,
+         Heartrate = hr,
+         Day = julian) |> 
+  select(-BearIDYear) |> 
+  mutate(Season = factor(Season),
+         DayNight = factor(DayNight),
+         Sex = factor(Sex),
+         Stage = factor(Stage),
+         BearID = factor(BearID)) |> 
+  as_tibble()
+
+str(bear)
+```
+
+## Bear movement {.scrollable}
+
+```{r}
+bear |> 
+  group_by(BearID, Season, DayNight, Year) |> 
+  count() |> 
+  knitr::kable()
+```
+
+## Dodging points
+
+::: {.panel-tabset}
+
+### Code
+
+- Use the `position` argument to shift a `group`.
+  - Set `width` by trial and error
+- Often used alongside `color`
+
+```{r}
+#| echo: true
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_dodge(width = 0.2))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+
+## Dodging points with jitter
+
+::: {.panel-tabset}
+
+### Code
+
+- Use `position = position_jitterdodge`
+- Also set `seed` to make the jittering reproducible
+
+```{r}
+#| echo: true
+
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Dodging points with jitter
+
+::: {.panel-tabset}
+
+### Code
+
+Further refinements:
+
+  - Add `alpha` to reduce overplotting
+
+```{r}
+#| echo: true
+
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683),
+             alpha = 0.25)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Dodging bar graphs
+
+::: {.panel-tabset}
+
+### Code
+
+`width = 0.9` leaves no space between bars but leaves space between `BearID`s.
+
+```{r}
+#| echo: true
+
+p <- bear |> 
+  group_by(BearID, Season) |> 
+  summarize(Mean_log_Move = mean(log_Move),
+            .groups = "drop") |> 
+  ggplot(aes(x = BearID,
+             y = Mean_log_Move,
+             fill = Season,
+             group = Season)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.9))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Facetting
+
+Good for focusing on comparisons among measurements
+
+- Generate multiple plots, each split by the levels of a factor
+- By wrapping with `facet_wrap()`
+- By rows or columns with `facet_grid()` if there is some logical order
+  - Think about the direction of the comparison and the way your eyes will move around the plot
+
+## Facetting
+
+::: {.panel-tabset}
+
+### Code
+
+`.` is a placeholder for facetting only by row or column
+
+Facet in rows by `Season`:
+
+```{r}
+#| echo: true
+#| code-line-numbers: "10"
+
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683),
+             alpha = 0.25) +
+  facet_grid(Season ~ .)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Facetting
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "10"
+
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683),
+             alpha = 0.25) +
+  facet_grid(. ~ Season)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Facetting
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| code-line-numbers: "10"
+
+p <- ggplot(bear,
+            aes(x = BearID,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683),
+             alpha = 0.25) +
+  facet_grid(Season ~ DayNight)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Facetting
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+
+p <- ggplot(bear,
+            aes(x = Season,
+                y = log_Move,
+                color = DayNight,
+                group = DayNight)) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.15,
+                                             dodge.width = 0.3,
+                                             seed = 34683),
+             alpha = 0.25) +
+  facet_wrap("BearID")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Axis ranges
+
+- By default, all axis ranges are equal (`fixed`)
+- `free_x`, `free_y`, and `free` can be used to allow `x`, `y`, or both axes to vary.
+
+```{r}
+#| echo: true
+
+bear_long <- bear |> 
+  select(Season, log_Move, Heartrate, BearID) |> 
+  pivot_longer(cols = c(log_Move, Heartrate),
+               names_to = "Measurement")
+bear_long
+```
+
+## Without freeing the axis
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+
+p <- ggplot(bear_long,
+            aes(x = BearID,
+                y = value)) +
+  geom_point(alpha = 0.25) +
+  facet_grid(Measurement ~ Season)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## With freeing the axis
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+
+p <- ggplot(bear_long,
+            aes(x = BearID,
+                y = value)) +
+  geom_point(position = position_jitter(width = 0.2,
+                                        seed = 4527345),
+             alpha = 0.25) +
+  facet_grid(Measurement ~ Season, scales = "free_y")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
