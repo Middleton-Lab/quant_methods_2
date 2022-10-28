@@ -8,7 +8,6 @@ format:
   revealjs:
     standalone: true
     self-contained: true
-    footer: "Data visualization"
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -170,6 +169,8 @@ penguin_counts_by_year
 ```
 
 ## Working with aggregated data {.scrollable}
+
+Galápagos plant diversity ^[Johnson, MP and Raven, PH. 1973. Species number and endemism: The Galápagos Archipelago revisited. *Science*, 179, 893-895.]
 
 ```{r}
 library(Data4Ecologists)
