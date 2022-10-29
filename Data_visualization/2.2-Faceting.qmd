@@ -30,7 +30,7 @@ library(Data4Ecologists)
 
 - Aesthetics only go so far
   - More than about 2 becomes unwieldy
-- Dodging and facetting can provide more options
+- Dodging and faceting can provide more options
 
 ## Bear movement
 
@@ -183,7 +183,7 @@ p
 
 :::
 
-## Facetting
+## faceting
 
 Good for focusing on comparisons among measurements
 
@@ -192,13 +192,13 @@ Good for focusing on comparisons among measurements
 - By rows or columns with `facet_grid()` if there is some logical order
   - Think about the direction of the comparison and the way your eyes will move around the plot
 
-## Facetting
+## faceting
 
 ::: {.panel-tabset}
 
 ### Code
 
-`.` is a placeholder for facetting only by row or column
+`.` is a placeholder for faceting only by row or column
 
 Facet in rows by `Season`:
 
@@ -226,7 +226,7 @@ p
 
 :::
 
-## Facetting
+## faceting
 
 ::: {.panel-tabset}
 
@@ -256,7 +256,7 @@ p
 
 :::
 
-## Facetting
+## faceting
 
 ::: {.panel-tabset}
 
@@ -286,7 +286,7 @@ p
 
 :::
 
-## Facetting
+## faceting
 
 ::: {.panel-tabset}
 
