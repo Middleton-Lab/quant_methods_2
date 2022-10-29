@@ -23,3 +23,7 @@ Bivariate
 
 - ~~Scatter~~
 - ~~Lines / paths~~
+
+## Customization
+
+- https://meghan.rbind.io/blog/2022-10-11-creating-custom-color-palettes-with-ggplot2/
