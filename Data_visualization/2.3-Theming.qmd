@@ -14,6 +14,22 @@ format:
 
 ## What can you customize?
 
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+```
+
+(Nearly) everything.
+
 ## Scales
 
 `scale_` handles changing how aesthetics are represented in plots
