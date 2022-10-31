@@ -137,7 +137,7 @@ ggplot(ds, aes(x = x1, y = x2)) +
 
 Keep in mind throughout this module:
 
-- This is an iterative process
+- Plot creation is an iterative process
 - Remember what "problems" you have solved before
 - Keep a code "gallery" of those solutions
 - Mastering ggplot takes time and experience
