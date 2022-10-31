@@ -4,7 +4,7 @@
 
 - Data4Ecologists: https://github.com/jfieberg/Data4Ecologists
   - remotes::install_github("jfieberg/Data4Ecologists")
-- abdData: https://github.com/Middleton-Lab/abdData
+- abdData: https://middleton-lab.github.io/abdData/reference/index.html
   - remotes::install_github("Middleton-Lab/abdData")
 
 ## Gallery
