@@ -129,3 +129,11 @@ ggplot(ds, aes(x = x1, y = x2)) +
   labs(title = expression(paste("Alberto Cairo's ",italic("Datasaurus"))))
 ```
 
+## Presentation-quality plots
+
+Keep in mind throughout this module:
+
+- This is an iterative process
+- Remember what "problems" you have solved before
+- Keep a code "gallery" of those solutions
+- Mastering ggplot takes time and experience
