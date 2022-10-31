@@ -58,7 +58,7 @@ ggplot() +
 - `continuous`
 - `discrete`
 - `manual`
-- `datetime`
+- `date`, `time`, `datetime`
 - etc.
 
 Different aesthetics have different scale types available
@@ -66,6 +66,14 @@ Different aesthetics have different scale types available
 - RStudio tab completion is your friend here: `scale_x`-[Tab]{style="color: #CB3570"}
 
 ## `scale_x_` and `scale_y_`
+
+Most commonly:
+
+- `scale_{xy}_continuous`: Continuous
+- `scale_{xy}_discrete`: Categorical
+- `scale{xy}_log10`: log~10~ transformation
+- `scale{xy}_sqrt`: Square-root transformation
+- `scale{xy}_manual`: Manually specify parameters (e.g., color)
 
 ## Electric fish diversity and tributaries {.scrollable}
 
@@ -82,23 +90,328 @@ EF |> knitr::kable()
 
 ## Electric fish visualization
 
-1. Bar plot of Upstream and Downstream by Tributary
-2. Scatterplot of Upstream vs. Downstream
+1. Bar plot of `n_Upstream` and `n_Downstream` diversity by `Tributary`
+2. Scatter plot of `n_Upstream` vs. `n_Downstream`
 
-## `scale_color_`
+## Bar plot
 
-## `scale_fill_`
+::: {.panel-tabset}
 
-## `scale_shape_`
+### Code
 
-## `scale_size_`
+```{r}
+#| echo: true
 
-## `theme()` changes aspects of plots
+EF_bar <- EF |> 
+  pivot_longer(cols = -Tributary,
+               names_to = "Up_Down",
+               values_to = "n_Species") |> 
+  ggplot(aes(x = Tributary,
+             y = n_Species,
+             fill = Up_Down,
+             group = Up_Down)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.9))
+```
 
-- Custom and reusable themes in a few weeks
+### Plot
 
-## Changing axis components
+```{r}
+EF_bar
+```
+
+:::
+
+## Bar plot refinements
+
+::: {.panel-tabset}
+
+### Code
+
+- `ggplot`s are additive, so we can "add" to an existing plot.
+- Change axis limits (but see *Ethics in visualization*)
+- Two ways to change axis labels
+
+```{r}
+#| echo: true
+
+EF_bar <- EF_bar +
+  scale_y_continuous(limits = c(0, 50),
+                     breaks = seq(0, 50, by = 5)) +
+  scale_x_discrete(name = "Upstream/Downstream") +
+  labs(y = "Number of Species",
+       title = "Species Diversity in the Amazon")
+```
+
+### Plot
+
+```{r}
+EF_bar
+```
+
+:::
+
+## Scatter plot
+
+::: {.panel-tabset}
+
+### Code
+
+What is the relationship between upstream and downstream diversity?
+
+```{r}
+#| echo: true
+
+EF_scatter <- ggplot(EF, aes(x = n_Upstream,
+                             y = n_Downstream)) +
+  geom_point()
+```
+
+### Plot
+
+```{r}
+EF_scatter
+```
+
+:::
+
+## Scatter plot refinements
+
+::: {.panel-tabset}
+
+### Code
+
+- Add a straight line with a slope of 1
+- Change the color and size of all points
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3-4"
+
+EF_scatter <- ggplot(EF, aes(x = n_Upstream,
+                             y = n_Downstream)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(color = "tomato", size = 3)
+```
+
+### Plot
+
+```{r}
+EF_scatter
+```
+
+:::
+
 
 ## Changing axis aspect ratio
 
+::: {.panel-tabset}
+
+### Code
+
+- Make the plot square (`coord_equal`)
+- Set the axis ranges to be equal (`xlim`, `ylim`)
+
+```{r}
+#| echo: true
+
+EF_scatter <- EF_scatter +
+  coord_equal(xlim = c(0, 30), ylim = c(0, 30))
+```
+
+### Plot
+
+```{r}
+EF_scatter
+```
+
+:::
+
+
+## `scale_color_` and `scale_fill_`
+
+::: {.panel-tabset}
+
+### Code
+
+- Set the fill manually
+- Include a line break in the legend title string with `\n`
+
+```{r}
+#| echo: true
+
+EF_bar_m <- EF_bar +
+  scale_fill_manual(values = c("orange", "darkgreen"),
+                    name = "Upstream /\nDownstream")
+```
+
+### Plot
+
+```{r}
+EF_bar_m
+```
+
+:::
+
+
+## Automated color and fill scales
+
+::: {.panel-tabset}
+
+### Code
+
+- [RColorBrewer](https://colorbrewer2.org/)
+- [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)
+- [paletteer](https://emilhvitfeldt.github.io/paletteer/)
+
+```{r}
+#| echo: true
+
+EF_bar_b <- EF_bar +
+  scale_fill_brewer(type = "qual")
+```
+
+### Plot
+
+```{r}
+EF_bar_b
+```
+
+:::
+
+
+## `scale_shape_`
+
+- ggplot inherits the standard set of R point shapes
+- [Point shapes in R](https://r-graphics.org/recipe-scatter-shapes)
+
+## `scale_size_`
+
+::: {.panel-tabset}
+
+### Code
+
+- [Size by area (default) or radius](https://ggplot2-book.org/scale-other.html)
+- Set the `range` to control the output scale
+
+```{r}
+#| echo: true
+#| code-line-numbers: "5-11"
+EF_size <- EF |> 
+  pivot_longer(cols = -Tributary,
+               names_to = "Up_Down",
+               values_to = "n_Species") |> 
+  ggplot(aes(x = Tributary,
+             y = Up_Down,
+             label = n_Species,
+             size = n_Species)) +
+  geom_point(alpha = 0.25) +
+  geom_text() +
+  scale_size(range = c(1, 10))
+```
+
+### Plot
+
+```{r}
+EF_size
+```
+
+:::
+
+## `theme()` changes aspects of plots
+
+- Fully custom and reusing themes in a few weeks
+- See `?theme` for options
+- [ggplot book has many examples](https://ggplot2-book.org/polishing.html)
+
+```{r}
+EF_bar
+```
+
+## Changing axis components
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+EF_bar <- EF_bar +
+  labs(x = "Stream") +
+  scale_fill_manual(values = c("darkred", "navy"),
+                    name = "Location",
+                    labels = c("Downstream", "Upstream")) +
+  theme(axis.text = element_text(size = 9),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+        axis.title.y = element_text(face = "bold"),
+        axis.title.x = element_blank(),
+        legend.title = element_text(size = 10, face = "italic"),
+        legend.text = element_text(size = 9))
+```
+
+### Plot
+
+```{r}
+EF_bar
+```
+
+:::
+
+
 ## (Re)moving and reshaping the legend
+
+::: {.panel-tabset}
+
+### Code
+
+- Remove the legend
+
+```{r}
+#| echo: true
+EF_size <- EF_size +
+  theme(legend.position = "none")
+```
+
+### Plot
+
+```{r}
+EF_size
+```
+
+:::
+
+## Customizing the legend
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+
+EF_scatter <- ggplot(EF, aes(x = n_Upstream,
+                             y = n_Downstream,
+                             color = Tributary)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(size = 5) +
+  scale_color_viridis_d(guide = guide_legend(ncol = 3,
+                                             override.aes = list(size = 2))) +
+  coord_equal(xlim = c(0, 30), ylim = c(0, 30)) +
+  labs(x = "Upstream Species",
+       y = "Downstream Species",
+       title = "Species Diversity in the Amazon") +
+  theme(legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        legend.position = c(0.35, 0.175),
+        legend.box.background = element_rect(color = "black", size = 1),
+        legend.box.margin = margin(4, 4, 4, 4),
+        axis.title = element_text(face = "bold"))
+```
+
+### Plot
+
+```{r}
+EF_scatter
+```
+
+:::
