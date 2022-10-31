@@ -5,6 +5,7 @@ author:
   - Kevin Middleton
 format:
   revealjs:
+    theme: [default, custom.scss]
     standalone: true
     self-contained: true
     logo: QMLS_Logo.png
@@ -26,16 +27,78 @@ library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 
 library(Data4Ecologists)
+library(abdData)
 ```
 
 (Nearly) everything.
+
+## Blank slate
+
+```{r}
+#| echo: true
+ggplot() +
+  theme_void()
+```
 
 ## Scales
 
 `scale_` handles changing how aesthetics are represented in plots
 
+- `scale_x_`
+- `scale_y_`
+- `scale_color_`
+- `scale_fill_`
+- `scale_shape_`
+- etc.
+
+## Types of scales
+
+`scale_`aesthetic`_`[type]{style="color: #CB3570"} where [type]{style="color: #CB3570"} is
+
+- `continuous`
+- `discrete`
+- `manual`
+- `datetime`
+- etc.
+
+Different aesthetics have different scale types available
+
+- RStudio tab completion is your friend here: `scale_x`-[Tab]{style="color: #CB3570"}
+
+## `scale_x_` and `scale_y_`
+
+## Electric fish diversity and tributaries {.scrollable}
+
+Species abundance of electric fish upstream and downstream of the entrance of a tributary in the Amazon basin.
+
+```{r}
+EF <- ElectricFish |> 
+  rename(Tributary = tributary,
+         n_Upstream = species.upstream,
+         n_Downstream = species.downstream) |> 
+  arrange(Tributary)
+EF |> knitr::kable()
+```
+
+## Electric fish visualization
+
+1. Bar plot of Upstream and Downstream by Tributary
+2. Scatterplot of Upstream vs. Downstream
+
+## `scale_color_`
+
+## `scale_fill_`
+
+## `scale_shape_`
+
+## `scale_size_`
+
 ## `theme()` changes aspects of plots
 
-## Changing axes
+- Custom and reusable themes in a few weeks
 
-## Moving the legend
+## Changing axis components
+
+## Changing axis aspect ratio
+
+## (Re)moving and reshaping the legend

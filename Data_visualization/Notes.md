@@ -3,7 +3,9 @@
 ## Datasets
 
 - Data4Ecologists: https://github.com/jfieberg/Data4Ecologists
-- abd: https://github.com/Middleton-Lab/abd
+  - remotes::install_github("jfieberg/Data4Ecologists")
+- abdData: https://github.com/Middleton-Lab/abdData
+  - remotes::install_github("Middleton-Lab/abdData")
 
 ## Gallery
 

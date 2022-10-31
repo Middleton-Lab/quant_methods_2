@@ -5,6 +5,7 @@ author:
   - Kevin Middleton
 format:
   revealjs:
+    theme: [default, custom.scss]
     standalone: true
     self-contained: true
     logo: QMLS_Logo.png

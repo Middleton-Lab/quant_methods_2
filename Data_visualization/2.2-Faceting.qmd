@@ -5,6 +5,7 @@ author:
   - Kevin Middleton
 format:
   revealjs:
+    theme: [default, custom.scss]
     standalone: true
     self-contained: true
     logo: QMLS_Logo.png
@@ -52,7 +53,7 @@ bear <- bearmove |>
 str(bear)
 ```
 
-## Bear movement {.scrollable}
+## Aggregate bear movement data {.scrollable}
 
 ```{r}
 bear |> 
@@ -69,10 +70,11 @@ bear |>
 
 - Use the `position` argument to shift a `group`.
   - Set `width` by trial and error
-- Often used alongside `color`
+- Often used with `color`
 
 ```{r}
 #| echo: true
+#| code-line-numbers: "5-6"
 p <- ggplot(bear,
             aes(x = BearID,
                 y = log_Move,
@@ -97,10 +99,11 @@ p
 ### Code
 
 - Use `position = position_jitterdodge`
-- Also set `seed` to make the jittering reproducible
+- Also set `seed` to make the jitter reproducible
 
 ```{r}
 #| echo: true
+#| code-line-numbers: "6-8"
 
 p <- ggplot(bear,
             aes(x = BearID,
@@ -132,6 +135,7 @@ Further refinements:
 
 ```{r}
 #| echo: true
+#| code-line-numbers: "9"
 
 p <- ggplot(bear,
             aes(x = BearID,
@@ -183,16 +187,16 @@ p
 
 :::
 
-## faceting
+## Faceting
 
 Good for focusing on comparisons among measurements
 
-- Generate multiple plots, each split by the levels of a factor
-- By wrapping with `facet_wrap()`
-- By rows or columns with `facet_grid()` if there is some logical order
-  - Think about the direction of the comparison and the way your eyes will move around the plot
+- Automated generation of multiple plots, each split by the levels of a factor
+- By wrapping in factor order with `facet_wrap()`
+- By rows or columns with `facet_grid()`, if there is some logical order
+  - Think about the direction of the comparison (down rows or across columns) and the way your eyes will move around the plot
 
-## faceting
+## Faceting in rows
 
 ::: {.panel-tabset}
 
@@ -226,7 +230,7 @@ p
 
 :::
 
-## faceting
+## Faceting in columns
 
 ::: {.panel-tabset}
 
@@ -256,7 +260,7 @@ p
 
 :::
 
-## faceting
+## Faceting in rows and columns
 
 ::: {.panel-tabset}
 
@@ -286,14 +290,19 @@ p
 
 :::
 
-## faceting
+## Wrapping facets
+
+Number of rows (`nrow`) or columns (`ncol`) can be specified
 
 ::: {.panel-tabset}
 
 ### Code
 
+Wrapping by `BearID` with `facet_wrap()`:
+
 ```{r}
 #| echo: true
+#| code-line-numbers: "10"
 
 p <- ggplot(bear,
             aes(x = Season,
@@ -318,7 +327,12 @@ p
 ## Axis ranges
 
 - By default, all axis ranges are equal (`fixed`)
-- `free_x`, `free_y`, and `free` can be used to allow `x`, `y`, or both axes to vary.
+  - Usually the behavior you want
+- `free_x`, `free_y`, and `free` can be used to allow `x`, `y`, or both axes to vary by facet.
+  - Useful for making composite plots in one plot statement
+  - Variables with different magnitudes or ranges
+
+## Pivoting the bear data
 
 ```{r}
 #| echo: true
@@ -330,7 +344,7 @@ bear_long <- bear |>
 bear_long
 ```
 
-## Without freeing the axis
+## Default equal axis scale
 
 ::: {.panel-tabset}
 
@@ -342,7 +356,9 @@ bear_long
 p <- ggplot(bear_long,
             aes(x = BearID,
                 y = value)) +
-  geom_point(alpha = 0.25) +
+  geom_point(position = position_jitter(width = 0.2,
+                                        seed = 4527345),
+             alpha = 0.25) +
   facet_grid(Measurement ~ Season)
 ```
 
@@ -354,7 +370,7 @@ p
 
 :::
 
-## With freeing the axis
+## With free axis scale
 
 ::: {.panel-tabset}
 
@@ -362,6 +378,7 @@ p
 
 ```{r}
 #| echo: true
+#| code-line-numbers: "7"
 
 p <- ggplot(bear_long,
             aes(x = BearID,

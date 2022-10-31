@@ -5,6 +5,7 @@ author:
   - Kevin Middleton
 format:
   revealjs:
+    theme: [default, custom.scss]
     standalone: true
     self-contained: true
     logo: QMLS_Logo.png
@@ -77,7 +78,7 @@ str(bp)
 
 What kind of plot would best represent these data?
 
-## Working with aesthetics
+## Working with color aesthetics
 
 ::: {.panel-tabset}
 
@@ -98,7 +99,7 @@ p
 
 :::
 
-## Working with aesthetics
+## Working with shape aesthetics
 
 ::: {.panel-tabset}
 
@@ -169,7 +170,7 @@ M <- tibble(
 head(M)
 ```
 
-## Color
+## Color by `x2`
 
 ::: {.panel-tabset}
 
@@ -192,7 +193,7 @@ p
 
 :::
 
-## Color
+## Color by `x3`
 
 ::: {.panel-tabset}
 
@@ -215,7 +216,7 @@ p
 
 :::
 
-## Color
+## Color by `factor(x2)`
 
 ::: {.panel-tabset}
 
@@ -239,7 +240,7 @@ p
 
 :::
 
-## Color
+## Color by `factor(x4)`
 
 ::: {.panel-tabset}
 
@@ -263,7 +264,7 @@ p
 
 :::
 
-## Size
+## Add a `size` aesthetic
 
 ::: {.panel-tabset}
 
@@ -313,7 +314,7 @@ p
 
 :::
 
-## Size
+## Automatic size scaling
 
 ::: {.panel-tabset}
 
