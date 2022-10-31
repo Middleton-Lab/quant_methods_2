@@ -71,6 +71,10 @@ Don't:
 
 - Every possible use case
 
+## Dual motivations for this module
+
+1. Thinking about what "story" you want to tell with your plots
+2. Learning about the details of how to show what you want to show.
 
 ## Plotting options in R
 
