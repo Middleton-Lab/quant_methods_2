@@ -11,6 +11,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## `geom_`s
@@ -36,6 +37,7 @@ library(Data4Ecologists)
   - `geom_smooth()` adds a line based on a formula and some kind of regression
   - `geom_rect()` adds a box made of lines
 
+
 ## Aesthetics: `aes()`
 
 - Map columns of data to elements (`geom_`s) on a plot
@@ -46,9 +48,11 @@ library(Data4Ecologists)
 
 Look to the [ggplot function reference](https://ggplot2.tidyverse.org/reference/index.html) when in doubt.
 
+
 ## `geom_ribbon()`
 
 ![](Images/geom_ribbon.png)
+
 
 ## Thinking about aesthetics
 
@@ -58,6 +62,7 @@ Look to the [ggplot function reference](https://ggplot2.tidyverse.org/reference/
 - Then think about how to best encode other information
   - Color, shape, size, linetype, alpha
   - Facets (next lecture)
+
 
 ## Working with aesthetics
 
@@ -77,6 +82,7 @@ str(bp)
 <br />
 
 What kind of plot would best represent these data?
+
 
 ## Working with color aesthetics
 
@@ -99,6 +105,7 @@ p
 
 :::
 
+
 ## Working with shape aesthetics
 
 ::: {.panel-tabset}
@@ -119,6 +126,7 @@ p
 ```
 
 :::
+
 
 ## Reversing the variables
 
@@ -141,12 +149,14 @@ p
 
 :::
 
+
 ## What is `x` and what is `y`?
 
 By convention:
 
 - `y` is the variable of primary interest
 - `x` is what predicts `y` or the grouping of interest
+
 
 ## Applying aesthetics
 
@@ -169,6 +179,7 @@ M <- tibble(
 ```{r}
 head(M)
 ```
+
 
 ## Color by `x2`
 
@@ -193,6 +204,7 @@ p
 
 :::
 
+
 ## Color by `x3`
 
 ::: {.panel-tabset}
@@ -215,6 +227,7 @@ p
 ```
 
 :::
+
 
 ## Color by `factor(x2)`
 
@@ -240,6 +253,7 @@ p
 
 :::
 
+
 ## Color by `factor(x4)`
 
 ::: {.panel-tabset}
@@ -263,6 +277,7 @@ p
 ```
 
 :::
+
 
 ## Add a `size` aesthetic
 
@@ -289,6 +304,7 @@ p
 
 :::
 
+
 ## Size
 
 ::: {.panel-tabset}
@@ -313,6 +329,7 @@ p
 ```
 
 :::
+
 
 ## Automatic size scaling
 
@@ -339,6 +356,7 @@ p
 
 :::
 
+
 ## Shape
 
 ::: {.panel-tabset}
@@ -363,6 +381,7 @@ p
 
 :::
 
+
 ## Shape
 
 ```{{r}}
@@ -383,13 +402,14 @@ Error in scale_f():
 
 :::
 
+
 ## Fill
 
 ::: {.panel-tabset}
 
 ### Code
 
-Most often used for bars:
+Most often used for bars, including histograms:
 
 ```{r}
 #| echo: true
@@ -405,6 +425,7 @@ p
 ```
 
 :::
+
 
 ## Fill
 
@@ -429,13 +450,14 @@ p
 
 :::
 
+
 ## Fill
 
 ::: {.panel-tabset}
 
 ### Code
 
-Can also fill point shapes:
+Can also fill point shapes (not all `pch` can be filled):
 
 ```{r}
 #| echo: true
@@ -453,6 +475,7 @@ p
 ```
 
 :::
+
 
 ## Linetype
 
@@ -476,6 +499,7 @@ p
 ```
 
 :::
+
 
 ## Alpha
 
@@ -504,6 +528,7 @@ p
 ```
 
 :::
+
 
 ## Setting an aesthetic vs. modifying a `geom_`
 

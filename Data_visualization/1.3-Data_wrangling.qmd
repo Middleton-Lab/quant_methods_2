@@ -12,6 +12,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Why does data shape matter?
@@ -27,6 +28,7 @@ library(paletteer)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 ```
+
 
 ## Wide vs. long data {.smaller}
 
@@ -45,6 +47,7 @@ penguins2 |>
   slice(1:11) |> 
   knitr::kable()
 ```
+
 
 ## Bar charts for counts
 
@@ -66,6 +69,7 @@ p
 ```
 
 :::
+
 
 ## Grouped bar charts
 
@@ -89,6 +93,7 @@ p
 
 :::
 
+
 ## Grouped bar charts
 
 ::: {.panel-tabset}
@@ -111,6 +116,7 @@ p
 ```
 
 :::
+
 
 ## Stacked bar charts
 
@@ -137,6 +143,7 @@ p
 
 :::
 
+
 ## Aggregating to get counts
 
 ```{r}
@@ -152,6 +159,7 @@ penguin_counts <- penguins2 |>
 ```{r}
 penguin_counts
 ```
+
 
 ## Aggregating counts
 
@@ -169,6 +177,7 @@ penguin_counts_by_year <- penguins2 |>
 penguin_counts_by_year
 ```
 
+
 ## Working with aggregated data {.scrollable}
 
 Galápagos plant diversity ^[Johnson, MP and Raven, PH. 1973. Species number and endemism: The Galápagos Archipelago revisited. *Science*, 179, 893-895.]
@@ -180,6 +189,7 @@ gala2 <- gala |>
   select(1:5)
 gala2 |> knitr::kable()
 ```
+
 
 ## Bar charts for aggregated data
 
@@ -203,6 +213,7 @@ p
 ```
 
 :::
+
 
 ## Bar charts for counts
 
@@ -231,6 +242,7 @@ p
 
 :::
 
+
 ## Bar charts for counts
 
 ::: {.panel-tabset}
@@ -258,6 +270,7 @@ p
 ```
 
 :::
+
 
 ## Bar charts for counts
 
@@ -305,6 +318,28 @@ p_rotated_rev
 
 :::
 
+## Histograms as a special bar chart
+
+::: {.panel-tabset}
+
+### Code 
+
+```{r}
+#| echo: true
+p <- ggplot(penguins |> drop_na(bill_length_mm),
+            aes(bill_length_mm, color = species)) +
+  geom_histogram(bins = 30, fill = NA)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+
 ## Pivoting data
 
 Wide to long:
@@ -314,6 +349,7 @@ Wide to long:
 Long to wide:
 
 - Multiple rows into columns
+
 
 ## Multiple columns to rows
 
@@ -329,6 +365,7 @@ penguins3 <- penguins |>
 penguins3
 ```
 
+
 ## Multiple columns to rows
 
 ```{r}
@@ -340,6 +377,7 @@ penguins_long <- penguins3 |>
 
 penguins_long
 ```
+
 
 ## Plotting long data
 
@@ -365,6 +403,7 @@ p
 ```
 
 :::
+
 
 ## Splitting or Joining Columns {.scrollable}
 
@@ -397,6 +436,7 @@ M <- tribble(
 M
 ```
 
+
 ## Joining with `unite()`
 
 ```{r}
@@ -411,6 +451,7 @@ M <- M |>
 M
 ```
 
+
 ## Splitting with `separate()`
 
 ```{r}
@@ -422,6 +463,7 @@ M <- M |>
 ```{r}
 M
 ```
+
 
 ## Plotting dates
 
@@ -444,6 +486,7 @@ p
 ```
 
 :::
+
 
 ## Plotting dates
 

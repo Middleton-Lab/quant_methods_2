@@ -11,13 +11,22 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
-## Title
+## Plots are a visual medium
+
+- [Writing good alt text](https://accessibility.huit.harvard.edu/describe-content-images)
+- [Alt text for data visualization](https://medium.com/nightingale/writing-alt-text-for-data-visualization-2a218ef43f81)
+  - And links therein
+- Powerpoint can include alt text
+
 
 ## Color considerations
 
 - Challenges distinguishing colors impact a large proportion of people
+- Resist stereotypical coloration
+
 
 ## Shape considerations
 
@@ -25,15 +34,23 @@ format:
   - Color page charges in journals
 - 
 
+
 ## Size considerations
 
 - [Size by area (default) or radius](https://ggplot2-book.org/scale-other.html)
   - Humans are better at area
+- Difficult to distinguish finely between sizes
+  - "large" vs. "small"
 - Set the `range` to control the output scale
+
 
 ## Linetype considerations
 
+- At most 2-3 different linetypes are distinguishable
+- `"solid"`, `"dotted"`, `"dashed"`
 
 
 ## Alpha considerations
 
+- Difficult to distinguish finely between transparency
+- Most often to reduce overplotting in scatter plots

@@ -12,9 +12,16 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Responsibility
+
+- The first goal is honest communication
+- Not make the effect look big or small
+- Match your statistics
+- Digestible version leaves out important details
+
 
 ## Readings
 

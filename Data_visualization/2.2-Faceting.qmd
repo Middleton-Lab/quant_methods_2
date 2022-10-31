@@ -11,6 +11,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Getting more information into a plot
@@ -33,6 +34,7 @@ library(Data4Ecologists)
   - More than about 2 becomes unwieldy
 - Dodging and faceting can provide more options
 
+
 ## Bear movement
 
 Black bear movements in northern Minnesota ^[Ditmer, MA, et a.. 2015. Behavioral and physiological responses of American black bears to landscape features within an agricultural region. *Ecosphere* 6: 1-21.]
@@ -53,6 +55,7 @@ bear <- bearmove |>
 str(bear)
 ```
 
+
 ## Aggregate bear movement data {.scrollable}
 
 ```{r}
@@ -61,6 +64,7 @@ bear |>
   count() |> 
   knitr::kable()
 ```
+
 
 ## Dodging points
 
@@ -123,6 +127,7 @@ p
 
 :::
 
+
 ## Dodging points with jitter
 
 ::: {.panel-tabset}
@@ -156,6 +161,7 @@ p
 
 :::
 
+
 ## Dodging bar graphs
 
 ::: {.panel-tabset}
@@ -187,6 +193,7 @@ p
 
 :::
 
+
 ## Faceting
 
 Good for focusing on comparisons among measurements
@@ -195,6 +202,7 @@ Good for focusing on comparisons among measurements
 - By wrapping in factor order with `facet_wrap()`
 - By rows or columns with `facet_grid()`, if there is some logical order
   - Think about the direction of the comparison (down rows or across columns) and the way your eyes will move around the plot
+
 
 ## Faceting in rows
 
@@ -230,6 +238,7 @@ p
 
 :::
 
+
 ## Faceting in columns
 
 ::: {.panel-tabset}
@@ -260,6 +269,7 @@ p
 
 :::
 
+
 ## Faceting in rows and columns
 
 ::: {.panel-tabset}
@@ -289,6 +299,7 @@ p
 ```
 
 :::
+
 
 ## Wrapping facets
 
@@ -324,6 +335,7 @@ p
 
 :::
 
+
 ## Axis ranges
 
 - By default, all axis ranges are equal (`fixed`)
@@ -343,6 +355,7 @@ bear_long <- bear |>
                names_to = "Measurement")
 bear_long
 ```
+
 
 ## Default equal axis scale
 
@@ -369,6 +382,7 @@ p
 ```
 
 :::
+
 
 ## With free axis scale
 
