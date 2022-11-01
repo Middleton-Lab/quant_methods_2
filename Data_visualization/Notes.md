@@ -20,6 +20,7 @@
 - 4-6 publication quality images
   - Paper/manuscript/dissertation: multipanel labeled
   - Powerpoint slide: appropriate font and geometry sizes
+    - Appropriate alt text
 
 ## Datasets
 

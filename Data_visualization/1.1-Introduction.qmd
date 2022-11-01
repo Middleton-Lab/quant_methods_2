@@ -87,8 +87,7 @@ Don't:
 - Base R
 - Lattice
 - `ggplot` and the `tidyverse`
-
-For entertainment: [http://varianceexplained.org/r/why-I-use-ggplot2/](http://varianceexplained.org/r/why-I-use-ggplot2/)
+  - [ggplot Extensions](https://exts.ggplot2.tidyverse.org/gallery/)
 
 
 ## Packages we will use often

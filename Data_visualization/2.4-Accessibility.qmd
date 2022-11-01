@@ -16,7 +16,38 @@ format:
 
 ## Plots are a visual medium
 
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(paletteer)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+library(abdData)
+```
+
+::: {style="text-align: center"}
+
+![](https://exts.ggplot2.tidyverse.org/gallery/images/ggridges.png)
+
+:::
+
+::: {style="font-size: 60%; text-align: right"}
+
+Claus Wilke / `ggridges`
+
+:::
+
+
+## `alt` text
+
 - [Writing good alt text](https://accessibility.huit.harvard.edu/describe-content-images)
+- [Web Accessibility in Mind](https://webaim.org/techniques/alttext/)
 - [Alt text for data visualization](https://medium.com/nightingale/writing-alt-text-for-data-visualization-2a218ef43f81)
   - And links therein
 - Powerpoint can include alt text
@@ -24,16 +55,145 @@ format:
 
 ## Color considerations
 
+- Everyone sees color slightly differently
 - Challenges distinguishing colors impact a large proportion of people
+  - Probably ~10%
+  - X-linked
 - Resist stereotypical coloration
 
+
+## R Packages
+
+- [colorBlindness](https://cran.r-project.org/web/packages/colorBlindness/vignettes/colorBlindness.html)
+- [colorblindr](https://github.com/clauswilke/colorblindr)
+
+
+## Accessible palettes
+
+- [RColorbrewer](https://colorbrewer2.org/)
+- [Okabe-Ito](https://siegal.bio.nyu.edu/color-palette/)
+
+![](http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/colorblind_palette.jpg)
+
+
+## Checking a plot
+
+```{r}
+EF <- ElectricFish |> 
+  rename(Tributary = tributary,
+         n_Upstream = species.upstream,
+         n_Downstream = species.downstream) |> 
+  arrange(Tributary) |> 
+  pivot_longer(cols = -Tributary,
+               names_to = "Up_Down",
+               values_to = "n_Species")
+
+EF_bar <- ggplot(EF, aes(x = Tributary,
+             y = n_Species,
+             fill = Up_Down,
+             group = Up_Down)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.9)) +
+  labs(y = "Number of Species",
+       title = "Species Diversity in the Amazon")  +
+  scale_fill_manual(values = c("darkred", "darkgreen"),
+                    name = "Upstream /\nDownstream") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        axis.title.x = element_blank())
+EF_bar
+```
+
+
+## Checking a plot: `colorblindr`
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(colorblindr)
+cvd_grid(EF_bar)
+```
+
+## Checking a plot: `colorBlindness`
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(colorBlindness)
+cvdPlot(EF_bar)
+```
+
+
+## Recoloring
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+
+library(easystats)
+EF_bar2 <- EF_bar +
+  scale_fill_OkabeIto(name = "Upstream /\nDownstream")
+```
+
+::: {style="font-size: 75%"}
+<br />
+
+`Scale for 'fill' is already present. Adding another scale for 'fill', which will replace the existing scale.`
+
+:::
+
+### Plot
+
+```{r}
+EF_bar2
+```
+
+:::
+
+
+## Checking a plot: `colorblindr`
+
+```{r}
+cvd_grid(EF_bar2)
+```
 
 ## Shape considerations
 
 - Most useful when color is not an option
   - Color page charges in journals
-- 
+- Make the shapes as different as possible
 
+
+## Comparing shapes
+
+```{r}
+set.seed(126633)
+n <- 50
+M <- tibble(
+  x1 = runif(n, min = 0, max = 10),
+  y = 2 * x1 + rnorm(n, mean = 0, sd = 1),
+  x2 = sample(1:20, size = n, replace = TRUE),
+  x3 = sample(LETTERS[1:4], size = n, replace = TRUE),
+  x4 = runif(n, min = 0, max = 1)) |> 
+  arrange(x1)
+
+p1 <- ggplot(M,
+             aes(x = x1, 
+                 y = y, 
+                 shape = x3)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(15:18))
+
+p2 <- ggplot(M,
+             aes(x = x1, 
+                 y = y, 
+                 shape = x3)) +
+  geom_point(size = 5) +
+  scale_shape_manual(values = c(1, 3, 8, 16))
+plot_grid(p1, p2, ncol = 2)
+```
 
 ## Size considerations
 
@@ -44,10 +204,48 @@ format:
 - Set the `range` to control the output scale
 
 
+## Comparing `size`
+
+```{r}
+p1 <- ggplot(M,
+            aes(x = x1, 
+                y = y,
+                size = x2)) +
+  scale_size(range = c(0.5, 5)) +
+  geom_point()
+
+p2 <- ggplot(M,
+            aes(x = x1, 
+                y = y,
+                size = x2)) +
+  scale_size(range = c(5, 10)) +
+  geom_point()
+plot_grid(p1, p2, ncol = 2)
+```
+
 ## Linetype considerations
 
-- At most 2-3 different linetypes are distinguishable
+- At most 2-3 different line types are easily distinguishable
 - `"solid"`, `"dotted"`, `"dashed"`
+
+
+## Comparing `linetype`
+
+```{r}
+set.seed(1238789)
+M <- replicate(9, diffinv(rnorm(10, 10, 5))) |> 
+  as_tibble(.name_repair = "unique") |> 
+  slice(-1) |> 
+  mutate(ID = factor(1:n())) |> 
+  pivot_longer(cols = -ID, names_to = "x", values_to = "y") |> 
+  mutate(x = str_remove(x, "...") |> as.numeric()) |> 
+  arrange(x)
+
+ggplot(M, aes(x, y, group = ID, linetype = ID)) +
+  geom_path() +
+  scale_x_continuous(name = "Time (h)", limits = c(0, 10)) +
+  scale_y_continuous(name = "Concentration (mM)")
+```
 
 
 ## Alpha considerations
