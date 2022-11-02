@@ -46,16 +46,152 @@ library(abdData)
 - Highlighting different elements with color, labels or arrows
 
 
-## Points and lines
+## Zooplankton diversity {.scrollable}
+
+Diversity of zooplankton (`Diversity`) prey in each of 5 replicate `Block`s of three `Treatment` levels.^[Svanbäck, R and DI Bolnick. 2007. Intraspecific competition drives increased resource use diversity within a natural population. *Proc R Soc London Ser B, Biol Sci* 274: 839-844.]
+
+```{r}
+ZP <- Zooplankton |> 
+  rename(Treatment = treatment,
+         Diversity = zooplankton,
+         Block = block) |> 
+  mutate(Treatment = case_when(
+    Treatment == "control" ~ "Control",
+    Treatment == "low" ~ "Low",
+    Treatment == "high" ~ "High"
+  ),
+  Treatment = factor(Treatment, levels = c("Low", "Control", "High")),
+  Block = factor(Block)) |> 
+  as_tibble()
+
+ZP
+```
+
+
+## Points by groups
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(ZP, aes(x = Treatment, y = Diversity)) +
+  geom_point(size = 2,
+             position = position_jitter(width = 0.05,
+                                        seed = 6734747))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+
+## Boxplot
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(ZP, aes(x = Treatment, y = Diversity)) +
+  geom_boxplot()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
 
 
 ## Boxplot with points
 
+::: {.panel-tabset}
+
+### Code
+
+- Add points on top of the boxplot (`ggplot` adds `geom`s sequentially)
+- Turn off automatic outlier identification (`outlier.shape = NA`)
+
+```{r}
+#| echo: true
+p <- ggplot(ZP, aes(x = Treatment, y = Diversity)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(size = 2,
+             position = position_jitter(width = 0.05,
+                                        seed = 6734747))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
 
 ## Precomputing quantities
 
+```{r}
+#| echo: true
+SEM <- function(x) {
+  return(sd(x) / sqrt(length(x)))
+}
 
-## Multiple data sources
+ZP_means <- ZP |> 
+  group_by(Treatment) |> 
+  summarise(mean_Diversity = mean(Diversity),
+            upper_SEM = mean_Diversity + 2 * SEM(Diversity),
+            lower_SEM = mean_Diversity - 2 * SEM(Diversity),
+            .groups = "drop")
+
+ZP_means
+```
+
+
+## Plots from multiple data sources
+
+
+::: {.panel-tabset}
+
+### Code
+
+- Use `data` argument to `geom_`...
+
+```{r}
+#| echo: true
+p <- ggplot() +
+  geom_point(data = ZP, aes(x = Treatment, y = Diversity),
+             size = 2,
+             position = position_jitter(width = 0.05,
+                                        seed = 6734747)) +
+  geom_point(data = ZP_means,
+             aes(x = Treatment, y = mean_Diversity),
+             size = 4,
+             color = "gray50") +
+  geom_errorbar(data = ZP_means,
+                aes(x = Treatment, ymin = lower_SEM, ymax = upper_SEM),
+                width = 0.1,
+                size = 1,
+                color = "gray50")
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
 
 
 ## Reaction norms for paired data
@@ -143,7 +279,7 @@ p
 ### Code
 
 - `stat_summary()` can add the output of summary functions.
-- `mean_cl_boot` give the mean and bootstrapped 95% CI.
+- `mean_cl_boot` give the mean and bootstrapped 95% CI. (requires `Hmisc`)
 - `aes(group = -1)` ungroups the data so that the statistics will calculate for each `Timepoint`
 
 ```{r}
