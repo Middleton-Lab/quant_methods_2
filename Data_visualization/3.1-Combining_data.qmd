@@ -1,0 +1,187 @@
+---
+title: "Constructing Complex Plots"
+subtitle: "Combining Data Sources"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## This week
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+library(abdData)
+```
+
+1. Combining data sources
+2. Adding elements
+3. Highlighting elements
+4. Reusable themes
+
+
+## "Complex plots"
+
+- Combining `geom`s
+- Data from different sources (`data.frame`s, regressions, etc.)
+- Non-standard elements or axis labels (text with math symbols)
+- Custom colors or gradients
+- Highlighting different elements with color, labels or arrows
+
+
+## Points and lines
+
+
+## Boxplot with points
+
+
+## Precomputing quantities
+
+
+## Multiple data sources
+
+
+## Reaction norms for paired data
+
+Antibody levels in Red-winged blackbirds before and after experimental manipulation of testosterone^[Hasselquist D, JA Marsh, PW Sherman, JC Wingfield. 1999. Is avian immunocompetence suppressed by testosterone? *Behav Ecol Sociobiol* 45: 167-175.]
+
+```{r}
+BB <- Blackbirds |> 
+  mutate(ID = factor(1:n())) |> 
+  rename(Before = before,
+         After = after) |> 
+  select(ID, Before, After)
+
+BB
+```
+
+
+## Pivoting
+
+```{r}
+#| echo: true
+BB_long <- BB |> 
+  pivot_longer(cols = -ID,
+               names_to = "Timepoint",
+               values_to = "Antibody_level")
+
+BB_long
+```
+
+
+## Plotting reaction norms
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+p <- ggplot(BB_long, aes(x = Timepoint, y = Antibody_level, group = ID)) +
+  geom_point() +
+  geom_line()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+
+## Ordering factors
+
+::: {.panel-tabset}
+
+### Code
+
+Also many options in the `forcats` package (`fct_` functions) when you already have a factor.
+
+```{r}
+#| echo: true
+
+BB_long <- BB_long |> 
+  mutate(Timepoint = factor(Timepoint, levels = c("Before", "After")))
+
+p <- ggplot(BB_long, aes(x = Timepoint, y = Antibody_level, group = ID)) +
+  geom_point() +
+  geom_line()
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+
+## Adding a mean and error bars
+
+::: {.panel-tabset}
+
+### Code
+
+- `stat_summary()` can add the output of summary functions.
+- `mean_cl_boot` give the mean and bootstrapped 95% CI.
+- `aes(group = -1)` ungroups the data so that the statistics will calculate for each `Timepoint`
+
+```{r}
+#| echo: true
+p <- ggplot(BB_long, aes(x = Timepoint, y = Antibody_level, group = ID)) +
+  geom_point() +
+  geom_line() +
+  stat_summary(aes(group = -1),
+               fun.data = "mean_cl_boot",
+               color = "goldenrod",
+               size = 1)
+```
+
+### Plot
+
+```{r}
+p
+```
+
+:::
+
+## Horizontal, Vertical, and `ab` lines
+
+
+## Adding regression lines
+
+
+## `geom_smooth()`
+
+
+## `predict()` with `interval="predict"`
+
+- Grid construction with `crossing()`
+
+
+## `fortify()`
+
+
+## Making confidence interval bands
+
+
