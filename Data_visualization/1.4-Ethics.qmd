@@ -42,7 +42,7 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Example
 
-Two variables with a lot of samples. Similar means and standard deviations
+Two variables with a lot of samples. Similar standard deviations. Means differ by 0.5%
 
 ```{r}
 set.seed(436248)

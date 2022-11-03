@@ -107,11 +107,18 @@ EF_bar
 ## Checking a plot: `colorblindr`
 
 ```{r}
+EF_bar <- EF_bar +
+  theme(axis.title.y = element_blank(),
+        legend.position = "none")
+```
+
+```{r}
 #| echo: true
 #| output-location: slide
 library(colorblindr)
 cvd_grid(EF_bar)
 ```
+
 
 ## Checking a plot: `colorBlindness`
 
@@ -125,30 +132,19 @@ cvdPlot(EF_bar)
 
 ## Recoloring
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-
+#| output-location: slide
 library(easystats)
 EF_bar2 <- EF_bar +
   scale_fill_OkabeIto(name = "Upstream /\nDownstream")
+EF_bar2
 ```
 
 ::: {style="font-size: 75%"}
 <br />
 
 `Scale for 'fill' is already present. Adding another scale for 'fill', which will replace the existing scale.`
-
-:::
-
-### Plot
-
-```{r}
-EF_bar2
-```
 
 :::
 
@@ -195,6 +191,7 @@ p2 <- ggplot(M,
 plot_grid(p1, p2, ncol = 2)
 ```
 
+
 ## Size considerations
 
 - [Size by area (default) or radius](https://ggplot2-book.org/scale-other.html)
@@ -222,6 +219,7 @@ p2 <- ggplot(M,
   geom_point()
 plot_grid(p1, p2, ncol = 2)
 ```
+
 
 ## Linetype considerations
 

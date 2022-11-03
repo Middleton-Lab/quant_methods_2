@@ -14,7 +14,7 @@ format:
     link-external-newwindow: true
 ---
 
-## `geom_`s
+## This week
 
 ```{r}
 #| label: setup
@@ -30,6 +30,13 @@ ggplot2::theme_set(theme_cowplot())
 library(Data4Ecologists)
 ```
 
+1. Aesthetics
+2. Faceting and dodging
+3. Theming
+4. Accessibility
+
+
+## `geom_`s
 
 - The geometric building blocks of a plot
 - [List of `geom_`s](https://ggplot2-book.org/individual-geoms.html)
@@ -86,68 +93,35 @@ What kind of plot would best represent these data?
 
 ## Working with color aesthetics
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(bp,
-            aes(x = Duration, y = Prop_removed, color = Bee_type)) +
+#| output-location: slide
+ggplot(bp,
+       aes(x = Duration, y = Prop_removed, color = Bee_type)) +
   geom_point(size = 3)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Working with shape aesthetics
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(bp,
-            aes(x = Duration, y = Prop_removed, shape = Bee_type)) +
+#| output-location: slide
+ggplot(bp,
+       aes(x = Duration, y = Prop_removed, shape = Bee_type)) +
   geom_point(size = 3)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Reversing the variables
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(bp,
-            aes(x = Prop_removed, y = Duration, color = Bee_type)) +
+#| output-location: slide
+ggplot(bp,
+       aes(x = Prop_removed, y = Duration, color = Bee_type)) +
   geom_point(size = 3)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## What is `x` and what is `y`?
@@ -183,50 +157,28 @@ head(M)
 
 ## Color by `x2`
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y, 
-                color = x2)) +
+#| output-location: slide
+ggplot(M,
+       aes(x = x1, 
+           y = y, 
+           color = x2)) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Color by `x3`
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y, 
-                color = x3)) +
+#| output-location: slide
+ggplot(M,
+       aes(x = x1, 
+           y = y, 
+           color = x3)) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Color by `factor(x2)`
@@ -237,149 +189,89 @@ p
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "4"
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y, 
-                color = factor(x2))) +
+ggplot(M,
+       aes(x = x1, 
+           y = y, 
+           color = factor(x2))) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Color by `factor(x4)`
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "4"
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y, 
-                color = factor(x4))) +
+ggplot(M,
+       aes(x = x1, 
+           y = y, 
+           color = factor(x4))) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Add a `size` aesthetic
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "5"
-p <- ggplot(M,
-            aes(x = x1,
-                y = y, 
-                color = x3, 
-                size = x2)) +
+ggplot(M,
+       aes(x = x1,
+           y = y, 
+           color = x3, 
+           size = x2)) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Size
 
-::: {.panel-tabset}
-
-### Code
+Unset `size = 5` inside `geom_point()`
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "6"
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y,
-                color = x3, 
-                size = x2)) +
+ggplot(M,
+       aes(x = x1, 
+           y = y,
+           color = x3, 
+           size = x2)) +
   geom_point()
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Automatic size scaling
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "5"
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y,
-                color = x3,
-                size = x4)) +
+ggplot(M,
+       aes(x = x1, 
+           y = y,
+           color = x3,
+           size = x4)) +
   geom_point()
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Shape
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "4"
-p <- ggplot(M,
-            aes(x = x1, 
-                y = y, 
-                shape = x3)) +
+ggplot(M,
+       aes(x = x1, 
+           y = y, 
+           shape = x3)) +
   geom_point(size = 5)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Shape
@@ -405,129 +297,73 @@ Error in scale_f():
 
 ## Fill
 
-::: {.panel-tabset}
-
-### Code
-
 Most often used for bars, including histograms:
 
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x3, fill = x3)) +
+#| output-location: slide
+ggplot(M,
+       aes(x3, fill = x3)) +
   geom_bar()
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
-
 
 ## Fill
-
-::: {.panel-tabset}
-
-### Code
 
 We make this mistake every time:
 
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x3, color = x3)) +
+#| output-location: slide
+ggplot(M,
+       aes(x3, color = x3)) +
   geom_bar()
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
-
 
 ## Fill
-
-::: {.panel-tabset}
-
-### Code
 
 Can also fill point shapes (not all `pch` can be filled):
 
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x = x1, y = y,
-                color = x3,
-                fill = factor(x2))) +
+#| output-location: slide
+ggplot(M,
+       aes(x = x1, y = y,
+           color = x3,
+           fill = factor(x2))) +
   geom_point(pch = 21, size = 10)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Linetype
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-p <- ggplot(M,
-            aes(x = x1,
-                y = y,
-                linetype = x3)) +
+#| output-location: slide
+ggplot(M,
+       aes(x = x1,
+           y = y,
+           linetype = x3)) +
   geom_path()
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
-
 
 ## Alpha
-
-::: {.panel-tabset}
-
-### Code
 
 `alpha` encodes transparency from 0 (transparent) to 1 (opaque)
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "5"
-
-p <- ggplot(M,
-            aes(x = x1,
-                y = y,
-                color = x3,
-                alpha = x4)) +
+ggplot(M,
+       aes(x = x1,
+           y = y,
+           color = x3,
+           alpha = x4)) +
   geom_point(size = 10)
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 
 ## Setting an aesthetic vs. modifying a `geom_`

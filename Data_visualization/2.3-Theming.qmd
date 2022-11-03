@@ -45,11 +45,11 @@ ggplot() +
 ```
 
 
-## `gg`this and `gg`that
+## `gg`-this and `gg`-that
 
 - Lots of packages have plotting functionality built on top of `ggplot`
 - Not all play nicely with regular `ggplot` theme elements
-  - Can't `+` elements, etc.
+  - Can't `+` elements, limited ability to modify `theme()` elements, etc.
   - Your mileage may vary
 
 
@@ -86,9 +86,9 @@ Most commonly:
 
 - `scale_{xy}_continuous`: Continuous
 - `scale_{xy}_discrete`: Categorical
-- `scale{xy}_log10`: log~10~ transformation
-- `scale{xy}_sqrt`: Square-root transformation
-- `scale{xy}_manual`: Manually specify parameters (e.g., color)
+- `scale_{xy}_log10`: log~10~ transformation
+- `scale_{xy}_sqrt`: Square-root transformation
+- `scale_{xy}_reverse`: Reverse the axis
 
 
 ## Electric fish diversity and tributaries {.scrollable}
@@ -113,13 +113,9 @@ EF |> knitr::kable()
 
 ## Bar plot
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-
+#| output-location: slide
 EF_bar <- EF |> 
   pivot_longer(cols = -Tributary,
                names_to = "Up_Down",
@@ -130,22 +126,11 @@ EF_bar <- EF |>
              group = Up_Down)) +
   geom_bar(stat = "identity",
            position = position_dodge(width = 0.9))
-```
-
-### Plot
-
-```{r}
 EF_bar
 ```
 
-:::
-
 
 ## Bar plot refinements
-
-::: {.panel-tabset}
-
-### Code
 
 - `ggplot`s are additive, so we can "add" to an existing plot.
 - Change axis limits (but see *Ethics in visualization*)
@@ -153,8 +138,8 @@ EF_bar
 
 ```{r}
 #| echo: true
-
-EF_bar <- EF_bar +
+#| output-location: slide
+EF_bar +
   scale_y_continuous(limits = c(0, 50),
                      breaks = seq(0, 50, by = 5)) +
   scale_x_discrete(name = "Upstream/Downstream") +
@@ -162,124 +147,67 @@ EF_bar <- EF_bar +
        title = "Species Diversity in the Amazon")
 ```
 
-### Plot
-
-```{r}
-EF_bar
-```
-
-:::
-
 
 ## Scatter plot
-
-::: {.panel-tabset}
-
-### Code
 
 What is the relationship between upstream and downstream diversity?
 
 ```{r}
 #| echo: true
-
-EF_scatter <- ggplot(EF, aes(x = n_Upstream,
-                             y = n_Downstream)) +
+#| output-location: slide
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream)) +
   geom_point()
 ```
 
-### Plot
-
-```{r}
-EF_scatter
-```
-
-:::
-
 
 ## Scatter plot refinements
-
-::: {.panel-tabset}
-
-### Code
 
 - Add a straight line with a slope of 1
 - Change the color and size of all points
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "3-4"
-
-EF_scatter <- ggplot(EF, aes(x = n_Upstream,
-                             y = n_Downstream)) +
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
   geom_point(color = "tomato", size = 3)
 ```
 
-### Plot
-
-```{r}
-EF_scatter
-```
-
-:::
-
 
 ## Changing axis aspect ratio
-
-::: {.panel-tabset}
-
-### Code
 
 - Make the plot square (`coord_equal`)
 - Set the axis ranges to be equal (`xlim`, `ylim`)
 
 ```{r}
 #| echo: true
-
-EF_scatter <- EF_scatter +
+#| output-location: slide
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(color = "tomato", size = 3) +
   coord_equal(xlim = c(0, 30), ylim = c(0, 30))
 ```
 
-### Plot
-
-```{r}
-EF_scatter
-```
-
-:::
-
 
 ## `scale_color_` and `scale_fill_`
-
-::: {.panel-tabset}
-
-### Code
 
 - Set the fill manually
 - Include a line break in the legend title string with `\n`
 
 ```{r}
 #| echo: true
-
-EF_bar_m <- EF_bar +
+#| output-location: slide
+EF_bar +
   scale_fill_manual(values = c("orange", "darkgreen"),
                     name = "Upstream /\nDownstream")
 ```
 
-### Plot
-
-```{r}
-EF_bar_m
-```
-
-:::
-
 
 ## Automated color and fill scales
-
-::: {.panel-tabset}
-
-### Code
 
 - [RColorBrewer](https://colorbrewer2.org/)
 - [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)
@@ -287,18 +215,10 @@ EF_bar_m
 
 ```{r}
 #| echo: true
-
-EF_bar_b <- EF_bar +
+#| output-location: slide
+EF_bar +
   scale_fill_brewer(type = "qual")
 ```
-
-### Plot
-
-```{r}
-EF_bar_b
-```
-
-:::
 
 
 ## `scale_shape_`
@@ -309,15 +229,12 @@ EF_bar_b
 
 ## `scale_size_`
 
-::: {.panel-tabset}
-
-### Code
-
 - [Size by area (default) or radius](https://ggplot2-book.org/scale-other.html)
 - Set the `range` to control the output scale
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "5-11"
 EF_size <- EF |> 
   pivot_longer(cols = -Tributary,
@@ -330,15 +247,8 @@ EF_size <- EF |>
   geom_point(alpha = 0.25) +
   geom_text() +
   scale_size(range = c(1, 10))
-```
-
-### Plot
-
-```{r}
 EF_size
 ```
-
-:::
 
 
 ## `theme()` changes aspects of plots
@@ -353,14 +263,10 @@ EF_bar
 
 
 ## Changing axis components
-
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-EF_bar <- EF_bar +
+#| output-location: slide
+EF_bar +
   labs(x = "Stream") +
   scale_fill_manual(values = c("darkred", "navy"),
                     name = "Location",
@@ -373,50 +279,26 @@ EF_bar <- EF_bar +
         legend.text = element_text(size = 9))
 ```
 
-### Plot
-
-```{r}
-EF_bar
-```
-
-:::
-
 
 ## (Re)moving and reshaping the legend
-
-::: {.panel-tabset}
-
-### Code
 
 - Remove the legend
 
 ```{r}
 #| echo: true
-EF_size <- EF_size +
+EF_size +
   theme(legend.position = "none")
 ```
-
-### Plot
-
-```{r}
-EF_size
-```
-
-:::
 
 
 ## Customizing the legend
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
-
-EF_scatter <- ggplot(EF, aes(x = n_Upstream,
-                             y = n_Downstream,
-                             color = Tributary)) +
+#| output-location: slide
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream,
+               color = Tributary)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
   geom_point(size = 5) +
   scale_color_viridis_d(guide = guide_legend(ncol = 3,
@@ -433,38 +315,19 @@ EF_scatter <- ggplot(EF, aes(x = n_Upstream,
         axis.title = element_text(face = "bold"))
 ```
 
-### Plot
-
-```{r}
-EF_scatter
-```
-
-:::
-
 
 ## Using `element_blank()` to remove plot elements
-
-::: {.panel-tabset}
-
-### Code
 
 - Remove the `x`-axis completely
 - Remove the space between the labels and bars
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| message: false
-
-EF_bar_blank <- EF_bar +
+EF_bar +
   scale_y_continuous(expand = c(0, 0)) +
   theme(axis.ticks.x = element_blank(),
         axis.line.x = element_blank())
 ```
 
-### Plot
-
-```{r}
-EF_bar_blank
-```
-
-:::

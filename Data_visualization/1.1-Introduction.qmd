@@ -29,6 +29,9 @@ ggplot2::theme_set(theme_cowplot())
 ```
 
 1. What do you want to say with your plot?
+  - Plot styles
+  - Data wrangling
+  - Ethics
 2. Mapping information onto a plot
 3. Constructing complex plots
 4. Designing reusable plotting code
