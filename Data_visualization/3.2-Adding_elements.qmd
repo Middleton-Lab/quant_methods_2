@@ -272,7 +272,7 @@ Several options
 
 - `?plotmath` which uses `expression()` and `paste()`
 - `annotate()` with `parse = TRUE`
-- `latex2exp` [package](https://cran.r-project.org/web/packages/latex2exp/vignettes/using-latex2exp.html) converts LaTeX expressions to plotmath
+- `latex2exp` [package](https://cran.r-project.org/web/packages/latex2exp/vignettes/using-latex2exp.html) converts LaTeX expressions to [plotmath](https://stat.ethz.ch/R-manual/R-patched/library/grDevices/html/plotmath.html)
 
 
 ## Regression data
@@ -287,12 +287,16 @@ M
 ```
 
 
-## Plotting with units
+## modifying axis titles
+
+- note `~` for space
 
 ```{r}
 #| echo: true
 #| output-location: slide
 ggplot(M, aes(x, y)) +
-  geom_point()
+  geom_point() +
+  labs(x = expression(Area~(sqrt(m^2))),
+       y = expression(Species~density~(Species / m^2)))
 ```
 
