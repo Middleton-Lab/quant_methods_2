@@ -14,7 +14,7 @@ format:
     link-external-newwindow: true
 ---
 
-## Adding elements
+## Annotating plots
 
 ```{r}
 #| label: setup
@@ -25,10 +25,93 @@ format:
 library(tidyverse)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
+library(paletteer)
+library(lubridate)
+
+library(Data4Ecologists)
+library(abdData)
 ```
 
-## Boxes / Shading: Inf
+Adding elements to plots
 
+- Lines, boxes
+- Shading areas
+- Images
+- Text
+- Math text
+
+## Boxes and shading
+
+- Time series (day/night, seasons, years)
+- Differentiate chromosomes, etc.
+
+`geom_rect()` uses values for four corners: `xmin`, `xmax`, `ymin`, and `ymax`
+
+
+## Mouse wheel activity
+
+```{r}
+#| echo: true
+WR <- read_csv("Data/Mouse_wheel.csv", show_col_types = FALSE) |> 
+  mutate(Date = mdy_hm(Date) - hours(1)) |> 
+  pivot_longer(cols = -Date, names_to = "Wheel", values_to = "Revolutions") |> 
+  mutate(Wheel = str_remove(Wheel, "Wheel") |> as.integer()) |> 
+  filter(Wheel <= 4)
+
+WR
+```
+
+## Create a tibble with `x` bounds of the box
+
+```{r}
+#| echo: true
+DayNight <- tibble(
+  Lights_off = ymd_hms(c("2013-05-07 19:00:00", "2013-05-08 19:00:00")),
+  Lights_on = ymd_hms(c("2013-05-08 07:00:00", "2013-05-09 07:00:00"))
+)
+```
+
+```{r}
+DayNight
+```
+
+## Plot with background `geom_rect()`
+
+- `Inf` and `-Inf` used when you don't know the limits
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot() +
+  geom_rect(data = DayNight,
+            aes(xmin = Lights_off, xmax = Lights_on,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_path(data = WR, aes(x = Date, y = Revolutions, group = Wheel)) +
+  facet_wrap("Wheel")
+```
+
+
+## Refine plot
+
+- Change date labels, rotate text
+- Change background of facet headers
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot() +
+  geom_rect(data = DayNight,
+            aes(xmin = Lights_on, xmax = Lights_off,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_path(data = WR, aes(x = Date, y = Revolutions, group = Wheel)) +
+  facet_wrap("Wheel") +
+  scale_x_datetime(date_labels = "%H:%M",
+                   name = "Time") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        strip.background = element_rect(fill = "goldenrod"))
+```
 
 ## Overlaying data on Images
 
