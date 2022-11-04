@@ -287,9 +287,12 @@ M
 ```
 
 
-## modifying axis titles
+## Modifying axis titles
 
-- note `~` for space
+Note:
+
+- `~` for intentional space, other spaces are collapsed
+- No `"`
 
 ```{r}
 #| echo: true
@@ -300,3 +303,49 @@ ggplot(M, aes(x, y)) +
        y = expression(Species~density~(Species / m^2)))
 ```
 
+
+
+## Adding an annotation
+
+```{r}
+#| echo: true
+#| output-location: slide
+fm <- lm(y ~ x, data = M)
+s <- summary(fm)
+
+ggplot(M, aes(x, y)) +
+  geom_point() +
+  labs(x = expression(Area~(sqrt(m^2))),
+       y = expression(Species~density~(Species / m^2))) +
+  annotate(geom = "text",
+           label = paste("italic(R) ^ 2 == ",
+                         round(s$r.squared, 2)), parse = TRUE,
+           x = 7.5, y = 10,
+           size = 5)
+
+```
+
+
+## Formatting text with `Tex()`
+
+- Uses raw strings: `TeX(r'($ code goes here $)')`
+- [LaTeX math](https://en.wikibooks.org/wiki/LaTeX/Mathematics)
+- Works a little differently in `annotate()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(latex2exp)
+
+ggplot(M, aes(x, y)) +
+  geom_point() +
+  labs(x = TeX(r'($ \sqrt{\frac{1}{Area}} \cdot \cos (2\pi) $)'),
+       y = TeX(r'(Species density$\,\,\left( \frac{Spp.}{m^2} \right) $)')) +
+  annotate(geom = "text",
+           label = TeX(paste('$\\textit{R}^2 =$', round(s$r.squared, 2)),
+                       output = "character"),
+           parse = TRUE,
+           x = 7.5, y = 10,
+           size = 5)
+
+```
