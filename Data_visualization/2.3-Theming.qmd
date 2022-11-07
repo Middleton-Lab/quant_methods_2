@@ -47,7 +47,7 @@ ggplot() +
 
 ## `gg`-this and `gg`-that
 
-- Lots of packages have plotting functionality built on top of `ggplot`
+- [Lots of packages](https://exts.ggplot2.tidyverse.org/) have plotting functionality built on top of `ggplot`
 - Not all play nicely with regular `ggplot` theme elements
   - Can't `+` elements, limited ability to modify `theme()` elements, etc.
   - Your mileage may vary
