@@ -1,5 +1,5 @@
 ---
-title: "Reusable themes"
+title: "Creating reusable themes"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -119,6 +119,7 @@ ggplot(Trunks, aes(x = Species, y = TF, color = Species)) +
   guides(color = "none") +
   theme(axis.text.x = element_text(face = "italic"))
 ```
+
 
 ## Reuse your theme
 
