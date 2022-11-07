@@ -14,6 +14,11 @@ format:
     link-external-newwindow: true
 ---
 
+## Data-to ink ratio
+
+Don’t add complexity to your plot without a good reason.
+
+
 ## Annotating plots
 
 ```{r}
@@ -319,7 +324,8 @@ ggplot(M, aes(x, y)) +
        y = expression(Species~density~(Species / m^2))) +
   annotate(geom = "text",
            label = paste("italic(R) ^ 2 == ",
-                         round(s$r.squared, 2)), parse = TRUE,
+                         round(s$r.squared, 2)),
+           parse = TRUE,
            x = 7.5, y = 10,
            size = 5)
 
@@ -339,7 +345,7 @@ library(latex2exp)
 
 ggplot(M, aes(x, y)) +
   geom_point() +
-  labs(x = TeX(r'($ \sqrt{\frac{1}{Area}} \cdot \cos (2\pi) $)'),
+  labs(x = TeX(r'($ \sqrt{\frac{1}{Area}} \cdot \cos (2\pi) + \theta_{1}$)'),
        y = TeX(r'(Species density$\,\,\left( \frac{Spp.}{m^2} \right) $)')) +
   annotate(geom = "text",
            label = TeX(paste('$\\textit{R}^2 =$', round(s$r.squared, 2)),
