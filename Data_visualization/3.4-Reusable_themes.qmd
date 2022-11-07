@@ -1,0 +1,135 @@
+---
+title: "Creating reusable themes"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## Why reusable themes?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(ggforce)
+ggplot2::theme_set(theme_cowplot())
+
+library(Data4Ecologists)
+```
+
+- Many plots share a `scale_color`, `scale_fill`, `scale_linetype`, or `scale_shape`
+- Many plots get the same axis text or title treatment
+  - Font family, face, size, color
+  - Useful for making plots for presentations (powerpoint/equivalent or poster)
+- Save time for your future self
+
+
+## Trunks data
+
+- DBH and trunk flare for 4 species of maple
+
+```{r}
+# Setup trunkfl data
+Trunks <- trunkfl |> 
+  mutate(Species =  case_when(
+    Species == 2L ~ "Acer platanoides",
+    Species == 3L ~ "Acer rubrum",
+    Species == 4L ~ "Acer saccharinum", 
+    Species == 5L ~ "Acer saccarum",
+    Species == 6L ~ "Fraxinus americana",
+    Species == 7L ~ "Fraxinus pennslyvanica"),
+    City = case_when(
+      City == 1L ~ "Crookston",
+      City == 2L ~ "Hendricks",
+      City == 3L ~ "Hibbing",
+      City == 4L ~ "Hutchinson",
+      City == 5L ~ "Morris",
+      City == 6L ~ "Rochester"
+    )) |> 
+  select(Species, City, DBH, TF) |> 
+  filter(DBH < 60, str_detect(Species, "Acer")) |> 
+  as_tibble()
+Trunks
+```
+
+
+## Violin & Sina plot
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(Trunks, aes(x = Species, y = DBH, color = Species)) +
+  geom_violin() +
+  geom_sina(seed = 74645) +
+  scale_color_manual(values = c("red", "orange", "blue", "purple"),
+                     breaks = c("Acer saccharinum", "Acer rubrum",
+                                "Acer platanoides", "Acer saccarum")) +
+  theme(axis.title = element_text(face = "bold"),
+        axis.text.x = element_text(face = "italic")) +
+  guides(color = "none")
+```
+
+
+## Creating your own reusable theme
+
+- In `ggplot`, elements are added with `+`
+- Convert to a list, separate items with `,`
+
+```{r}
+#| echo: true
+#| output-location: slide
+mytheme <- list(
+  scale_color_manual(values = c("red", "orange", "blue", "purple"),
+                     breaks = c("Acer saccharinum", "Acer rubrum",
+                                "Acer platanoides", "Acer saccarum")),
+  theme(axis.title = element_text(face = "bold"))
+)
+
+ggplot(Trunks, aes(x = Species, y = DBH, color = Species)) +
+  geom_violin() +
+  geom_sina(seed = 74645) +
+  mytheme +
+  guides(color = "none") +
+  theme(axis.text.x = element_text(face = "italic"))
+```
+
+
+## Reuse your theme
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(Trunks, aes(x = Species, y = TF, color = Species)) +
+  geom_violin() +
+  geom_sina(seed = 74645) +
+  mytheme +
+  guides(color = "none") +
+  theme(axis.text.x = element_text(face = "italic"))
+```
+
+
+## Reuse your theme
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(Trunks, aes(x = DBH, y = TF, color = Species)) +
+  geom_point() +
+  mytheme +
+  guides(color = guide_legend(label.theme = element_text(face = "italic"))) +
+  theme(legend.position = c(0.7, 0.2))
+```
+

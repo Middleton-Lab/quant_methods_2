@@ -1,0 +1,357 @@
+---
+title: "Adding elements"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## Data-to ink ratio
+
+Don’t add complexity to your plot without a good reason.
+
+
+## Annotating plots
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(paletteer)
+library(lubridate)
+library(png)
+library(ggpubr)
+library(ggmap)
+
+library(Data4Ecologists)
+library(abdData)
+```
+
+Adding elements to plots
+
+- Lines
+- Boxes, shading plot areas
+- Images (jpg, png)
+- Maps
+- Text and math text
+
+
+## `annotate()`
+
+- Adds elements without using `geom_`
+- Doesn't require `data.frames` or `tibbles`
+- Useful for single elements
+
+
+## Boxes and shading
+
+- Time series (day/night, seasons, years)
+- Differentiate chromosomes, etc.
+
+`geom_rect()` uses values for four corners: `xmin`, `xmax`, `ymin`, and `ymax`
+
+
+## Mouse wheel activity
+
+```{r}
+#| echo: true
+WR <- read_csv("Data/Mouse_wheel.csv", show_col_types = FALSE) |> 
+  mutate(Date = mdy_hm(Date) - hours(1)) |> 
+  pivot_longer(cols = -Date, names_to = "Wheel", values_to = "Revolutions") |> 
+  mutate(Wheel = str_remove(Wheel, "Wheel") |> as.integer()) |> 
+  filter(Wheel <= 4)
+
+WR
+```
+
+## Create a tibble with `x` bounds of the box
+
+```{r}
+#| echo: true
+DayNight <- tibble(
+  Lights_off = ymd_hms(c("2013-05-07 19:00:00", "2013-05-08 19:00:00")),
+  Lights_on = ymd_hms(c("2013-05-08 07:00:00", "2013-05-09 07:00:00"))
+)
+```
+
+```{r}
+DayNight
+```
+
+## Plot with background `geom_rect()`
+
+- `Inf` and `-Inf` used when you don't know the limits
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot() +
+  geom_rect(data = DayNight,
+            aes(xmin = Lights_off, xmax = Lights_on,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_path(data = WR, aes(x = Date, y = Revolutions, group = Wheel)) +
+  facet_wrap("Wheel")
+```
+
+
+## Refine plot
+
+- Change date labels, rotate text
+- Change background of facet headers
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot() +
+  geom_rect(data = DayNight,
+            aes(xmin = Lights_on, xmax = Lights_off,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_path(data = WR, aes(x = Date, y = Revolutions, group = Wheel)) +
+  facet_wrap("Wheel") +
+  scale_x_datetime(date_labels = "%H:%M",
+                   name = "Time") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        strip.background = element_rect(fill = "goldenrod"))
+```
+
+
+## Overlaying data on Images
+
+- Loading image
+- Setting up coordinates with `tribble()`
+
+```{r}
+#| echo: true
+img <- png::readPNG("Images/Craniometric_tracing.png")
+
+coords <- tibble::tribble(
+  ~ LM, ~ x, ~ y,
+  "ANS", 318, 249,
+  "Articulare", 44, 193,
+  "Basion", 7, 221,
+  "Condylion", 59, 169,
+  "Gonion", 73.5, 332,
+  "Menton", 215, 415,
+  "Nasion", 313, 96,
+  "PNS", 153, 241,
+  "Pogonion", 239, 424,
+  "Sella", 79, 116
+) |> 
+  mutate(y = dim(img)[1] - y) # Reverse due to R/ImageJ differences
+```
+
+
+## Images are matrices (grayscale) or arrays (color)
+
+```{r}
+#| echo: true
+class(img)
+str(img)
+img[1:10, 1:10]
+```
+
+
+## plot with `annotation_raster()`
+
+- `xmin`, `xmax`, `ymin`, and `ymax` define the box for the image
+- `dim(img)` gives the dimensions of the matrix
+- Use `ggpubr::theme_transparent()` to remove all plot axes, labels, etc.
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(data = coords, aes(x, y)) +
+    annotation_raster(img,
+                      xmin = 0, xmax = dim(img)[2],
+                      ymin = 0, ymax = dim(img)[1]) +
+    geom_point(color = "red", size = 5) +
+    xlim(c(0, dim(img)[2])) +
+    ylim(c(0, dim(img)[1])) +
+    coord_equal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) +
+    ggpubr::theme_transparent()
+```
+
+## Maps
+
+Field sites along the Missouri River
+
+```{r}
+#| echo: true
+library(ggmap)
+
+Locations <- 
+  tribble(~ lat,     ~lon,       ~ ID,
+          38.666710, -91.867078, "Mokane",
+          38.587094, -92.176563, "Jefferson City",
+          38.688121, -92.363351, "Marion",
+          38.799781, -92.378246, "Easley",
+          38.974020, -92.565014, "Rocheport",
+          38.980450, -92.740881, "Boonville",
+          39.064000, -92.935129, "Arrow Rock",
+          39.232537, -92.848955, "Glasgow")
+```
+
+
+## Setup and plot map with data
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| cache: true
+
+# Create bounding box for locations
+sbbox <- make_bbox(lon = Locations$lon,
+                   lat = Locations$lat,
+                   f = 0.25) # Expansion factor
+
+# Download map
+sq_map <- get_stamenmap(bbox = sbbox,
+                        maptype = "terrain")
+
+p <- ggmap(sq_map) + 
+  geom_point(data = Locations,
+             mapping = aes(x = lon, y = lat),
+             color = "red",
+             size = 3) +
+  labs(x = "Longitude", y = "Latitude")
+p
+```
+
+
+## Text annotations
+
+```{r}
+#| echo: true
+#| output-location: slide
+p +
+  annotate(geom = "text",
+           x = -92.45,
+           y = 39.35,
+           label = "Field Sites on the Missouri River",
+           size = 8)
+```
+
+
+## Labeling points with `ggrepel` package
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| warning: false
+library(ggrepel)
+
+p +
+  annotate(geom = "text",
+           x = -92.45,
+           y = 39.35,
+           label = "Field Sites on the Missouri River",
+           size = 8) +
+  geom_text_repel(data = Locations,
+                  mapping = aes(x = lon, y = lat, label = ID),
+                  box.padding = 1,
+                  seed = 431579)
+```
+
+
+## Working with math
+
+Several options
+
+- `?plotmath` which uses `expression()` and `paste()`
+- `annotate()` with `parse = TRUE`
+- `latex2exp` [package](https://cran.r-project.org/web/packages/latex2exp/vignettes/using-latex2exp.html) converts LaTeX expressions to [plotmath](https://stat.ethz.ch/R-manual/R-patched/library/grDevices/html/plotmath.html)
+
+
+## Regression data
+
+```{r}
+set.seed(43577)
+M <- tibble(
+  x = runif(20, 0, 10),
+  y = x * 4 + rnorm(20, 0, 2)
+)
+M
+```
+
+
+## Modifying axis titles
+
+Note:
+
+- `~` for intentional space, other spaces are collapsed
+- No `"`
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(M, aes(x, y)) +
+  geom_point() +
+  labs(x = expression(Area~(sqrt(m^2))),
+       y = expression(Species~density~(Species / m^2)))
+```
+
+
+
+## Adding an annotation
+
+```{r}
+#| echo: true
+#| output-location: slide
+fm <- lm(y ~ x, data = M)
+s <- summary(fm)
+
+ggplot(M, aes(x, y)) +
+  geom_point() +
+  labs(x = expression(Area~(sqrt(m^2))),
+       y = expression(Species~density~(Species / m^2))) +
+  annotate(geom = "text",
+           label = paste("italic(R) ^ 2 == ",
+                         round(s$r.squared, 2)),
+           parse = TRUE,
+           x = 7.5, y = 10,
+           size = 5)
+
+```
+
+
+## Formatting text with `Tex()`
+
+- Uses raw strings: `TeX(r'($ code goes here $)')`
+- [LaTeX math](https://en.wikibooks.org/wiki/LaTeX/Mathematics)
+- Works a little differently in `annotate()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(latex2exp)
+
+ggplot(M, aes(x, y)) +
+  geom_point() +
+  labs(x = TeX(r'($ \sqrt{\frac{1}{Area}} \cdot \cos (2\pi) + \theta_{1}$)'),
+       y = TeX(r'(Species density$\,\,\left( \frac{Spp.}{m^2} \right) $)')) +
+  annotate(geom = "text",
+           label = TeX(paste('$\\textit{R}^2 =$', round(s$r.squared, 2)),
+                       output = "character"),
+           parse = TRUE,
+           x = 7.5, y = 10,
+           size = 5)
+
+```

@@ -12,6 +12,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Module overview
@@ -28,10 +29,14 @@ ggplot2::theme_set(theme_cowplot())
 ```
 
 1. What do you want to say with your plot?
+  - Plot styles
+  - Data wrangling
+  - Ethics
 2. Mapping information onto a plot
 3. Constructing complex plots
 4. Designing reusable plotting code
 5. Finishing touches
+
 
 ## Module prerequisites
 
@@ -40,13 +45,15 @@ ggplot2::theme_set(theme_cowplot())
 - Basics of data import and manipulation
 - Basics of `ggplot`
 
+
 ## Relevant *Quantitative Methods I* course materials
 
 - Week 2: Data organization, loading, visualization
 - Week 3: Tidy data and transformations
 - [Course files on Github](https://github.com/kmiddleton/quant_methods)
   - Clone to your computer for reference
-- [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
+- [Course videos on YouTube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
+
 
 ## Resources
 
@@ -57,8 +64,8 @@ ggplot2::theme_set(theme_cowplot())
 - [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
 - [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
 - [Tidyverse style guide](https://style.tidyverse.org/)
+- [The Work of Edward Tufte](https://www.edwardtufte.com/tufte/): Data-to-ink ratio
 
-## Graphics vs. infographics
 
 ## What we cover and don't cover
 
@@ -71,18 +78,20 @@ Don't:
 
 - Every possible use case
 
+
 ## Dual motivations for this module
 
-1. Thinking about what "story" you want to tell with your plots
+1. Thinking about what "story" you want to tell with your plots / figures / images
 2. Learning about the details of how to show what you want to show.
+
 
 ## Plotting options in R
 
 - Base R
 - Lattice
 - `ggplot` and the `tidyverse`
+  - [ggplot Extensions](https://exts.ggplot2.tidyverse.org/gallery/)
 
-For entertainment: [http://varianceexplained.org/r/why-I-use-ggplot2/](http://varianceexplained.org/r/why-I-use-ggplot2/)
 
 ## Packages we will use often
 
@@ -94,6 +103,7 @@ For entertainment: [http://varianceexplained.org/r/why-I-use-ggplot2/](http://va
 - [patchwork](https://patchwork.data-imaginist.com/) Compositing and refining plots
 - [paletteer](https://emilhvitfeldt.github.io/paletteer/) Unifies color palette options
 
+
 ## Why visualize data? {.scrollable}
 
 ```{r}
@@ -102,6 +112,7 @@ ds <- read_csv("Data/Datasaurus_data.csv",
                show_col_types = FALSE)
 knitr::kable(ds)
 ```
+
 
 ## Why visualize data? {.scrollable}
 
@@ -122,6 +133,7 @@ What is the correlation?
 with(ds, cor.test(x1, x2))
 ```
 
+
 ## Visualization reveals patterns
 
 ```{r}
@@ -132,6 +144,14 @@ ggplot(ds, aes(x = x1, y = x2)) +
   coord_fixed() +
   labs(title = expression(paste("Alberto Cairo's ",italic("Datasaurus"))))
 ```
+
+
+## General rules of plot design
+
+- Some definitely bad options, many possible good designs
+- Think about communication
+- Personal preference enters
+
 
 ## Presentation-quality plots
 

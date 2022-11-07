@@ -11,6 +11,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Getting more information into a plot
@@ -33,6 +34,7 @@ library(Data4Ecologists)
   - More than about 2 becomes unwieldy
 - Dodging and faceting can provide more options
 
+
 ## Bear movement
 
 Black bear movements in northern Minnesota ^[Ditmer, MA, et a.. 2015. Behavioral and physiological responses of American black bears to landscape features within an agricultural region. *Ecosphere* 6: 1-21.]
@@ -53,6 +55,7 @@ bear <- bearmove |>
 str(bear)
 ```
 
+
 ## Aggregate bear movement data {.scrollable}
 
 ```{r}
@@ -62,11 +65,8 @@ bear |>
   knitr::kable()
 ```
 
+
 ## Dodging points
-
-::: {.panel-tabset}
-
-### Code
 
 - Use the `position` argument to shift a `group`.
   - Set `width` by trial and error
@@ -74,60 +74,38 @@ bear |>
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "5-6"
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_dodge(width = 0.2))
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
-
 
 ## Dodging points with jitter
-
-::: {.panel-tabset}
-
-### Code
 
 - Use `position = position_jitterdodge`
 - Also set `seed` to make the jitter reproducible
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "6-8"
-
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683))
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Dodging points with jitter
-
-::: {.panel-tabset}
-
-### Code
 
 Further refinements:
 
@@ -135,39 +113,28 @@ Further refinements:
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "9"
-
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683),
              alpha = 0.25)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Dodging bar graphs
-
-::: {.panel-tabset}
-
-### Code
 
 `width = 0.9` leaves no space between bars but leaves space between `BearID`s.
 
 ```{r}
 #| echo: true
-
-p <- bear |> 
+#| output-location: slide
+bear |> 
   group_by(BearID, Season) |> 
   summarize(Mean_log_Move = mean(log_Move),
             .groups = "drop") |> 
@@ -179,13 +146,6 @@ p <- bear |>
            position = position_dodge(width = 0.9))
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Faceting
 
@@ -196,11 +156,8 @@ Good for focusing on comparisons among measurements
 - By rows or columns with `facet_grid()`, if there is some logical order
   - Think about the direction of the comparison (down rows or across columns) and the way your eyes will move around the plot
 
+
 ## Faceting in rows
-
-::: {.panel-tabset}
-
-### Code
 
 `.` is a placeholder for faceting only by row or column
 
@@ -208,13 +165,13 @@ Facet in rows by `Season`:
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "10"
-
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683),
@@ -222,29 +179,18 @@ p <- ggplot(bear,
   facet_grid(Season ~ .)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Faceting in columns
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "10"
-
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683),
@@ -252,29 +198,18 @@ p <- ggplot(bear,
   facet_grid(. ~ Season)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Faceting in rows and columns
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "10"
-
-p <- ggplot(bear,
-            aes(x = BearID,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = BearID,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683),
@@ -282,33 +217,22 @@ p <- ggplot(bear,
   facet_grid(Season ~ DayNight)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Wrapping facets
 
 Number of rows (`nrow`) or columns (`ncol`) can be specified
 
-::: {.panel-tabset}
-
-### Code
-
 Wrapping by `BearID` with `facet_wrap()`:
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "10"
-
-p <- ggplot(bear,
-            aes(x = Season,
-                y = log_Move,
-                color = DayNight,
-                group = DayNight)) +
+ggplot(bear,
+       aes(x = Season,
+           y = log_Move,
+           color = DayNight,
+           group = DayNight)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.15,
                                              dodge.width = 0.3,
                                              seed = 34683),
@@ -316,13 +240,6 @@ p <- ggplot(bear,
   facet_wrap("BearID")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Axis ranges
 
@@ -344,55 +261,34 @@ bear_long <- bear |>
 bear_long
 ```
 
+
 ## Default equal axis scale
-
-::: {.panel-tabset}
-
-### Code
 
 ```{r}
 #| echo: true
-
-p <- ggplot(bear_long,
-            aes(x = BearID,
-                y = value)) +
+#| output-location: slide
+ggplot(bear_long,
+       aes(x = BearID,
+           y = value)) +
   geom_point(position = position_jitter(width = 0.2,
                                         seed = 4527345),
              alpha = 0.25) +
   facet_grid(Measurement ~ Season)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## With free axis scale
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "7"
-
-p <- ggplot(bear_long,
-            aes(x = BearID,
-                y = value)) +
+ggplot(bear_long,
+       aes(x = BearID,
+           y = value)) +
   geom_point(position = position_jitter(width = 0.2,
                                         seed = 4527345),
              alpha = 0.25) +
   facet_grid(Measurement ~ Season, scales = "free_y")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::

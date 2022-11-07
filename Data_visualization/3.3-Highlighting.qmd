@@ -1,0 +1,322 @@
+---
+title: "Highlighting elements"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## Deception with color
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(ggforce)
+library(ggrepel)
+library(paletteer)
+library(concaveman)
+
+library(Data4Ecologists)
+library(abdData)
+```
+
+- Applying a sequential color scheme to an unordered variable
+- Using a diverging color scale when there is no natural midpoint to the data
+- Binning a continuous variable into a discrete scale
+
+
+## Deception 1
+
+Applying a sequential color scheme to an unordered variable
+
+```{r}
+#| echo: true
+#| output-location: slide
+palmerpenguins::penguins |> 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm, color = species)) +
+  geom_point(size = 3) +
+  scale_color_brewer(type = "seq", name = NULL) +
+  labs(x = "Body Mass (g)", y = "Flipper Length (mm)")
+```
+
+
+## Deception 2
+
+Using a diverging color scale when there is no natural midpoint to the data
+
+```{r}
+#| echo: true
+#| output-location: slide
+LW <- ggridges::lincoln_weather |> 
+  mutate(CST = lubridate::ymd(CST))
+
+ggplot(LW, aes(x = CST, y = `Max Temperature [F]`,
+               fill = `Max Temperature [F]`)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient2(
+    low = "red",
+    mid = "white",
+    high = "blue",
+    midpoint = mean(ggridges::lincoln_weather$`Max Temperature [F]`)) +
+  labs(x = "Date", y = "Maximum Temperature (F)")
+```
+
+
+## Deception 3
+
+Binning a continuous variable into a discrete scale
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| warning: false
+LW <- LW |> 
+  mutate(Max_Temp = (`Max Temperature [F]` %/% 20 * 20) |> factor())
+
+ggplot(LW, aes(x = `Mean Wind Speed[MPH]`,
+               y = `Max Humidity`,
+               color = Max_Temp)) +
+  geom_point(pch = 16,
+             size = 5,
+             alpha = 0.5,
+             position = position_jitter(width = 0.2, height = 0.2,
+                                        seed = 3437)) +
+  scale_color_brewer(type = "qual", name = "Temperature", palette = "Set1") +
+  scale_y_continuous(limits = c(50, 103), name = "Maximum Humidity (%)") +
+  labs(x = "Mean Wind Speed (MPH)")
+```
+
+
+## `ggplot` gradients for color and fill
+
+- `scale_color_gradient`: Low to high
+- `scale_color_gradient2`: Low to mid to high
+- `scale_color_gradientn`: any custom values
+
+A lot of fine control about how the space is divided among colors
+
+- With power comes responsibility
+
+
+## Temperature on the Celsius scale
+
+```{r}
+#| echo: true
+#| output-location: slide
+LW <- LW |> 
+  mutate(Mean_Temp_C = 5 / 9 * (`Mean Temperature [F]` - 32))
+
+ggplot(LW, aes(x = CST, y = Mean_Temp_C,
+               fill = Mean_Temp_C)) +
+  geom_hline(yintercept = 0) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "purple",
+    high = "red",
+    midpoint = 0,
+    name = NULL) +
+  labs(x = "Date", y = "Mean Temperature (C)")
+```
+
+
+## Tree trunks data
+
+DBH and trunk flare for 4 species of maple in 6 cities in Minnesota^[North EA, Johnson GR, Burk TE. 2015. Trunk flare diameter predictions as an infrastructure planning tool to reduce tree and sidewalk conflicts. Urban Forestry & Urban Greening, 14: 65-71.]
+
+```{r}
+# Setup trunkfl data
+Trunks <- trunkfl |> 
+  mutate(Species =  case_when(
+    Species == 2L ~ "Acer platanoides",
+    Species == 3L ~ "Acer rubrum",
+    Species == 4L ~ "Acer saccharinum", 
+    Species == 5L ~ "Acer saccarum",
+    Species == 6L ~ "Fraxinus americana",
+    Species == 7L ~ "Fraxinus pennslyvanica"),
+    City = case_when(
+      City == 1L ~ "Crookston",
+      City == 2L ~ "Hendricks",
+      City == 3L ~ "Hibbing",
+      City == 4L ~ "Hutchinson",
+      City == 5L ~ "Morris",
+      City == 6L ~ "Rochester"
+    )) |> 
+  select(Species, City, DBH, TF) |> 
+  filter(DBH < 60, str_detect(Species, "Acer")) |> 
+  as_tibble()
+Trunks
+```
+
+
+## Visualizing tree trunks data
+
+- `geom_violin()`
+- `ggforce::geom_sina()`^[`ggplot` version of sinaplot from [Sidiropoulos et al.](https://cran.r-project.org/web/packages/sinaplot/vignettes/SinaPlot.html)]
+
+```{r}
+#| echo: true
+#| output-location: slide
+Trunks |> 
+  ggplot(aes(x = Species, y = DBH, color = Species)) +
+  geom_violin() +
+  geom_sina(seed = 74645)
+```
+
+
+## Map specific colors to factors
+
+- By default `scale_color_manual()` assigns colors in factor order
+- Use `breaks` to specify the order you prefer
+- Hex codes okay: [coolors.co](https://coolors.co/)
+
+```{r}
+#| echo: true
+#| output-location: slide
+Trunks |> 
+  ggplot(aes(x = Species, y = DBH, color = Species)) +
+  geom_violin() +
+  geom_sina(seed = 74645) +
+  scale_color_manual(values = c("red", "orange", "blue", "purple"),
+                     breaks = c("Acer saccharinum", "Acer rubrum",
+                                "Acer platanoides", "Acer saccarum"),
+                     guide = NULL) +
+  theme(axis.text.x = element_text(face = "italic"))
+```
+
+
+## Labeling points with [ggrepel](https://ggrepel.slowkow.com/)
+
+```{r}
+EF <- ElectricFish |> 
+  rename(Tributary = tributary,
+         n_Upstream = species.upstream,
+         n_Downstream = species.downstream) |> 
+  arrange(Tributary)
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream,
+               label = Tributary)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(color = "tomato", size = 3) +
+  geom_text_repel(point.padding = 0.3) +
+  coord_equal(xlim = c(0, 30), ylim = c(0, 30)) +
+  labs(x = "Upstream", y = "Downstream")
+```
+
+
+## Arrows
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(EF, aes(x = n_Upstream,
+               y = n_Downstream,
+               label = Tributary)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(color = "tomato", size = 3) +
+  geom_text_repel(box.padding = 2, point.padding = 0.5,
+                  arrow = arrow(length = unit(0.015, "npc")),
+                  seed = 457849) +
+  coord_equal(xlim = c(0, 30), ylim = c(0, 30)) +
+  labs(x = "Upstream", y = "Downstream")
+```
+
+
+## Label a subset of points
+
+```{r}
+#| echo: true
+#| output-location: slide
+EF <- EF |> 
+  mutate(lab = if_else(Tributary %in% c("Manacapuru", "Madeira"), "in", "out"))
+
+ggplot() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  geom_point(data = EF,
+             aes(x = n_Upstream,
+                 y = n_Downstream),
+             color = "tomato", size = 3) +
+  geom_text_repel(data = EF |> filter(lab == "in"),
+                  aes(x = n_Upstream,
+                      y = n_Downstream,
+                      label = Tributary),
+                  box.padding = 2, point.padding = 0.5,
+                  arrow = arrow(length = unit(0.015, "npc")),
+                  seed = 3434) +
+  coord_equal(xlim = c(0, 30), ylim = c(0, 30)) +
+  labs(x = "Upstream", y = "Downstream")
+```
+
+
+## Use labels instead of a legend
+
+```{r}
+#| echo: true
+#| output-location: slide
+PP_lab <- palmerpenguins::penguins |>
+  drop_na() |> 
+  group_by(species) |> 
+  summarize(mean_x = mean(body_mass_g),
+            mean_y = mean(bill_length_mm),
+            .groups = "drop")
+
+ggplot() +
+  geom_point(data = palmerpenguins::penguins |> drop_na(),
+             aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  geom_label(data = PP_lab,
+             aes(x = mean_x, y = mean_y, label = species, color = species),
+             size = 7) +
+  scale_color_paletteer_d(`"feathers::cassowary"`, guide = NULL)
+```
+
+
+## Marking set of points: `ggforce`
+
+`geom_mark_{rect, circle, ellipse, hull}()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(data = palmerpenguins::penguins |> drop_na(),
+       aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  geom_point() +
+  geom_mark_ellipse(aes(fill = species, label = species)) +
+  scale_color_paletteer_d(`"ggsci::default_jco"`, guide = NULL) +
+  scale_fill_paletteer_d(`"ggsci::default_jco"`, guide = NULL)
+```
+
+
+## Marking set of points: `ggforce`
+
+`geom_mark_{rect, circle, ellipse, hull}()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(data = palmerpenguins::penguins |> drop_na(),
+       aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  geom_point() +
+  geom_mark_hull(aes(fill = species, label = species)) +
+  scale_color_paletteer_d(`"ggsci::default_jama"`, guide = NULL) +
+  scale_fill_paletteer_d(`"ggsci::default_jama"`, guide = NULL)
+```
+

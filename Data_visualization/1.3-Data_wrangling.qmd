@@ -12,6 +12,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+    link-external-newwindow: true
 ---
 
 ## Why does data shape matter?
@@ -27,6 +28,7 @@ library(paletteer)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 ```
+
 
 ## Wide vs. long data {.smaller}
 
@@ -46,82 +48,51 @@ penguins2 |>
   knitr::kable()
 ```
 
+
 ## Bar charts for counts
-
-::: {.panel-tabset}
-
-### Code 
 
 ```{r}
 #| echo: true
-p <- ggplot(penguins2, aes(x = Species)) +
+#| output-location: slide
+ggplot(penguins2, aes(x = Species)) +
   geom_bar() +
   labs(y = "Count")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Grouped bar charts
 
-::: {.panel-tabset}
-
-### Code 
-
 ```{r}
 #| echo: true
-p <- ggplot(penguins2, aes(x = Species, fill = Sex)) +
+#| output-location: slide
+ggplot(penguins2, aes(x = Species, fill = Sex)) +
   geom_bar(position = "dodge") +
   scale_fill_manual(values = c("navy", "darkred")) +
   labs(y = "Count")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
+We will talk more about `position = "dodge"` next week.
 
 ## Grouped bar charts
 
-::: {.panel-tabset}
-
-### Code 
-
 ```{r}
 #| echo: true
-p <- ggplot(penguins2, aes(x = Species, fill = Island)) +
+#| output-location: slide
+ggplot(penguins2, aes(x = Species, fill = Island)) +
   geom_bar(position = "dodge") +
   labs(y = "Count") +
   facet_grid(Sex ~ .) +
   scale_fill_paletteer_d(`"beyonce::X56"`)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Stacked bar charts
 
-::: {.panel-tabset}
-
-### Code 
-
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "|2|6"
-p <- ggplot(penguins2, aes(x = Species, fill = Island)) +
+ggplot(penguins2, aes(x = Species, fill = Island)) +
   geom_bar(position = "fill") +
   labs(y = "Count") +
   facet_grid(Sex ~ .) +
@@ -129,19 +100,11 @@ p <- ggplot(penguins2, aes(x = Species, fill = Island)) +
   scale_y_continuous(name = "Percent", labels = scales::percent)
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Aggregating to get counts
 
 ```{r}
 #| echo: true
-
 penguin_counts <- penguins2 |> 
   group_by(Species, Island, Sex) |> 
   count()
@@ -153,11 +116,11 @@ penguin_counts <- penguins2 |>
 penguin_counts
 ```
 
-## Aggregating counts
+
+## Aggregating to get counts 2
 
 ```{r}
 #| echo: true
-
 penguin_counts_by_year <- penguins2 |> 
   group_by(Species, Island, Sex, Year) |> 
   count()
@@ -168,6 +131,7 @@ penguin_counts_by_year <- penguins2 |>
 ```{r}
 penguin_counts_by_year
 ```
+
 
 ## Working with aggregated data {.scrollable}
 
@@ -181,68 +145,47 @@ gala2 <- gala |>
 gala2 |> knitr::kable()
 ```
 
+
 ## Bar charts for aggregated data
 
-::: {.panel-tabset}
-
-### Code 
+`stat = "identity"` tells `ggplot` to use the value as is.
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "2"
-p <- ggplot(gala2, aes(x = Island, y = Species)) +
+ggplot(gala2, aes(x = Island, y = Species)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90,
                                    hjust = 1, vjust = 0.5))
 ```
 
-### Plot
 
-```{r}
-p
-```
-
-:::
-
-## Bar charts for counts
-
-::: {.panel-tabset}
-
-### Code 
-
-Arranging `Species` counts.
+## Arranging `Species` counts
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "2"
-p <- gala2 |> 
+gala2 |> 
   arrange(desc(Species)) |> 
   ggplot(aes(x = Island, y = Species)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90,
-                                   hjust = 1, vjust = 0.5))
+                                   hjust = 1,
+                                   vjust = 0.5))
 ```
 
-### Plot
 
-```{r}
-p
-```
+## Explicitly defining factors
 
-:::
-
-## Bar charts for counts
-
-::: {.panel-tabset}
-
-### Code 
-
-Explicitly defining factors.
+`ggplot` converts `chr` to factors when used as a factor.
 
 ```{r}
 #| echo: true
+#| output-location: slide
 #| code-line-numbers: "3"
-p <- gala2 |> 
+gala2 |> 
   arrange(desc(Species)) |> 
   mutate(Island = fct_inorder(Island)) |> 
   ggplot(aes(x = Island, y = Species)) +
@@ -251,59 +194,63 @@ p <- gala2 |>
                                    hjust = 1, vjust = 0.5))
 ```
 
-### Plot
 
-```{r}
-p
-```
-
-:::
-
-## Bar charts for counts
-
-::: {.panel-tabset}
-
-### Code 
-
-Rotating the axes
+## Rotating the axes
 
 ```{r}
 #| echo: true
-p_rotated <- p +
+#| output-location: slide
+gala2 |> 
+  arrange(desc(Species)) |> 
+  mutate(Island = fct_inorder(Island)) |> 
+  ggplot(aes(x = Island, y = Species)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1, vjust = 0.5)) +
   coord_flip()
 ```
 
-### Plot
 
-```{r}
-p_rotated
-```
-
-:::
-
-## Bar charts for counts
-
-::: {.panel-tabset}
-
-### Code 
-
-Reversing the `x` axis
+## Reversing the `x` axis
 
 ```{r}
 #| echo: true
-#| code-line-numbers: "3"
-p_rotated_rev <- p +
+#| output-location: slide
+gala2 |> 
+  arrange(desc(Species)) |> 
+  mutate(Island = fct_inorder(Island)) |> 
+  ggplot(aes(x = Island, y = Species)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1, vjust = 0.5)) +
   coord_flip() +
   scale_x_discrete(limits = rev)
 ```
 
-### Plot
+
+## Histograms as a special bar chart
 
 ```{r}
-p_rotated_rev
+#| echo: true
+#| output-location: slide
+ggplot(penguins |> 
+         drop_na(bill_length_mm),
+       aes(bill_length_mm, color = species)) +
+  geom_histogram(bins = 30, fill = NA)
 ```
 
-:::
+
+## Density plots better with overlap
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(penguins |> 
+         drop_na(bill_length_mm),
+       aes(bill_length_mm, color = species)) +
+  geom_density()
+```
+
 
 ## Pivoting data
 
@@ -314,6 +261,7 @@ Wide to long:
 Long to wide:
 
 - Multiple rows into columns
+
 
 ## Multiple columns to rows
 
@@ -329,6 +277,7 @@ penguins3 <- penguins |>
 penguins3
 ```
 
+
 ## Multiple columns to rows
 
 ```{r}
@@ -341,16 +290,14 @@ penguins_long <- penguins3 |>
 penguins_long
 ```
 
+
 ## Plotting long data
-
-::: {.panel-tabset}
-
-### Code
 
 ```{r}
 #| echo: true
-p <- ggplot(penguins_long,
-            aes(x = Type, y = Measure, color = Species)) +
+#| output-location: slide
+ggplot(penguins_long,
+       aes(x = Type, y = Measure, color = Species)) +
   geom_point(position = position_jitter(width = 0.1)) +
   facet_wrap("Species") +
   scale_color_paletteer_d(`"beyonce::X56"`) +
@@ -358,13 +305,6 @@ p <- ggplot(penguins_long,
   labs(y = "Measurement (mm)")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Splitting or Joining Columns {.scrollable}
 
@@ -397,6 +337,7 @@ M <- tribble(
 M
 ```
 
+
 ## Joining with `unite()`
 
 ```{r}
@@ -411,6 +352,7 @@ M <- M |>
 M
 ```
 
+
 ## Splitting with `separate()`
 
 ```{r}
@@ -423,48 +365,28 @@ M <- M |>
 M
 ```
 
+
 ## Plotting dates
-
-::: {.panel-tabset}
-
-### Code
 
 ```{r}
 #| echo: true
-p <- ggplot(M, aes(x = Date, y = Count, color = Replicate)) +
+#| output-location: slide
+ggplot(M, aes(x = Date, y = Count, color = Replicate)) +
   geom_point() +
   geom_path() +
   scale_x_date(date_labels = "%m/%d", date_breaks = "1 day")
 ```
 
-### Plot
-
-```{r}
-p
-```
-
-:::
 
 ## Plotting dates
-
-::: {.panel-tabset}
-
-### Code
 
 Plot shapes: [https://r-graphics.org/recipe-scatter-shapes](https://r-graphics.org/recipe-scatter-shapes)
 
 ```{r}
 #| echo: true
-p <- ggplot(M, aes(x = Date, y = Count, shape = Replicate)) +
+#| output-location: slide
+ggplot(M, aes(x = Date, y = Count, shape = Replicate)) +
   geom_point(size = 4) +
   scale_shape_manual(values = c(0, 15)) +
   scale_x_date(date_labels = "%m/%d", date_breaks = "1 day")
 ```
-
-### Plot
-
-```{r}
-p
-```
-
-:::
