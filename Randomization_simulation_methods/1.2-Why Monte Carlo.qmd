@@ -1,0 +1,69 @@
+---
+title: "Why Monte Carlo?"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Monte Carlo Methods
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+"Monte Carlo Methods" - a general broad term that includes all methods that involve any random sampling. 
+
+Named for the famous casino - how are we doing images?
+
+## Random Sampling
+
+- Values from a distribution (e.g. a normal distribution)
+- Values from a dataset
+- Values from a set of possible parameters
+- A random order for a set of values
+
+```{r, echo=TRUE}
+
+rand.vals <- tibble("Random" = rnorm(1000))
+
+ggplot(rand.vals, aes(Random)) +
+  geom_histogram(bins=100)  
+
+```
+
+## Why would you need Monte Carlo Methods?
+
+## Your Dataset Violates the Assumption(s) of Parametric Tests
+
+## You want to ask how generalizable your results are
+
+## Your question isn't answered by a typical statistical test
+
+- Groups can be different due to multiple causes only some of which are of interest
+
+## There is not a standard way to estimate a confidence interval
+
+
+
+
+
+
+
+
+
