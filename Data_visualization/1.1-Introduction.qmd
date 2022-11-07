@@ -64,7 +64,7 @@ ggplot2::theme_set(theme_cowplot())
 - [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
 - [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
 - [Tidyverse style guide](https://style.tidyverse.org/)
-- [The Work of Edward Tufte](https://www.edwardtufte.com/tufte/)
+- [The Work of Edward Tufte](https://www.edwardtufte.com/tufte/): Data-to-ink ratio
 
 
 ## What we cover and don't cover
@@ -144,6 +144,13 @@ ggplot(ds, aes(x = x1, y = x2)) +
   coord_fixed() +
   labs(title = expression(paste("Alberto Cairo's ",italic("Datasaurus"))))
 ```
+
+
+## General rules of plot design
+
+- Some definitely bad options, many possible good designs
+- Think about communication
+- Personal preference enters
 
 
 ## Presentation-quality plots
