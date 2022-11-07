@@ -177,7 +177,7 @@ ggplot(EF, aes(x = n_Upstream,
 ```
 
 
-## Changing axis aspect ratio
+## Changing aspect ratio of the axes
 
 - Make the plot square (`coord_equal`)
 - Set the axis ranges to be equal (`xlim`, `ylim`)

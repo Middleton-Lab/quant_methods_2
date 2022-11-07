@@ -29,6 +29,9 @@ ggplot2::theme_set(theme_cowplot())
 
 library(Data4Ecologists)
 library(abdData)
+
+# remotes::install_github("clauswilke/colorblindr")
+library(colorblindr)
 ```
 
 ::: {style="text-align: center"}

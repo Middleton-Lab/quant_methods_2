@@ -14,10 +14,11 @@ format:
     link-external-newwindow: true
 ---
 
-## Data-to ink ratio
+## Data-to-ink ratio
 
 Don’t add complexity to your plot without a good reason.
 
+Some journals don't like text in plots.
 
 ## Annotating plots
 

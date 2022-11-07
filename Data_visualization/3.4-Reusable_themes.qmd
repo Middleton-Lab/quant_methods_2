@@ -133,3 +133,11 @@ ggplot(Trunks, aes(x = DBH, y = TF, color = Species)) +
   theme(legend.position = c(0.7, 0.2))
 ```
 
+
+## Managing multiple themes
+
+- Data exploration theme
+- Paper theme
+- Poster theme
+
+All in the same document
