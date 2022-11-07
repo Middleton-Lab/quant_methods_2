@@ -33,7 +33,7 @@ library(Data4Ecologists)
 - Many plots share a `scale_color`, `scale_fill`, `scale_linetype`, or `scale_shape`
 - Many plots get the same axis text or title treatment
   - Font family, face, size, color
-  - Useful for making plots for presentations
+  - Useful for making plots for presentations (powerpoint/equivalent or poster)
 - Save time for your future self
 
 
