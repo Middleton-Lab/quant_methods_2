@@ -1,0 +1,37 @@
+---
+title: "Finishing touches"
+subtitle: "Planning plots for publication"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## This week
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(patchwork)
+```
+
+1. Planning plots for publication
+2. Font/point/line size
+3. Complex plot operations
+4. Reproducible visualization
+
+## Planning plots for publication
