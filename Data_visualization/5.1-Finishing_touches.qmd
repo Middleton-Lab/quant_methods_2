@@ -45,7 +45,7 @@ library(patchwork)
 
 *Presentations*:
 
-- Don't present talks or posters with microtext.
+- Don't give talks or present posters with microtext.
 
 
 ## Manuscripts
