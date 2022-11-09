@@ -1,0 +1,199 @@
+---
+title: "Dynamic Plot Creation"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## What do we mean "dynamic"?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(patchwork)
+
+```
+
+Use a template of code to do analysis and make a plot (and potentially other things)
+
+- Reusable analysis
+- Reusable plotting
+- Edit once, use many times
+
+
+## Mammals data {.smaller}
+
+- Life history data for 5,400 species of mammals (PanTHERIA data)^[Kate E. Jones, et al.. 2009. PanTHERIA: a species-level database of life history, ecology, and geography of extant and recently extinct mammals. Ecology 90:2648.]
+- Read data from tab-delimited file
+- Replace -999 with NA
+- Rename and select some traits to work with
+
+```{r}
+#| echo: true
+#| output-location: slide
+M <- read_delim("Data/mammals.txt", show_col_types = FALSE) |> 
+  mutate(across(.cols = where(is.double), 
+                .fns = ~ ifelse(.x == -999, NA, .x))) |> 
+  rename(Order = MSW05_Order,
+         Species = MSW05_Binomial,
+         Body_mass = `5-1_AdultBodyMass_g`,
+         Forearm = `8-1_AdultForearmLen_mm`,
+         Body_length = `13-1_AdultHeadBodyLen_mm`,
+         Eye_opening = `2-1_AgeatEyeOpening_d`,
+         Repro_age = `3-1_AgeatFirstBirth_d`,
+         BMR_1 = `18-1_BasalMetRate_mLO2hr`,
+         BMR_2 = `5-2_BasalMetRateMass_g`,
+         Neonate_mass = `5-3_NeonateBodyMass_g`) |> 
+  select(Order, Species, Body_mass, Forearm, Body_length, Eye_opening,
+         Repro_age, BMR_1, BMR_2, Neonate_mass)
+M
+```
+
+
+## Working with lists
+
+- Lists can hold any kind of R object
+- Easy to crate empty lists and fill 
+
+```{r}
+#| echo: true
+ll <- list()
+
+ll[[1]] <- 1
+ll[[2]] <- 3
+ll
+```
+
+Create a counter and iterate through the traits.
+
+## Functions that generate plots
+
+```{r}
+#| echo: true
+trait_plot <- function(trait) {
+  D <- tibble(trait) |> drop_na()
+  p <- ggplot(D, aes(trait)) +
+    geom_histogram(bins = 30)
+  return(p)
+}
+```
+
+## Testing the function
+
+```{r}
+#| echo: true
+trait_plot(M$Forearm)
+```
+
+
+## Collecting plots in lists 1
+
+- Setup the vectors of traits
+
+```{r}
+#| echo: true
+traits <- names(M)[3:10]
+traits
+```
+
+## Collecting plots in lists 2
+
+- Make an empty list of plots
+- `select()` the *ii*th trait by string (`all_of()`)
+- Convert to vector (`pull()`)
+
+```{r}
+#| echo: true
+plots <- list()
+for (ii in 1:length(traits)) {
+  trait <- M |> 
+    select(all_of(traits[ii])) |> 
+    pull(1)
+  plots[[ii]] <- trait_plot(trait)
+}
+```
+
+
+## Checking plots
+
+```{r}
+#| echo: true
+plots[[1]]
+```
+
+
+## View all plots
+
+```{r}
+#| echo: true
+wrap_plots(plots)
+```
+
+
+## Rewriting `trait_plot`
+
+- `trait` is a string
+- Drop rows with `NA` using `drop_na(all_of(trait))`
+- Set `aes()` to `trait` with `.data[[trait]]`
+
+```{r}
+#| echo: true
+trait_plot_map <- function(trait, M) {
+  M_no_NA <- M |> 
+    drop_na(all_of(trait))
+  p <- ggplot(M_no_NA, aes(.data[[trait]])) +
+    geom_histogram(bins = 30) +
+    labs(x = str_replace(trait, "_", " "))
+  return(p)
+}
+```
+
+
+## `purrr::map_` functions
+
+- Efficiently pass a set of values to a function and collect results
+- Functions can return:
+  - `numeric`, `data.frame`/`tibble`, etc.
+- `map()` collects returns to a list
+
+
+## Using `purrr::map()`
+
+- `.x` is the iterable vector to pass to the function `.f` (note no `()`)
+- `M` is passed as an additional parameter
+
+```{r}
+#| echo: true
+plots_map <- map(.x = names(M)[3:10],
+                 .f = trait_plot_map,
+                 M = M)
+```
+
+
+## Checking plots
+
+```{r}
+#| echo: true
+wrap_plots(plots_map)
+```
+
+
+## I could have just used `pivot_longer()` and `facet_wrap()`
+
+Yes. But...
+

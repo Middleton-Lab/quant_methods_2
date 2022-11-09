@@ -1,0 +1,203 @@
+---
+title: "Composite Figures"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## Composite figures
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(patchwork)
+library(cowplot)
+library(grid)
+ggplot2::theme_set(theme_cowplot())
+```
+
+- Combining separate plots (e.g., not with `facet_grid()`)
+  - Complex arrangements
+- Adding labels
+- Adjusting margins and axes to line up
+
+
+## Packages
+
+Two highly functional packages:
+
+1. `cowplot` (classic)
+2. `patchwork` (newer)
+
+- Largely complimentary sets of functions.
+- Some customization are easier with one vs. the other.
+
+
+## Generate figures {.smaller}
+
+```{r}
+#| echo: true
+set.seed(4534875)
+
+labeler <- function(x) {
+  annotation_custom(textGrob(x, gp = gpar(fontsize = 30)), 
+                    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf)
+}
+
+M <- tibble(x = rpois(50, 5),
+            n = 1:50)
+
+p1 <- ggplot(M, aes(x)) + 
+  geom_histogram(bins = 30, fill = "orange") +
+  scale_x_continuous(breaks = seq(0, 10, by = 2.5), 
+                     labels = seq(0, 1000, by  = 250)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labeler("Plot 1")
+p2 <- ggplot(M, aes(x)) + 
+  geom_density() +
+  labeler("Plot 2")
+p3 <- ggplot(M, aes(x = n, y = x)) + 
+  geom_path(color = "darkgreen")  +
+  scale_y_continuous(breaks = seq(0, 10, by = 2.5), 
+                     labels = seq(0, 1000, by  = 250)) +
+  labeler("Plot 3")
+p4 <- ggplot(M, aes(x = x, y = n)) +
+  geom_path(color = "purple")  +
+  labeler("Plot 4")
+```
+
+
+## Basics of cowplot: `plot_grid()`
+
+- Plots in order
+- Fill by row
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, p3, p4, nrow = 2)
+```
+
+
+## Empty spaces in the grid
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, NULL, p4, nrow = 4)
+```
+
+
+## Adding and formatting labels
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, p3, p4, nrow = 2,
+          labels = c("a.", "b.", "c.", "d."),
+          label_fontface = "italic",
+          label_size = 12)
+```
+
+
+## Aligning subplots
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, p3, p4, nrow = 2,
+          labels = c("a.", "b.", "c.", "d."),
+          align = "hv")
+```
+
+
+## Basics of patchwork
+
+- patchwork uses `+`, `|`,  `/`, and `( )` for arrangement
+  - `+` and `|` work similarly in most cases
+- Axis alignment is default
+
+```{r}
+#| echo: true
+#| output-location: slide
+(p1 + p2) / (p3 + p4)
+```
+
+
+## Automatic plot wrapping
+
+- If you are collecting plots in a list or from a function
+- Also works without a list
+
+```{r}
+#| echo: true
+#| output-location: slide
+wrap_plots(list(p1, p2, p3, p4))
+```
+
+
+## Complex arrangements
+
+- 2 plots on row one, 1 plot spanning row 2
+- Can do this with `plot_grid()` by [nesting](https://wilkelab.org/cowplot/articles/plot_grid.html) two calls to `plot_grid()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+(p1 | p2) / p3
+```
+
+
+## Adding labels
+
+- `plot_annotation()` adds annotation elements to the patchwork
+
+```{r}
+#| echo: true
+#| output-location: slide
+(p1 | p2) / p3 +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+```
+
+
+## Adding titles
+
+```{r}
+#| echo: true
+#| output-location: slide
+(p1 | p2) / p3 +
+  plot_annotation(
+    tag_levels = 'a',
+    tag_suffix = ".",
+    title = "Long title that spans across both plots if we add enough words.")
+```
+
+
+## Theming
+
+- `&` `theme()` can globally change many plot elements
+- Make all the text serif font (try named fonts)
+
+```{r}
+#| echo: true
+#| output-location: slide
+(p1 | p2) / p3 +
+  plot_annotation(
+    tag_levels = 'a',
+    tag_suffix = ".",
+    title = "Long title that spans across both plots if we add enough words.") &
+  theme(text = element_text("serif"))
+```

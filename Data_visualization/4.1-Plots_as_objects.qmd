@@ -1,0 +1,153 @@
+---
+title: "Programming with Plots"
+subtitle: "Plots as Objects"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## This week
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(paletteer)
+library(patchwork)
+library(ggforce)
+
+library(Data4Ecologists)
+library(abdData)
+```
+
+1. Plots as objects
+2. Creating figures from multiple plots
+3. Dynamic plot creation
+4. Processing lists of plots
+
+
+## Objects in R
+
+Everything in R is an object with one or more classes.
+
+  - Tibbles are objects
+  - Functions are objects
+  - Plots are objects
+
+
+```{r}
+#| echo: true
+set.seed(87453)
+M <- tibble(x = rnorm(100))
+p <- ggplot(M, aes(x)) +
+  geom_density()
+class(p)
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+str(p)
+```
+
+
+## Accessing elements of plots
+
+```{r}
+#| echo: true
+p$labels$x
+p$data
+```
+
+All of the data is saved with a plot
+
+## Modifying plots the hard way
+
+```{r}
+#| echo: true
+p$labels$x <- "This is the x axis"
+p$labels$y <- "This is the y axis"
+p
+```
+
+
+## Modifying plots the easy way
+
+```{r}
+#| echo: true
+p <- p +
+  labs(x = "This is the x axis", y = "This is the y axis")
+p
+```
+
+
+## Adding, removing, modifying plot elements
+
+- `+`ing to plot objects allows you to add or overwrite any plot element
+  - R warns you when you overwrite
+  - Warnings can be quieted
+- Use `element_blank()` to remove elements
+
+
+## Plot grids
+
+[patchwork package](https://patchwork.data-imaginist.com/index.html)
+
+```{r}
+#| echo: true
+#| output-location: slide
+p2 <- ggplot(M, aes(x)) +
+  geom_dotplot()
+p + p2
+```
+
+## Plots within plots: `inset_element()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+p2 +
+  inset_element(p, 0.6, 0.6, 1, 1)
+```
+
+
+## Zooming in: `ggforce::facet_zoom()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot() +
+  geom_point(data = palmerpenguins::penguins |> drop_na(),
+             aes(x = body_mass_g, y = bill_length_mm, color = species)) +
+  scale_color_paletteer_d(`"feathers::cassowary"`, guide = NULL) +
+  facet_zoom(x = body_mass_g > 4000 & body_mass_g < 5000)
+```
+
+
+## Saving plots as objects
+
+- Plots like any R object can be saved
+- Prefer `.Rds` over `.Rda` (e.g., from `save()`)
+  - `readr::write_rds()` or `saveRDS()`
+  - Rds does not save the object name as part of the file
+- Good for batch processing (Lewis HPC)
+
+```{{r}}
+write_rds(x = p, file = "Plot.Rds")
+old_plot <- read_rds(file = "Plot.Rds)
+```
+

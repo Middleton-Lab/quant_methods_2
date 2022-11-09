@@ -1,0 +1,160 @@
+---
+title: "Working with Lists of Plots"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## What else can we do?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+library(patchwork)
+```
+
+- Anything else you want in the function
+  - Summary stats
+  - Regression
+  - etc.
+  
+
+## Mammal life history data
+
+```{r}
+M <- read_delim("Data/mammals.txt", show_col_types = FALSE) |> 
+  mutate(across(.cols = where(is.double), 
+                .fns = ~ ifelse(.x == -999, NA, .x))) |> 
+  rename(Order = MSW05_Order,
+         Species = MSW05_Binomial,
+         Body_mass = `5-1_AdultBodyMass_g`,
+         Forearm = `8-1_AdultForearmLen_mm`,
+         Body_length = `13-1_AdultHeadBodyLen_mm`,
+         Eye_opening = `2-1_AgeatEyeOpening_d`,
+         Repro_age = `3-1_AgeatFirstBirth_d`,
+         BMR_1 = `18-1_BasalMetRate_mLO2hr`,
+         BMR_2 = `5-2_BasalMetRateMass_g`,
+         Neonate_mass = `5-3_NeonateBodyMass_g`) |> 
+  select(Order, Species, Body_mass, Forearm, Body_length, Eye_opening,
+         Repro_age, BMR_1, BMR_2, Neonate_mass)
+head(M)
+```
+
+
+## Update processing function
+
+```{r}
+#| echo: true
+trait_analysis <- function(trait, M) {
+  M_no_NA <- M |> 
+    drop_na(Order, Body_mass, all_of(trait)) |> 
+    select(Order, Body_mass, all_of(trait)) |> 
+    mutate(across(.cols = where(is.double), .fns = ~ log10(.x + 0.001)))
+  
+  summary_table <- M_no_NA |> 
+    group_by(Order) |> 
+    summarize(across(.cols = where(is.double),
+                     .fns = mean))
+  
+  p <- ggplot(M_no_NA, aes(x = Body_mass, y = .data[[trait]], color = Order)) +
+    geom_point() +
+    labs(y = str_replace(trait, "_", " ")) +
+    theme(legend.position = "none")
+  
+  fm <- lm(M_no_NA[[trait]] ~ M_no_NA[["Body_mass"]])
+  
+  return(list(trait = trait, p = p, summary_table = summary_table, fm = fm))
+}
+```
+
+
+## Process traits
+
+- Pass the new function as `.f`
+
+```{r}
+#| echo: true
+LL <- map(.x = names(M)[4:10],
+          .f = trait_analysis,
+          M = M)
+```
+
+
+## A list of lists
+
+Each element in the list has
+
+1. Trait (string)
+2. Plot
+3. Table of means
+4. An `lm()` fitted model
+
+```{r}
+#| echo: true
+length(LL)
+names(LL[[1]])
+```
+
+
+## Access parts of the list
+
+```{r}
+#| echo: true
+LL[[1]]$summary_table
+```
+
+
+## What can we do now?
+
+- Extract all the plots or tables or regressions
+- Generate a report with each trait in turn
+
+## Extract all the plots
+
+```{r}
+plots <- map(.x = 1:length(LL),
+             .f = function(ii, LL) {
+               return(LL[[ii]]$p)
+             },
+             LL = LL)
+wrap_plots(plots)
+```
+
+
+## Generate a report with each trait
+
+In a Quarto file:
+
+```{{r}}
+#| output: "asis"
+for (ii in 1:length(LL)) {
+
+  # Make a header
+  cat("\n## ", LL[ii], "\n")
+  
+  # Print formatted table
+  knitr::kable(LL[[ii]]$summary_table)
+  
+  # Print plot
+  print(LL[[ii]]$p)
+  
+  # Print linear model summary
+  print(summary(LL[[ii]])$fm)
+}
+```
+

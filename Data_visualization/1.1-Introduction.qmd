@@ -100,6 +100,7 @@ Don't:
   - dplyr
   - etc.
 - [cowplot](https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html) Compositing and refining plots
+  - `ggplot2::theme_set(cowplot::theme_cowplot())` is almost always in the setup chunk 
 - [patchwork](https://patchwork.data-imaginist.com/) Compositing and refining plots
 - [paletteer](https://emilhvitfeldt.github.io/paletteer/) Unifies color palette options
 

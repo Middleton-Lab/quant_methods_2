@@ -107,7 +107,7 @@ ggplot(Trunks, aes(x = Species, y = DBH, color = Species)) +
 ```
 
 
-## Reuse your theme
+## Reuse your theme in a Sina plot
 
 ```{r}
 #| echo: true
@@ -121,7 +121,7 @@ ggplot(Trunks, aes(x = Species, y = TF, color = Species)) +
 ```
 
 
-## Reuse your theme
+## Reuse your theme in a scatter plot
 
 ```{r}
 #| echo: true
