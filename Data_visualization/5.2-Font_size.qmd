@@ -28,3 +28,15 @@ ggplot2::theme_set(theme_cowplot())
 library(patchwork)
 ```
 
+
+
+## Adjusting fonts
+
+
+## Adjusting font sizes
+
+
+## Manuscipt font size
+
+
+## Slide font size
