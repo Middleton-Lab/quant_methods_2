@@ -34,4 +34,44 @@ library(patchwork)
 3. Complex plot operations
 4. Reproducible visualization
 
-## Planning plots for publication
+
+## Planning for public consumption
+
+*Manuscripts*:
+
+- Don't let the journal resize your figures
+- Determine the column and page dimensions of your intended journal
+- You might have to reformat figures for a different journal
+
+*Presentations*:
+
+- Don't present talks or posters with microtext.
+
+
+## Manuscripts
+
+Print a page at 100% (no enlargement). Measure with a ruler.
+
+:::{style="text-align: center;"}
+
+![](Images/example_page.png){width="70%"}
+
+:::
+
+
+## Plan for figure dimensions
+
+1. Single column: long figures / panels
+2. Two column: wide figures / panels
+
+How does your eye move around the figure
+
+
+## Scaling
+
+Everything in a figure needs to be readable
+
+- Text
+- Labels
+- Lines
+- Colors and gradients
