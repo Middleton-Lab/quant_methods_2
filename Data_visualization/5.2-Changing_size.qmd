@@ -28,6 +28,12 @@ ggplot2::theme_set(theme_cowplot())
 library(patchwork)
 ```
 
+Everything in a figure needs to be readable
+
+- Text
+- Labels
+- Lines
+- Colors and gradients
 
 
 ## Adjusting fonts
@@ -40,3 +46,7 @@ library(patchwork)
 
 
 ## Slide font size
+
+
+## Adjusting point and line size
+
