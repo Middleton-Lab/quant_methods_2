@@ -135,6 +135,8 @@ plots <- map(.x = 1:length(LL),
 wrap_plots(plots)
 ```
 
+`pluck(LL, ii, "p")` would also work here.
+
 
 ## Generate a report with each trait
 
