@@ -184,9 +184,6 @@ ggplot(data = coords, aes(x, y)) +
     xlim(c(0, dim(img)[2])) +
     ylim(c(0, dim(img)[1])) +
     coord_equal() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title = element_blank()) +
     ggpubr::theme_transparent()
 ```
 
