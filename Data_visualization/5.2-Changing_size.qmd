@@ -1,5 +1,5 @@
 ---
-title: "Font/point/line size"
+title: "Fonts and font/point/line size"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -14,7 +14,7 @@ format:
     link-external-newwindow: true
 ---
 
-## Font/point/line size
+## Everything in a figure needs to be readable
 
 ```{r}
 #| label: setup
@@ -28,8 +28,6 @@ ggplot2::theme_set(theme_cowplot())
 library(patchwork)
 ```
 
-Everything in a figure needs to be readable
-
 - Text
 - Labels
 - Lines
@@ -38,15 +36,97 @@ Everything in a figure needs to be readable
 
 ## Adjusting fonts
 
+- By default R uses Helvetica
+- Be careful with fonts
+- `extrafont`: older, focus on local fonts
+- `showtext`: [newer, more flexible](https://cran.rstudio.com/web/packages/showtext/vignettes/introduction.html)
+  - Load [Google fonts](https://fonts.google.com/) directly
+
+
+## Adding fonts
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(showtext)
+font_add_google("Titan One", "titan")
+
+# Use showtext automatically
+showtext_auto()
+
+ggplot(tibble(x = rnorm(1e3)), aes(x)) + geom_density() +
+  labs(title = "Fancy font title") +
+  theme(text = element_text(family = "titan"))
+```
+
+
+## Local fonts
+
+- Use full local path to font file
+- Provide italic, bold, and bolditalic if needed.
+
+```{{r}}
+font_add(family = "times",
+         regular = "/System/Library/Fonts/Supplemental/Times New Roman.ttf")
+
+ggplot(tibble(x = rnorm(1e3)), aes(x)) + geom_density() +
+  labs(title = "Fancy font title") +
+  theme(text = element_text(family = "times"))
+```
+
 
 ## Adjusting font sizes
+
+- Use `theme(axis.text...)`, etc. one by one
+- Use `cowplot::theme_cowplot(font_size = X)` to get pretty close
+  - Options to change font face and relative sizes of axis labels, etc.
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(tibble(x = rnorm(1e3)), aes(x)) + geom_density() +
+  theme_cowplot(font_size = 10, font_family = "mono")
+```
 
 
 ## Manuscipt font size
 
+- `font_size` of 8 or 10 might be fine for manuscript figures
+- Figures will look terrible in RStudio plot preview
+- Save to file, open, print
+  - Repeat
+  - Set up a reusable figure theme
+
 
 ## Slide font size
+
+- `font_size` of 20, 24, or larger might be necessary for slide figures
+- Figures will look terrible in RStudio plot preview
+- Save to file (jpg/png) at expected output size
+  - Draw a box in powerpoint and get dimensions
+
+
+## Slide font size
+
+:::{style="text-align: center;"}
+
+![](Images/pp.png){width="85%"}
+
+:::
+
+
+## Slide font size
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(tibble(x = rnorm(1e3)), aes(x)) + geom_density() +
+  theme_cowplot(font_size = 24, font_family = "serif")
+```
 
 
 ## Adjusting point and line size
 
+- Same as for font sizes
+  - Export, print/import, check
+  - Repeat

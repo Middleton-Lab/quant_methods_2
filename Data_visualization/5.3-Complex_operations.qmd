@@ -1,5 +1,6 @@
 ---
 title: "Complex plot operations"
+subtitle: "Here is a strange plot things we have done before"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -26,5 +27,198 @@ library(tidyverse)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 library(patchwork)
+library(lemon)
+```
+
+When at all possible:
+
+- Generate figures with code
+  - Even photos/microscopy/gel panels (`annotation_raster()`)
+  - Use version tracking (git)
+- Avoid post-export editing with Illustrator, Canvas, Inkscape, etc.
+
+Reproducible and ultimately time-saving.
+
+
+## Images in a grid
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(jpeg)
+img <- readJPEG(system.file("img", "Rlogo.jpg", package="jpeg"))
+
+P <- map(.x = 1:4,
+         .f = function(ii) {
+           ggplot() +
+             annotation_raster(img,
+                               xmin = 0, xmax = dim(img)[2],
+                               ymin = 0, ymax = dim(img)[1]) +
+             xlim(c(0, dim(img)[2])) +
+             ylim(c(0, dim(img)[1])) +
+             coord_equal() +
+             ggpubr::theme_transparent()
+         })
+
+wrap_plots(P) +
+    plot_annotation(tag_levels = 'a', tag_suffix = ".")
+```
+
+
+## Resizing plots in a grid
+
+- `patchwork` automatically handles axis alignment
+- `cowplot::plot_grid()` gives fine control over relative plot size
+
+## Data to work with
+
+```{r}
+#| echo: true
+#| output-location: slide
+set.seed(87534579)
+
+M <- tibble(x1 = runif(20),
+            x2 = runif(20),
+            y1 = rnorm(20),
+            y2 = rnorm(20))
+p1 <- ggplot(M, aes(x1, y1)) + geom_point()
+p2 <- ggplot(M, aes(x2, y1)) + geom_point()
+p3 <- ggplot(M, aes(x1, y2)) + geom_point()
+p4 <- ggplot(M, aes(x2, y2)) + geom_point()
+
+plot_grid(p1, p2, p3, p4)
+```
+
+
+## Removing axes
+
+```{r}
+#| echo: true
+#| output-location: slide
+p1 <- ggplot(M, aes(x1, y1)) + geom_point() +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank())
+p2 <- ggplot(M, aes(x2, y1)) + geom_point() +
+    theme(axis.title = element_blank(), axis.text = element_blank())
+p3 <- ggplot(M, aes(x1, y2)) + geom_point()
+p4 <- ggplot(M, aes(x2, y2)) + geom_point() +
+  theme(axis.title.y = element_blank(), axis.text.y = element_blank())
+
+plot_grid(p1, p2, p3, p4)
+```
+
+
+## Aligning axes
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, p3, p4,
+          align = "hv")
+```
+
+
+## Resizing sublots
+
+```{r}
+#| echo: true
+#| output-location: slide
+plot_grid(p1, p2, p3, p4,
+          rel_widths = c(1.05, 1),
+          rel_heights = c(1, 1.10))
+```
+
+
+## Moving the legend around
+
+- `theme(legend.position = ...)` for basic positioning
+- `lemon` package for [more options](https://cran.r-project.org/web/packages/lemon/vignettes/legends.html)
+
+
+## Legend positioning 1
+
+```{r}
+#| echo: true
+#| output-location: slide
+p <- ggplot(palmerpenguins::penguins |> 
+              drop_na(bill_length_mm, bill_depth_mm),
+            aes(bill_length_mm, bill_depth_mm, color = species)) +
+  geom_point() +
+  facet_wrap("species", nrow = 2)
+p +
+  theme(legend.position = c(0.7, 0.1))
+```
+
+
+## Legend positioning with `reposition_legend`
+
+- Can span multiple grid positions
+
+```{r}
+#| echo: true
+#| output-location: slide
+reposition_legend(p, "center", panel = "panel-2-2")
+```
+
+
+## Legend positioning 2
+
+- Extracting the legend and adding manually with `grid.arrange()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+p1 <- ggplot(M, aes(x1, y1, color = y1)) + geom_point()
+p2 <- ggplot(M, aes(x2, y1, color = y1)) + geom_point()
+p3 <- ggplot(M, aes(x1, y2, color = y1)) + geom_point()
+
+library(gridExtra)
+legend <- g_legend(p1 + theme(legend.position = "bottom"))
+grid.arrange(p1 + theme(legend.position = "hidden"),
+             p2 + theme(legend.position = "hidden"),
+             p3 + theme(legend.position = "hidden"),
+             legend)
+```
+
+
+## Customizing the legend elements
+
+- `guides()` and `guide_legend()`
+- Control fonts, position, layout of legend elements
+
+```{r}
+bp <- Data4Ecologists::beepollen |> 
+  mutate(Bee_type = if_else(queen == 0, "Worker", "Queen")) |> 
+  rename(Prop_removed = removed,
+         Duration = duration) |> 
+  select(-queen) |> 
+  as_tibble()
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(bp, aes(x = Duration, y = Prop_removed, color = Bee_type)) +
+  geom_path(linewidth = 3, alpha = 0.5, show.legend = FALSE) +
+  geom_point(size = 10, alpha = 0.5) +
+  guides(color = guide_legend(override.aes = list(size = 3,
+                                                  alpha = 1)))
+```
+
+
+## Customizing facets
+
+```{r}
+#| echo: true
+#| output-location: slide
+PP <- palmerpenguins::penguins |> 
+  mutate(Penguin_label = paste0(species, "\npenguin"))
+
+ggplot(PP |> drop_na(bill_length_mm, bill_depth_mm),
+       aes(bill_length_mm, bill_depth_mm, color = species)) +
+  geom_point(show.legend = FALSE) +
+  facet_grid(. ~ Penguin_label) +
+  cowplot::theme_cowplot(font_size = 10) +
+  theme(strip.background = element_blank(),
+        strip.text = element_text(face = "bold", size = rel(1.5)))
 ```
 

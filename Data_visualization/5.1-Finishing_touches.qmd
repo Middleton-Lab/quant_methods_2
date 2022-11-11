@@ -45,26 +45,29 @@ library(patchwork)
 
 *Presentations*:
 
-- Don't give talks or present posters with microtext.
+- Don't present talks or posters with microtext.
 
 
 ## Manuscripts
 
-Print a page at 100% (no enlargement). Measure with a ruler.
+Print a page at 100% (no "fit-to-page"). Measure with a ruler.
 
 :::{style="text-align: center;"}
 
-![](Images/example_page.png){width="70%"}
+![](Images/example_page.png){width="65%"}
 
 :::
 
 
 ## Plan for figure dimensions
 
-1. Single column: long figures / panels
-2. Two column: wide figures / panels
+- Single column: long figures / panels
+- Two column: wide figures / panels
 
-How does your eye move around the figure
+How does your eye move around the figure?
+
+- Left to right
+- Top to bottom
 
 
 ## Scaling
@@ -75,3 +78,16 @@ Everything in a figure needs to be readable
 - Labels
 - Lines
 - Colors and gradients
+
+
+## Figure output
+
+Use vector output (pdf, svg, wmf [Windows]) for as long as possible.
+
+- `ggsave()`
+  - `width`, `height`
+- `cowplot::save_plot()`
+  - `base_width`, `base_height`
+  - Works well with `plot_grid()`
+  - Adjust figure aspect ratio
+
