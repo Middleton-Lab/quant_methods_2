@@ -28,3 +28,29 @@ ggplot2::theme_set(theme_cowplot())
 library(patchwork)
 ```
 
+Just like your data analysis, visualization is reproducible
+
+- Visualization is step 1 and often step *n* of analysis
+- Refine exploratory plots for publication
+
+
+## Git and Github
+
+- [Slides for an intro to Git and Github lecture](https://github.com/egking/comp_bio_MU)
+- [Video tutorial](https://youtu.be/rlXnVs1Xods)
+
+
+## Your reproducible research as an R package
+
+- Change your notion of an R package
+  - Collection of code that does something
+  - Functions do the analysis
+  - `demo()` can run those functions
+- [Package setup video tutorial](https://youtu.be/QOvZV2lkL9w)
+- [Step-by-step guide](https://docs.google.com/document/d/17opEFHKGkaflOed0iww2FscIFP-_7xPKPKqcelmVAgQ/edit?usp=sharing)
+
+
+## Repository structure
+
+- Separate directories for raw data, functions, analysis, generated data, figures
+- Or make a package (see above)
