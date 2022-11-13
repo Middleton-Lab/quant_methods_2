@@ -86,13 +86,13 @@ ggplot2::theme_set(theme_cowplot())
 
 
 
-## Not in this module
+## Not in this module (but in Bayes 2)
 
-- Generalized linear models
+- Generalized linear models (Poisson, logistic)
 - Hierarchical/mixed/multilevel models
 - Hurdle and ordinal models
-- Missing data and modeling uncertainty
-- Custom functions
+- Missing data
+- Modeling uncertainty in outcome and predictor variables
 
 
 ## (Incomplete list of) Bayesian inference software
@@ -113,4 +113,6 @@ ggplot2::theme_set(theme_cowplot())
 - [bayesplot](https://mc-stan.org/bayesplot/)
 - [posterior](https://mc-stan.org/posterior/)
 - [tidybayes](http://mjskay.github.io/tidybayes/)
+
+Problem set 1 will help you get everything set up.
 
