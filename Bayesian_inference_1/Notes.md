@@ -1,3 +1,20 @@
+# QMLS 1 lectures
+
+
+# Books
+
+- McElreath R. 2020. *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. 2nd ed. 
+- Johnson AA, Ott MQ, Dogucu M. 2022. *Bayes Rules! An Introduction to Applied Bayesian Modeling*. Chapman & Hall.
+  - https://www.bayesrulesbook.com/
+
+- Gelman A, Hill J, Vehtari A. 2020. *Regression and Other Stories*. Cambridge University Press.
+  - https://avehtari.github.io/ROS-Examples/
+- Gelman A, Carlin JB, Stern HS, Dunson DB, Vehtari A, Rubin DB. 2013. *Bayesian Data Analysis*. 3rd ed. Boca Raton, FL: CRC Press.
+- Kruschke JK. 2015. *Doing Bayesian Data Analysis: a Tutorial with R, JAGS, and Stan*. 2nd ed. Boston, MA: Academic Press.
+
+# Other resources
+
+
 # Notes
 
 https://github.com/wzchen/probability_cheatsheet
@@ -12,9 +29,9 @@ Basic regression model: y = a * bx + Error
 Expansions:
 
 1. More predictors y = b0 + b1 x1 + b2 x2 + ... + bk xk
-2. Nonlinear models: log y = a * b log x + error
-3. Nonadditive models with interactions
-4. GLMs
+2. Nonadditive models with interactions
+3. GLMs
+4. Nonlinear models: log y = a * b log x + error
 5. Nonparametric models (splines, GAMs, et al.)
 6. Multilevel models
 7. Measurement error models

@@ -1,0 +1,116 @@
+---
+title: "Bayesian Inference 1"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## Module overview
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+1. Motivations, frameworks for inference, probability
+2. Starting linear models, priors, sampling
+3. Modular linear models
+4. Model evaluation, diagnosing sampling problems
+5. Model comparison
+
+
+## Module prerequisites
+
+- *Quantitative Methods in Life Sciences I*
+- Updated R and RStudio
+- Basics of data import and manipulation
+- Basics of linear models
+
+
+## Relevant *Quantitative Methods I* course materials
+
+- Week 2: Data organization, loading, visualization
+- Week 3: Tidy data and transformations
+- [Course files on Github](https://github.com/kmiddleton/quant_methods)
+  - Clone to your computer for reference
+- [Course videos on YouTube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
+
+
+## Books: Introductory
+
+- McElreath R. 2020. *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. 2nd ed. CRC Press.
+- Johnson AA, Ott MQ, Dogucu M. 2022. *Bayes Rules! An Introduction to Applied Bayesian Modeling*. Chapman & Hall.
+  - Free online: [https://www.bayesrulesbook.com/](https://www.bayesrulesbook.com/)
+
+
+## Books: Advanced
+
+- Gelman A, Hill J, Vehtari A. 2020. *Regression and Other Stories*. Cambridge University Press.
+  - Free online: [https://avehtari.github.io/ROS-Examples/](https://avehtari.github.io/ROS-Examples/)
+- Gelman A, Carlin JB, Stern HS, Dunson DB, Vehtari A, Rubin DB. 2013. *Bayesian Data Analysis*. 3rd ed. Boca Raton, FL: CRC Press.
+- Kruschke JK. 2015. *Doing Bayesian Data Analysis: a Tutorial with R, JAGS, and Stan*. 2nd ed. Boston, MA: Academic Press.
+ 
+
+## Other introductions
+
+- Kruschke JK, Liddell TM. 2018a. The Bayesian New Statistics: Hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective. *Psychon Bull Rev* 25:178–206.
+- Kruschke JK, Liddell TM. 2018b. Bayesian data analysis for newcomers. *Psychon Bull Rev* 25:155–177.
+- Etz A, Gronau QF, Dablander F, Edelsbrunner PA, Baribault B. 2018. How to become a Bayesian in eight easy steps: An annotated reading list. *Psychon Bull Rev* 25:219–234.
+
+
+## Goals for this module
+
+1. Comfort simulating data
+2. Comfort with some kinds of linear regression models (univariate, bivariate, multiple, and interactions)
+3. Choosing priors (mildly regularizing)
+4. Processing samples: plots and summaries of posteriors
+5. Model evaluation and model comparison
+6. Writing methods and results from Bayesian regression
+
+
+
+## Not in this module
+
+- Generalized linear models
+- Hierarchical/mixed/multilevel models
+- Hurdle and ordinal models
+- Missing data and modeling uncertainty
+- Custom functions
+
+
+## (Incomplete list of) Bayesian inference software
+
+1. [OpenBUGS](https://www.mrc-bsu.cam.ac.uk/software/bugs/openbugs/) / [JAGS](https://mcmc-jags.sourceforge.io/)
+2. [MCMCglmm](https://mcmc-jags.sourceforge.io/)
+3. [stan](https://mc-stan.org/)
+4. [PyMC](https://www.pymc.io/welcome.html)
+5. [Greta](https://greta-stats.org/)
+6. [INLA](https://www.r-inla.org/)
+
+
+## Packages we will use often
+
+- [rethinking](https://github.com/rmcelreath/rethinking)
+- [rstan](https://mc-stan.org/rstan/)
+- [cmdstanr](https://mc-stan.org/cmdstanr/)
+- [bayesplot](https://mc-stan.org/bayesplot/)
+- [posterior](https://mc-stan.org/posterior/)
+- [tidybayes](http://mjskay.github.io/tidybayes/)
+
