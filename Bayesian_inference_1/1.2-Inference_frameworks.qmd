@@ -1,0 +1,111 @@
+---
+title: "Inference frameworks"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## Common aspects of any kind of analysis
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+1. Information: includes prior knowledge
+2. Assumptions: linearity or not quite, accuracy of data
+3. Inference & interpretation: "classical" frequentist vs. Bayesian
+
+
+## What is most important?
+
+**Frequentist**: Long-run expectation of existing data
+
+**Bayesian**: Incorporating prior information into the modeling process.
+
+
+## Methods of inference/estimation
+
+- Analytical (mean, least squares))
+- Maximum likelihood
+- Resampling (Monte Carlo)
+- Bayesian
+
+
+## Analytical solutions
+
+Mean:
+
+$$\bar{Y} = \frac{\sum_{i=1}^{n}Y_i}{n}$$
+
+
+## Least squares
+
+Slope:
+
+$$b = \frac{\sum\left(X_{i}-\bar{X}\right)\left(Y_{i}-\bar{Y}\right)}{\sum\left(X_{i}-\bar{X}\right)^{2}}$$
+
+
+## Maximum likelihood
+
+For a given mean and standard deviation, how likely is my data?
+
+- Search for the values of mean and standard deviation that maximizes the likelihood
+- Optimization problem
+
+
+## Maximum likelihood
+
+```{r}
+set.seed(34279)
+D <- tibble(x = rnorm(40, 47, 5))
+
+Probs <- tibble(
+  Pred = c("Mean = 45; sd = 5",
+           "Mean = 47; sd = 3",
+           "Mean = 47; sd = 6",
+           "Mean = 42; sd = 10",
+           "Mean = 40, sd = 3"),
+  Mean = c(45, 47, 47, 42, 40),
+  SD = c(5, 3, 6, 10, 2)
+) |> 
+  mutate(Pred = fct_inorder(Pred))
+
+
+Dens <- map_dfr(
+  .x = 1:nrow(Probs),
+  .f = function(ii, Probs){
+    tibble(Label = Probs$Pred[ii],
+           x = seq(30, 65, length.out = 200),
+           y = dnorm(x, mean = Probs$Mean[ii], sd = Probs$SD[ii]))
+  },
+  Probs = Probs)
+
+ggplot(D, aes(x)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30) +
+  geom_line(data = Dens,
+            aes(x, y, color = Label),
+            linewidth = 2) +
+  scale_color_brewer(type = "qual", name = NULL) +
+  labs(x = "Measure", y = "Density") +
+  theme(legend.position = c(0.7, 0.8))
+```
+
+
+## Bayesian
