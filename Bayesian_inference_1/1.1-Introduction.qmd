@@ -82,8 +82,7 @@ ggplot2::theme_set(theme_cowplot())
 3. Choosing priors (mildly regularizing)
 4. Processing samples: plots and summaries of posteriors
 5. Model evaluation and model comparison
-6. Writing methods and results from Bayesian regression
-
+6. Writing methods and results from Bayesian regression models
 
 
 ## Not in this module (but in Bayes 2)
