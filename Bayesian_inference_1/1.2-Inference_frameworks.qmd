@@ -39,6 +39,12 @@ ggplot2::theme_set(theme_cowplot())
 
 **Bayesian**: Incorporating prior information into the modeling process.
 
+<br />
+
+<center>
+*Both have challenges when making decisions.*
+</center>
+
 
 ## Methods of inference/estimation
 
@@ -79,7 +85,7 @@ For a given set of model parameter estimates, how likely is my data?
 
 ## Resampling
 
-- 
+How does my observed test statistic compare to a null distrubution of the same test statistic generated via resampling of the data?
 
 
 ## Bayesian
