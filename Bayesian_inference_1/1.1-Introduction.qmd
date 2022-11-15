@@ -46,8 +46,7 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Relevant *Quantitative Methods I* course materials
 
-- Week 2: Data organization, loading, visualization
-- Week 3: Tidy data and transformations
+- Weeks 4-8
 - [Course files on Github](https://github.com/kmiddleton/quant_methods)
   - Clone to your computer for reference
 - [Course videos on YouTube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
@@ -70,8 +69,8 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Other introductions
 
-- Kruschke JK, Liddell TM. 2018a. The Bayesian New Statistics: Hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective. *Psychon Bull Rev* 25:178–206.
-- Kruschke JK, Liddell TM. 2018b. Bayesian data analysis for newcomers. *Psychon Bull Rev* 25:155–177.
+- Kruschke JK, Liddell TM. 2018. Bayesian data analysis for newcomers. *Psychon Bull Rev* 25:155–177.
+- Kruschke JK, Liddell TM. 2018. The Bayesian New Statistics: Hypothesis testing, estimation, meta-analysis, and power analysis from a Bayesian perspective. *Psychon Bull Rev* 25:178–206.
 - Etz A, Gronau QF, Dablander F, Edelsbrunner PA, Baribault B. 2018. How to become a Bayesian in eight easy steps: An annotated reading list. *Psychon Bull Rev* 25:219–234.
 
 
