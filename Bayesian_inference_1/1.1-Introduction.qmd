@@ -101,7 +101,9 @@ ggplot2::theme_set(theme_cowplot())
 3. [stan](https://mc-stan.org/)
 4. [PyMC](https://www.pymc.io/welcome.html)
 5. [Greta](https://greta-stats.org/)
-6. [INLA](https://www.r-inla.org/)
+6. [Pyro/NumPyro](https://pyro.ai/)
+7. [Turing](https://github.com/TuringLang)
+8. [INLA](https://www.r-inla.org/)
 
 
 ## Packages we will use often
