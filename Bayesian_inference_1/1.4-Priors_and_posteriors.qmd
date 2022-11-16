@@ -13,6 +13,7 @@ format:
     show-slide-number: all
     link-external-newwindow: true
 bibliography: Bayes.bib
+server: shiny
 ---
 
 ## Priors
@@ -24,22 +25,460 @@ bibliography: Bayes.bib
 #| message: false
 
 library(tidyverse)
+library(lubridate)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
+library(patchwork)
+
+library(Data4Ecologists)
+library(rethinking)
+```
+
+```{r}
+Carp <- carppassage |> 
+  filter(Sound == 0) |> 
+  mutate(Date = mdy(Date)) |> 
+  arrange(Date) |> 
+  select(Pass, FishID, Date)
+```
+
+Priors let us model with knowledge included:
+
+- Might be almost no knowledge
+  - Carp either pass or do not pass
+- Might be a little knowledge
+  - We guess that the proportion is probably less than 50%
+- Might be a lot of knowledge
+  - Previous studies show that <25% of carp pass
+
+
+## Distributions of proportions (and probabilities)
+
+- Bounded by 0 and 1
+- Continuous (any proportion is possible)
+
+. . .
+
+The **Beta distribution** fits these requirements
+
+- Two parameters
+  - a, $\alpha$, `shape1` in `dbeta()`
+  - b, $\beta$, `shape2` in `dbeta()`
+
+
+## Beta distribution: a = 1, b = 1
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(data = tibble(P = seq(0, 1, length.out = 200),
+                     Density = dbeta(P, 1, 1)),
+       aes(P, Density)) +
+  geom_line()
 ```
 
 
-## Estimation
+## Beta distribution: a = 2, b = 2
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(data = tibble(P = seq(0, 1, length.out = 200),
+                     Density = dbeta(P, 2, 2)),
+       aes(P, Density)) +
+  geom_line()
+```
 
 
-## Optimization
+## Interactive Beta distribution 
+
+::: {layout-ncol="3"}
+
+```{r}
+sliderInput("a", "a:", 
+            min = 1, max = 10, value = 1)
+```
+
+```{r}
+sliderInput("b", "b:", 
+            min = 1, max = 10, value = 1)
+```
+
+:::
+
+```{r}
+plotOutput("distPlot")
+```
+
+```{r}
+#| context: server
+output$distPlot <- renderPlot({
+  ggplot(data = tibble(P = seq(0, 1, length.out = 200),
+                       Density = dbeta(P, input$a, input$b)),
+         aes(P, Density)) +
+    geom_line()
+})
+```
 
 
-## Grid approximation
+## Beta distribution: a = 0.5, b = 0.5
+
+```{r}
+ggplot(data = tibble(P = seq(0, 1, length.out = 200),
+                     Density = dbeta(P, 0.5, 0.5)),
+       aes(P, Density)) +
+  geom_line()
+```
 
 
-## Maximum likelihood
+## Beta distribution for carp observations
+
+- Start with a Beta(1, 1) *prior*
+  - All we know is that carp either Pass or Do Not Pass
+
+```{r}
+ggplot(data = tibble(P = seq(0, 1, length.out = 200),
+                     Density = dbeta(P, 1, 1)),
+       aes(P, Density)) +
+  geom_line()
+```
 
 
-## Sampling is not optimization
+## Begin observing carp
+
+```{r}
+head(Carp)
+```
+
+- If `Pass` is 1: add 1 to `a`
+- If `Pass` is 0: add 1 to `b`
+
+
+## Carp 1: 0
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 1,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 2,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+## Carp 2: 0
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 2,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 3,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+
+## Carp 3: 0
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 3,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 4,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+
+## Carp 7: 1
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 1,
+                b = 7,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 2,
+                b = 7,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+
+## Carp 8: 0
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 2,
+                b = 7,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 2,
+                b = 8,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+
+## Carp 9: 1
+
+```{r}
+Prior <- tibble(Pr_Post = "Prior",
+                P = seq(0, 1, length.out = 200),
+                a = 2,
+                b = 8,
+                Density = dbeta(P, a, b))
+Posterior <- tibble(Pr_Post = "Posterior",
+                P = seq(0, 1, length.out = 200),
+                a = 3,
+                b = 8,
+                Density = dbeta(P, a, b))
+D <- bind_rows(Prior, Posterior) |> 
+  mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+
+ggplot(D, aes(P, Density, color = Pr_Post)) +
+  geom_line() +
+  scale_color_manual(values = c("gray50", "red"), name = NULL)
+```
+
+
+## All the carp
+
+```{r}
+#| echo: true
+#| output-location: slide
+ab <- tibble(a = rep(1, 72),
+             b = rep(1, 72),
+             Pass = NA)
+
+for (ii in 2:nrow(ab)) {
+  ab$Pass[ii] <- Carp$Pass[ii - 1]
+  if (Carp$Pass[ii - 1] == 0) {
+    ab$a[ii] <- ab$a[ii - 1]
+    ab$b[ii] <- ab$b[ii - 1] + 1
+  } else {
+    ab$a[ii] <- ab$a[ii - 1] + 1
+    ab$b[ii] <- ab$b[ii - 1]
+  }
+}
+
+print(ab, n = 20)
+```
+
+
+## Plotting the first 16 carp
+
+```{r}
+P <- purrr::map(
+  .x = 2:nrow(ab),
+  .f = function(ii, ab) {
+    Prior <- tibble(Pr_Post = "Prior",
+                    P = seq(0, 1, length.out = 200),
+                    a = ab$a[ii - 1],
+                    b = ab$b[ii - 1],
+                    Density = dbeta(P, a, b))
+    Posterior <- tibble(Pr_Post = "Posterior",
+                        P = seq(0, 1, length.out = 200),
+                        a = ab$a[ii],
+                        b = ab$b[ii],
+                        Density = dbeta(P, a, b))
+    D <- bind_rows(Prior, Posterior) |> 
+      mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+    
+    ggplot(D, aes(P, Density, color = Pr_Post)) +
+      geom_line() +
+      scale_color_manual(values = c("gray50", "red"),
+                         name = NULL, guide = "none") +
+      labs(title = paste0("a = ", ab$a[ii], "; b = ", ab$b[ii])) +
+      theme_cowplot(font_size = 10)
+  },
+  ab = ab)
+
+wrap_plots(P[[1]], P[[2]], P[[3]], P[[4]], P[[5]],
+           P[[6]], P[[7]], P[[8]], P[[9]], P[[10]],
+           P[[11]], P[[12]], P[[13]], P[[14]], P[[15]], P[[16]])
+```
+
+
+## Final distribution of probability
+
+```{r}
+P_original <- P[[71]]
+P[[71]]
+```
+
+
+## Shuffle the order of observations
+
+```{r}
+#| echo: true
+set.seed(42364)
+Carp <- Carp[sample(seq_len(nrow(Carp))), ]
+Carp
+```
+
+
+## Repeat and plot
+
+```{r}
+ab <- tibble(a = rep(1, 72),
+             b = rep(1, 72),
+             Pass = NA)
+
+for (ii in 2:nrow(ab)) {
+  ab$Pass[ii] <- Carp$Pass[ii - 1]
+  if (Carp$Pass[ii - 1] == 0) {
+    ab$a[ii] <- ab$a[ii - 1]
+    ab$b[ii] <- ab$b[ii - 1] + 1
+  } else {
+    ab$a[ii] <- ab$a[ii - 1] + 1
+    ab$b[ii] <- ab$b[ii - 1]
+  }
+}
+
+P <- purrr::map(
+  .x = 2:nrow(ab),
+  .f = function(ii, ab) {
+    Prior <- tibble(Pr_Post = "Prior",
+                    P = seq(0, 1, length.out = 200),
+                    a = ab$a[ii - 1],
+                    b = ab$b[ii - 1],
+                    Density = dbeta(P, a, b))
+    Posterior <- tibble(Pr_Post = "Posterior",
+                        P = seq(0, 1, length.out = 200),
+                        a = ab$a[ii],
+                        b = ab$b[ii],
+                        Density = dbeta(P, a, b))
+    D <- bind_rows(Prior, Posterior) |> 
+      mutate(Pr_Post = factor(Pr_Post, levels = c("Prior", "Posterior")))
+    
+    ggplot(D, aes(P, Density, color = Pr_Post)) +
+      geom_line() +
+      scale_color_manual(values = c("gray50", "red"),
+                         name = NULL, guide = "none") +
+      labs(title = paste0("a = ", ab$a[ii], "; b = ", ab$b[ii])) +
+      theme_cowplot(font_size = 10)
+  },
+  ab = ab)
+
+wrap_plots(P[[1]], P[[2]], P[[3]], P[[4]], P[[5]],
+           P[[6]], P[[7]], P[[8]], P[[9]], P[[10]],
+           P[[11]], P[[12]], P[[13]], P[[14]], P[[15]], P[[16]])
+```
+
+
+## Comparing two posteriors
+
+```{r}
+plot_grid(P_original, P[[71]])
+```
+
+The order of the data does not matter
+
+
+## Informative priors
+
+- Might be almost no knowledge
+  - Carp either pass or do not pass
+  - a = 1; b = 1
+- Might be a little knowledge
+  - We guess that the proportion is probably less than 50%
+  - a = 5; b = 15
+- Might be a lot of knowledge
+  - Previous studies show that <25% of carp pass
+  - a = 5; b = 40
+
+
+## Informative priors
+
+```{r}
+P_little <- ggplot(tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, 5, 15)),
+                   aes(P, Density)) +
+  geom_line() +
+  labs(title = paste0("a = 5; b = 15")) +
+  theme_cowplot(font_size = 10)
+
+P_a_lot <- ggplot(tibble(P = seq(0, 1, length.out = 200),
+                         Density = dbeta(P, 5, 40)),
+                  aes(P, Density)) +
+  geom_line() +
+  labs(title = paste0("a = 5; b = 40")) +
+  theme_cowplot(font_size = 10)
+
+plot_grid(P_little, P_a_lot)
+```
+
+
+## Posteriors from informative priors
+
+```{r}
+P_little <- ggplot(tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, 5 + 9, 15 + 62)),
+                   aes(P, Density)) +
+  geom_line() +
+  labs(title = paste0("a = 14; b = 77")) +
+  theme_cowplot(font_size = 10)
+
+P_a_lot <- ggplot(tibble(P = seq(0, 1, length.out = 200),
+                         Density = dbeta(P, 5 + 9, 40 + 62)),
+                  aes(P, Density)) +
+  geom_line() +
+  labs(title = paste0("a = 14; b = 102")) +
+  theme_cowplot(font_size = 10)
+
+plot_grid(P_little, P_a_lot)
+```
+
+
+## What is a frequentist CI?
+
+Return to binomial CI
+
+
+
+## Other Bayesian benefits
 
