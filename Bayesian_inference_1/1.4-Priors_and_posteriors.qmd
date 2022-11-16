@@ -484,7 +484,7 @@ plot_grid(P_little, P_a_lot)
 ```
 
 
-## What does a frequentist confidence interval represent?
+## Frequentist confidence intervals
 
 - 95% confidence interval for a proportion of 9 / 72 is 0.07 - 0.22 (via Wilson's method)
 - "If we repeated this experiment over and over, 95% of those experiments would have a proportion between 0.07	and 0.22."
@@ -495,20 +495,24 @@ plot_grid(P_little, P_a_lot)
 - There is a 95% probability that the proportion is between 0.07 and 0.22
 
 
-# Bayesian Highest Density Interval (HDI)
+## Bayesian highest density interval
 
-- 95% highest density interval for the proportion (given a Beta(1, 1) prior) is 0.06 to 0.22
+- 95% highest density interval (HDI) for the proportion (given a Beta(1, 1) prior and the data) is 0.06 to 0.22
 
 "There is a 95% probability that the true proportion falls between 0.06 and 0.22".
 
 
-## Advantages of Bayesian inference
+## Advantages of Bayesian inference 1
 
 - Randomness or noise is a property of data not of sampling
   - Is there one single population body mass of rabbits in a field?
-- Include prior information in analysis
+- Include prior knowledge in the model
 - Posteriors represent the relative plausibility of estimates (given a model, data, and priors)
 - Posteriors can be interpreted as probabilities
+
+
+## Advantages of Bayesian inference 2
+
 - Regularizing priors can make complex models feasible
   - Multilevel/mixed models
   - Generalized linear models
