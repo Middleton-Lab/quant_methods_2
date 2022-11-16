@@ -26,149 +26,107 @@ bibliography: Bayes.bib
 library(tidyverse)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
-```
+library(lubridate)
 
-## Maximum likelihood
-
-```{r}
-set.seed(34279)
-D <- tibble(x = rnorm(40, 47, 5))
-
-Probs <- tibble(
-  Pred = c("Mean = 45; sd = 5",
-           "Mean = 47; sd = 3",
-           "Mean = 47; sd = 6",
-           "Mean = 42; sd = 10",
-           "Mean = 40, sd = 3"),
-  Mean = c(45, 47, 47, 42, 40),
-  SD = c(5, 3, 6, 10, 2)
-) |> 
-  mutate(Pred = fct_inorder(Pred))
-
-
-Dens <- map_dfr(
-  .x = 1:nrow(Probs),
-  .f = function(ii, Probs){
-    tibble(Label = Probs$Pred[ii],
-           x = seq(30, 65, length.out = 200),
-           y = dnorm(x, mean = Probs$Mean[ii], sd = Probs$SD[ii]))
-  },
-  Probs = Probs)
-
-ggplot(D, aes(x)) +
-  geom_histogram(aes(y = after_stat(density)), bins = 30) +
-  geom_line(data = Dens,
-            aes(x, y, color = Label),
-            linewidth = 2) +
-  scale_color_brewer(type = "qual", name = NULL) +
-  labs(x = "Measure", y = "Density") +
-  theme(legend.position = c(0.7, 0.8))
+library(Data4Ecologists)
+library(rethinking)
 ```
 
 
-## The analytical answers
+## Carp movement data
 
-```{r}
-#| echo: true
-mean(D$x)
-sd(D$x)
-```
+- 71 carp that approached a dam or lock on the Mississippi River
+- `Pass` is `0` if the fish did not enter, `1` if it did
+- Binomial distribution / Bernoulli trials
 
-
-## Normal (Gaussian) probability density:
-
-$$f(x) = \frac{1}{\sigma \sqrt{2\pi} } e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}$$
-
-where
-
-- $\mu$ is the mean
-- $\sigma$ is the standard deviation
-- $\pi$ and $e$ are constants
-
-
-## A function for the normal probability density
-
-```{r}
-#| echo: true
-d_norm <- function(Theta, x, log_scale = TRUE) {
-  mu <- Theta[1]
-  sigma <- Theta[2]
-
-  p <- 1 / (sigma * sqrt(2 * pi)) * 
-    exp(-1 / 2 * ((x - mu) / sigma) ^ 2)
-  
-  if (log_scale) p <- log(p)
-  
-  return(p)
-}
-```
-
-
-## Testing the function
-
-```{r}
-#| echo: true
-d_norm(Theta = c(0, 1), x = 1)
-d_norm(Theta = c(0, 1), x = -1:2)
-d_norm(Theta = c(0, 1), x = 10, log_scale = FALSE)
-d_norm(Theta = c(0, 1), x = 10, log_scale = TRUE)
-```
-
-
-## Maximum likelihood estimation
-
-Function to return the model likelihood:
-
-```{r}
-#| echo: true
-
-Log_Lik <- function(Theta, x) {
-  sum(d_norm(Theta, x))
-}
-```
-
-Optimize `Log_Lik()`:
+What is the probability of a carp entering the dam or lock?
 
 ```{r}
 #| echo: true
 #| output-location: slide
-optim(c(40, 1), # Start at 40, 1
-      Log_Lik,
-      x = D$x,
-      control = list(fnscale = -1,      # Maximize
-                     reltol = 10^-100)) # Stopping point
+Carp <- carppassage |> 
+  filter(Sound == 0) |> 
+  mutate(Date = mdy(Date)) |> 
+  arrange(Date) |> 
+  select(Pass, FishID, Date)
 
-mean(D$x)
-sd(D$x)
+Carp
 ```
 
 
-## What's the problem?
+## Carp movement data
 
-Sample standard deviation (unbiased)
+```{r}
+#| echo: true
 
-$$s = \sqrt{\frac{1}{N-1}\sum_{i}(x-\bar x)^2}$$
+Carp |> 
+  group_by(Pass) |> 
+  count()
+```
 
-MLE estimate of standard deviation (biased)
+- 9 of 71 carp passed
+- P[Pass] = 9/71 = `r 9/71`
+- Could approximate a confidence interval for the proportion (probability)
 
-$$\hat\sigma=\sqrt{\frac{1}{N}\sum_{i=1}^N(x-\bar x)^2}$$
+
+## Visualizing binomial probabilities
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot() +
+  geom_bar(data = tibble(Pass = 0:25,
+                         Density = dbinom(Pass, 71, prob = 9/71)),
+           aes(x = Pass, y = Density),
+           stat = "identity") +
+  geom_bar(data = tibble(Pass = 9,
+                         Density = dbinom(Pass, 71, prob = 9/71)),
+           aes(x = Pass, y = Density),
+           stat = "identity",
+           fill = "red") +
+  labs(title = "0 to 25 successes in 71 trials for P = 9/71")
+```
 
 
-## With `glm()`
+## Logistic regression via maximum likelihood
 
 - `~ 1` tells `glm()` to fit only an intercept
-- `"gaussian"` is the default, so we don't need to include it
+- Specify `"binomial"` response
 
 ```{r}
 #| echo: true
-fm <- glm(D$x ~ 1, family = "gaussian")
-```
+#| output-location: slide
 
-
-## `glm()` summary and log-likelihood
-
-```{r}
-#| echo: true
+fm <- glm(Pass ~ 1, data = Carp,
+          family = "binomial")
 summary(fm)
-logLik(fm)
 ```
+
+
+## Compare to raw proportion
+
+- Convert logit `(Intercept)` to probability 
+- Also using `rethinking::logistic()`
+
+```{r}
+#| echo: true
+1/(1 + exp(-coef(fm)))
+logistic(coef(fm))
+9/71
+```
+
+
+## What have we learned so far?
+
+- Maximum likelihood estimate of the mean of Bernoulli trials is the proportion of successes.
+  - Note: no additional predictors; "mean" only
+- Can approximate a confidence interval by one of ~5 methods
+- We can do all this without Bayes or sampling
+
+<br />
+
+<center>
+*So why Bayesian inference?*
+</center>
+
