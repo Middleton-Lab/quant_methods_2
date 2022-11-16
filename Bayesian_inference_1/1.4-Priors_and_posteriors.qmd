@@ -68,11 +68,15 @@ The **Beta distribution** fits these requirements
 
 ## Beta distribution: a = 1, b = 1
 
+- `dbeta(x, shape1, shape2)` is the density of the Beta distribution for a vector `x` and the two shape parameters
+- Create an evenly spaced sequence of `P` probabilities from 0 to 1
+- Calculate the density for each `P`, given `shape1` and `shape2`
+
 ```{r}
 #| echo: true
 #| output-location: slide
 ggplot(data = tibble(P = seq(0, 1, length.out = 200),
-                     Density = dbeta(P, 1, 1)),
+                     Density = dbeta(P, shape1 = 1, shape2 = 1)),
        aes(P, Density)) +
   geom_line()
 ```
@@ -84,7 +88,7 @@ ggplot(data = tibble(P = seq(0, 1, length.out = 200),
 #| echo: true
 #| output-location: slide
 ggplot(data = tibble(P = seq(0, 1, length.out = 200),
-                     Density = dbeta(P, 2, 2)),
+                     Density = dbeta(P, shape1 = 2, shape2 = 2)),
        aes(P, Density)) +
   geom_line()
 ```
@@ -96,12 +100,12 @@ ggplot(data = tibble(P = seq(0, 1, length.out = 200),
 
 ```{r}
 sliderInput("a", "a:", 
-            min = 1, max = 10, value = 1)
+            min = 1, max = 20, value = 1)
 ```
 
 ```{r}
 sliderInput("b", "b:", 
-            min = 1, max = 10, value = 1)
+            min = 1, max = 20, value = 1)
 ```
 
 :::
@@ -154,7 +158,7 @@ head(Carp)
 - If `Pass` is 0: add 1 to `b`
 
 
-## Carp 1: 0
+## Carp 1: No pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -172,10 +176,11 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 1, b = 2")
 ```
 
-## Carp 2: 0
+## Carp 2: No pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -193,11 +198,12 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 1, b = 3")
 ```
 
 
-## Carp 3: 0
+## Carp 3: No pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -215,11 +221,12 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 1, b = 4")
 ```
 
 
-## Carp 7: 1
+## Carp 7: Pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -237,11 +244,12 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 2, b = 7")
 ```
 
 
-## Carp 8: 0
+## Carp 8: No pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -259,11 +267,12 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 2, b = 8")
 ```
 
 
-## Carp 9: 1
+## Carp 9: Pass
 
 ```{r}
 Prior <- tibble(Pr_Post = "Prior",
@@ -281,7 +290,8 @@ D <- bind_rows(Prior, Posterior) |>
 
 ggplot(D, aes(P, Density, color = Pr_Post)) +
   geom_line() +
-  scale_color_manual(values = c("gray50", "red"), name = NULL)
+  scale_color_manual(values = c("gray50", "red"), name = NULL) +
+  labs(title = "a = 3, b = 8")
 ```
 
 
@@ -474,11 +484,33 @@ plot_grid(P_little, P_a_lot)
 ```
 
 
-## What is a frequentist CI?
+## What does a frequentist confidence interval represent?
 
-Return to binomial CI
+- 95% confidence interval for a proportion of 9 / 72 is 0.07 - 0.22 (via Wilson's method)
+- "If we repeated this experiment over and over, 95% of those experiments would have a proportion between 0.07	and 0.22."
+
+*Not*:
+
+- We are 95% certain that the proportion is between 0.07 and 0.22
+- There is a 95% probability that the proportion is between 0.07 and 0.22
 
 
+# Bayesian Highest Density Interval (HDI)
 
-## Other Bayesian benefits
+- 95% highest density interval for the proportion (given a Beta(1, 1) prior) is 0.06 to 0.22
+
+"There is a 95% probability that the true proportion falls between 0.06 and 0.22".
+
+
+## Advantages of Bayesian inference
+
+- Randomness or noise is a property of data not of sampling
+  - Is there one single population body mass of rabbits in a field?
+- Include prior information in analysis
+- Posteriors represent the relative plausibility of estimates (given a model, data, and priors)
+- Posteriors can be interpreted as probabilities
+- Regularizing priors can make complex models feasible
+  - Multilevel/mixed models
+  - Generalized linear models
+  - Nonlinear models
 

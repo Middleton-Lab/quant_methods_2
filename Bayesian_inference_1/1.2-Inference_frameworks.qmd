@@ -15,7 +15,7 @@ format:
 bibliography: Bayes.bib
 ---
 
-## Common aspects of any kind of analysis
+## Learning about the world with data
 
 ```{r}
 #| label: setup
@@ -54,6 +54,8 @@ ggplot2::theme_set(theme_cowplot())
 - Bayesian
 
 In many cases, all will give similar answers.
+
+*Philosophically and in implementation aand interpretation, these are all different from one another.*
 
 
 ## Closed form solutions

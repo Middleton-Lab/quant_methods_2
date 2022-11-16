@@ -32,18 +32,57 @@ library(Data4Ecologists)
 library(rethinking)
 ```
 
+The probability of an event is the proportion of times the event would occur if a random trial is repeated infinitely under constant conditions.
+
+
+## Probability
+
+The probability of an event is the **proportion** of times the event **would** occur **if** a **random** trial is repeated **infinitely** under **constant conditions**.
+
+- proportion
+- would occur
+- if
+- random trial
+- infinitely
+- constant conditions
+
+
+## Basics of probability
+
+Probabilities are proportions.
+
+Pr[event] is the abbreviation for “the probability of
+event A occurring.”
+
+- $Pr[heads] = 0.50$: Heads
+- $Pr[heads'] = 0.50$: *Not* heads
+
+The range of probabilities for an event is 0 $\rightarrow$ 1
+(including 0 and 1).
+
+
+## Probability to Likelihood
+
+- For data and a set of parameter values, the (model) likelihood is the product of all the individual datum probabilities
+- Proportions are an easy place to start
+  - Only 1 data point: # of successes for a # of trials
+  - Only 1 parameter: Probability of success
+
 
 ## Carp movement data
 
-- 71 carp that approached a dam or lock on the Mississippi River
+- 71 carp that approached a dam or lock on the Mississippi River^[Riesgraf AT, Finger JS, Zielinski DP, Dennis III CE, Whitty JM, Sorensen PW. 2022. Evaluation of a broadband sound projected from the gates of a navigation lock in the Mississippi River shows it to be a weak deterrent for common carp and unable to block passage. *Management of Biological Invasions* 13]
 - `Pass` is `0` if the fish did not enter, `1` if it did
 - Binomial distribution / Bernoulli trials
+  - `Pass == 1` is "Success"
 
 What is the probability of a carp entering the dam or lock?
 
+
+## Carp movement data
+
 ```{r}
 #| echo: true
-#| output-location: slide
 Carp <- carppassage |> 
   filter(Sound == 0) |> 
   mutate(Date = mdy(Date)) |> 
@@ -65,11 +104,29 @@ Carp |>
 ```
 
 - 9 of 71 carp passed
-- P[Pass] = 9/71 = `r 9/71`
-- Could approximate a confidence interval for the proportion (probability)
+- Pr[Pass] = 9/71 = `r 9/71`
+
+
+## Likelihood for binomial data
+
+- 9 successes in 72 trials
+- Probability is 0.5, 0.25, or 0.1
+- The binomial probability is the model likelihood
+  - Not true for anything more complex
+
+```{r}
+#| echo: true
+
+dbinom(9, 72, prob = 0.5)
+dbinom(9, 72, prob = 0.25)
+dbinom(9, 72, prob = 0.1)
+```
 
 
 ## Visualizing binomial probabilities
+
+- Probability of exactly `x` successes in 71 trials
+- Underlying probability is 9/71
 
 ```{r}
 #| echo: true
@@ -115,6 +172,11 @@ summary(fm)
 logistic(coef(fm))
 9/71
 ```
+
+
+## What does this likelihood represent?
+
+Frequentist interpretation
 
 
 ## What have we learned so far?
