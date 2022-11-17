@@ -51,19 +51,17 @@ The probability of an event is the **proportion** of times the event **would** o
 
 Probabilities are proportions.
 
-Pr[event] is the abbreviation for “the probability of
-event A occurring.”
+Pr[event] is the abbreviation for “the probability of event A occurring.”
 
-- $Pr[heads] = 0.50$: Heads
-- $Pr[heads'] = 0.50$: *Not* heads
+- $Pr[Rain] = 0.50$: Rain
+- $Pr[Rain'] = 0.50$: *Not* Rain
 
-The range of probabilities for an event is 0 $\rightarrow$ 1
-(including 0 and 1).
+The range of probabilities for an event is 0 $\rightarrow$ 1 (including 0 and 1).
 
 
 ## Probability to Likelihood
 
-- For data and a set of parameter values, the (model) likelihood is the product of all the individual datum probabilities
+- For data and a set of parameter values, the (model) likelihood is the product of all the individual probabilities
 - Proportions are an easy place to start
   - Only 1 data point: # of successes for a # of trials
   - Only 1 parameter: Probability of success
