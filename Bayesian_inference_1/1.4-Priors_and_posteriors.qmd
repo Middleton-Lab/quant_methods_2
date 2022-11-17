@@ -44,11 +44,11 @@ Carp <- carppassage |>
 
 Priors let us model with knowledge included:
 
-- Might be almost no knowledge
+- Almost no knowledge
   - Carp either pass or do not pass
-- Might be a little knowledge
+- A little knowledge
   - We guess that the proportion is probably less than 50%
-- Might be a lot of knowledge
+- A lot of knowledge
   - Previous studies show that <25% of carp pass
 
 
@@ -427,13 +427,13 @@ The order of the data does not matter
 
 ## Informative priors
 
-- Might be almost no knowledge
+- Almost no knowledge
   - Carp either pass or do not pass
   - a = 1; b = 1
-- Might be a little knowledge
+- A little knowledge
   - We guess that the proportion is probably less than 50%
   - a = 5; b = 15
-- Might be a lot of knowledge
+- A lot of knowledge
   - Previous studies show that <25% of carp pass
   - a = 5; b = 40
 
