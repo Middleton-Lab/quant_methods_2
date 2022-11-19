@@ -38,3 +38,41 @@ Expansions:
 
 "The safest interpretation of a regression is as a comparison." Not effects. p. 85
 
+# Prior exploration
+
+```r
+# https://gist.githubusercontent.com/andrewheiss/a4e0c0ab2d735625ac17ec8a081f0f32/raw/aa8734075c24b926f3d3fb8d1922c8e846d0a034/plot-priors-automatically.md
+
+library(tidyverse)
+library(tidybayes)
+library(brms)
+library(ggtext)
+
+priors <- c(prior(normal(20, 5), class = Intercept),
+            prior(normal(0, 2), class = b),
+            prior(exponential(1), class = sigma),
+            prior(exponential(1), class = sd),
+            prior(lkj(2), class = cor),
+            prior(beta(1, 1), class = hu))
+
+priors %>% 
+  parse_dist() %>% 
+  # K = dimension of correlation matrix; 
+  # ours is 2x2 here because we have one random slope
+  marginalize_lkjcorr(K = 2) %>%
+  mutate(nice_title = glue::glue("**{class}**<br>{prior}")) %>% 
+  ggplot(aes(y = 0, dist = .dist, args = .args, fill = prior)) +
+  stat_slab(normalize = "panels") +
+  scale_fill_viridis_d(option = "plasma", end = 0.9) +
+  facet_wrap(vars(nice_title), scales = "free_x") +
+  guides(fill = "none") +
+  labs(x = NULL, y = NULL) +
+  theme_bw() +
+  theme(strip.text = element_markdown(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank())
+```
+
+
