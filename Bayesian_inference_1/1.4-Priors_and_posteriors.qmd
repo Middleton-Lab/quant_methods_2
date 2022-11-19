@@ -461,6 +461,8 @@ plot_grid(P_little, P_a_lot)
 
 ## Posteriors from informative priors
 
+Different priors = Different posteriors
+
 ```{r}
 P_little <- ggplot(tibble(P = seq(0, 1, length.out = 200),
                           Density = dbeta(P, 5 + 9, 15 + 62)),
