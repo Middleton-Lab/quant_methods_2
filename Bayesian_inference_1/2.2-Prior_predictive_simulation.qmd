@@ -1,0 +1,330 @@
+---
+title: "Prior predictive simulation"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## Goals
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+
+library(truncnorm)
+
+library(cmdstanr)
+library(posterior)
+library(bayesplot)
+```
+
+- Do my priors make sense at all?
+- Are my priors too restrictive?
+- Are my priors too loose?
+
+Is the simulated data generally on the same scale as the outcome?
+
+
+## Simulate data
+
+- You know the answer ahead
+- Get the answer you know is there
+
+Useful for working through new techniques
+
+
+## Simulate DBH for 100 trees
+
+- Log Normal distribution
+  - log mean = 2.5
+  - log sd = 0.5
+
+```{r}
+#| echo: true
+set.seed(34729)
+
+DBH <- rlnorm(100, 2.5, 0.5)
+DBH
+```
+
+
+## Visualize
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(bins = 30)
+```
+
+
+## log-transform?
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot(tibble(log_DBH = log(DBH)), aes(log_DBH)) +
+  geom_histogram(bins = 30)
+```
+
+
+## Model statements 1
+
+$$DBH \sim Normal(\mu, \sigma)$$
+
+- No additional predictors
+- Mean only
+- Priors for $\mu$ and $\sigma$
+
+```{r}
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(bins = 30)
+```
+
+## Prior prediction
+
+1. Generate many simulated datasets
+  - $DBH \sim Normal(mean, sd)$
+  - `mean` and `sd` are drawn from distributions themselves
+2. Plot the distributions of the datasets
+3. Decide if the priors are appropriate
+
+
+## Simulating datasets #1
+
+- Half-normal is a common distribution for standard deviations
+- Use `truncnorm::rtruncnorm()` to generate a half-normal distribution
+- `a = 0` sets the lower bound at 0
+
+```{r}
+#| echo: true
+#| output-location: slide
+set.seed(3247922)
+Sim_data <- map_dfr(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = rnorm(100,
+                       mean = rnorm(1, 10, 2.5),
+                       sd = rtruncnorm(5, mean = 2, sd = 1, a = 0)))
+  })
+Sim_data
+```
+
+
+## Half-normal distribution
+
+```{r}
+ggplot(tibble(x = seq(0, 10, length.out = 200),
+              Density = dtruncnorm(x, mean = 2, sd = 1, a = 0)),
+       aes(x = x, y = Density)) +
+  geom_line()
+```
+
+
+## Plotting #1
+
+```{r}
+#| echo: true
+#| output-location: slide
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), fill = "#2D5DA1", bins = 30) +
+  geom_line(data = Sim_data, aes(DBH, group = ID),
+            stat = "density", alpha = 0.5, linewidth = 1)
+```
+
+
+## Simulating datasets #2
+
+- Shift the mean to the right
+- Increase spread
+
+```{r}
+#| echo: true
+set.seed(87349)
+Sim_data <- map_dfr(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = rnorm(100,
+                       mean = rnorm(1, 12, 5),
+                       sd = rtruncnorm(5, mean = 5, sd = 3, a = 0)))
+  })
+```
+
+
+## Plotting #2
+
+```{r}
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), fill = "#2D5DA1", bins = 30) +
+  geom_line(data = Sim_data, aes(DBH, group = ID),
+            stat = "density", alpha = 0.5, linewidth = 1)
+```
+
+
+## Relationships between distributions
+
+<center>
+![](https://i.stack.imgur.com/sau6I.png)
+</center>
+
+
+## Simulate with LogNormal #1
+
+- Start with very small values for prior standard deviations
+
+```{r}
+#| echo: true
+set.seed(4623864)
+Sim_data <- map_dfr(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = rlnorm(100,
+                        mean = rnorm(1, 2, 0.01),
+                        sd = rtruncnorm(1, mean = 1, sd = 0.01, a = 0)))
+  })
+```
+
+## Plotting #3
+
+```{r}
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "#2D5DA1") +
+  geom_line(data = Sim_data, aes(DBH, group = ID),
+            stat = "density", alpha = 0.5, linewidth = 1)
+```
+
+
+## Simulate with LogNormal #2
+
+- Shift the mean right and relax the spread
+- Spread the standard deviation
+
+```{r}
+#| echo: true
+set.seed(623469)
+Sim_data <- map_dfr(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = rlnorm(100,
+                        mean = rnorm(1, 3, 0.2),
+                        sd = rtruncnorm(1, mean = 1, sd = 0.25, a = 0)))
+  })
+```
+
+## Plotting #4
+
+```{r}
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "#2D5DA1") +
+  geom_line(data = Sim_data, aes(DBH, group = ID),
+            stat = "density", alpha = 0.5, linewidth = 1)
+```
+
+
+## Model statements
+
+$$DBH \sim LogNormal(\mu, \sigma)$$
+
+$$\mu \sim Normal(3, 0.2)$$
+$$\sigma \sim HalfNormal(1, 0.25)$$
+
+
+## Stan model
+
+```{{stan}}
+data {
+  int<lower=0> N;  // Number of observations
+  vector[N] DBH;   // Vector of DBH values
+}
+
+parameters {
+  real mu;             // logmean
+  real<lower=0> sigma; // logsd
+}
+
+model {
+  DBH ~ lognormal(mu, sigma);
+
+  mu ~ normal(3, 0.2);     // Prior for mu
+  sigma ~ normal(1, 0.25); // Prior for sigma
+}
+```
+
+
+## Sampling the model
+
+```{r}
+#| echo: true
+mod <- cmdstan_model("DBH.stan")
+fm <- mod$sample(data = list(DBH = DBH, N = length(DBH)),
+                 chains = 4,
+                 iter_sampling = 5000,
+                 iter_warmup = 5000,
+                 refresh = 0,
+                 seed = 3437492)
+```
+
+
+## Summarizing the model
+
+```{r}
+#| echo: true
+fm$summary()
+```
+
+- Median of the LogNormal is 2.55
+- Median standard deviation is 0.578
+
+
+## Median posterior distribution
+
+We actually have 20,000 posterior distributions.
+
+```{r}
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "#2D5DA1") +
+  geom_line(data = tibble(x = seq(0, 50, length.out = 200),
+                          Density = dlnorm(x, 2.55, 0.578)),
+            aes(x, Density),
+            linewidth = 1)
+```
+
+
+## Prior prediction
+
+- If this seems like a lot of fuss
+  - You get more experienced
+  - More critical for more complex models
+  - We will learn tools to help with the process
+
+. . .
+
+- Couldn't we just calculate the mean and standard deviation of the data and use that?
+  - Short answer: No.
+
+. . .
+
+Get to know your data very well.
+

@@ -1,0 +1,115 @@
+---
+title: "Bayesian Workflow"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## This week
+
+1. Bayesian workflow
+2. Choosing priors and prior predictive simulation
+3. Sampling and diagnostics
+4. Posteriors
+5. Drawing conclusions
+
+
+## Workflow
+
+1. Model specification
+2. Prior specification
+3. Prior predictive simulation / check
+4. Sampling for the posterior
+5. Diagnostics
+6. Summarizing the posterior
+
+
+## Model specification
+
+How will we model the relationship between the outcome and predictor(s)?
+
+$$DBH \sim \beta_0$$
+
+$$DBH \sim \beta_0 + \beta_1 age$$
+
+$$\log DBH \sim \beta_0 + \beta_1 \log height$$
+
+
+## Distribution of the *outcome* variable
+
+How will we model the distribution of the outcome variable?
+
+- Normal (Gaussian)
+- Binomial / Bernoulli
+- Poisson
+- Log Normal
+- Exponential
+
+
+## Relationships between distributions
+
+<center>
+![](https://i.stack.imgur.com/sau6I.png)
+</center>
+
+
+## Model statements
+
+DBH has a normal distribution with some mean ($\mu$) and standard deviation ($\sigma$):
+
+$$DBH \sim Normal(\mu, \sigma)$$
+
+$\mu$ is the sum of $\beta_0$ and $\beta_1$ times $age$:
+
+$$\mu  = \beta_0 + \beta_1 age$$
+
+or combined:
+
+$$DBH \sim Normal(\beta_0 + \beta_1 age, \sigma)$$
+
+
+## Prior specification
+
+What are the distributions and ranges of plausible values for the predictors ($\beta_0$, $\beta_1$, and $\sigma$)?
+
+. . .
+
+- $\beta_0$: probably positive (DBH at age = 0), use domain knowledge
+- $\beta_1$: probably positive (DBH increases with age), use domain knowledge
+- $\sigma$: *must* be positive, probably a small number unless there is a lot of variation in the samples
+
+Later we will test these with prior predictive checks.
+
+
+## Bayes rule: Get the posterior
+
+$$\textrm{posterior} = \frac{\textrm{prior} \cdot \textrm{likelihood}}{\textrm{normalizing constant}}$$
+
+. . .
+
+$$f(\mathbf{\beta}, y) = \frac{f(\mathbf{\beta}) \cdot L(\mathbf{\beta} | y)}{f(y)}$$
+
+$f(y)$ the probability of observing the data across all possible $\beta$, which make the probability sum to 1. [BayesRules! has a good explanation](https://www.bayesrulesbook.com/chapter-2.html#shortcut-2).
+
+
+## Sampling to avoid intractable math
+
+::: {.incremental}
+- Historically, only outcomes with a few distributions were feasible (Gaussian, Binomial) for hand-calculations.
+- With "fast computing machines"^[Metropolis N, Rosenbluth AW, Rosenbluth MN, Teller AH, Teller E. 1953. Equation of State Calculations by Fast Computing Machines. *J Chem Phys* 21:1087–1092.], we can just sample from the posterior directly
+- Many ways to sample (Monte Carlo):
+  - Metropolis algorithm (1953)
+  - Metropolis-Hastings algorithm (1970)
+  - Gibbs sampling (1984)
+  - Hamiltonian Monte Carlo (1987, 1996, 2014)
+:::
