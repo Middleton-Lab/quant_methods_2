@@ -1,5 +1,5 @@
 ---
-title: "Sampling and Diagnostics"
+title: "Sampling"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -373,8 +373,8 @@ sd(y)
 - Challenging when there are many predictors
   - High proportion of rejected moves
 - Gibbs sampling improves performance
-  - Move one parameter at a time
-  - High autocorrelation of parameter estimates
+  - Sample one parameter at a time within each step
+  - Still can have high autocorrelation of parameter estimates
 
 
 ## Hamiltonian Monte Carlo
