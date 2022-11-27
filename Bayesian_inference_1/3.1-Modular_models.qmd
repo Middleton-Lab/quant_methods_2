@@ -1,0 +1,133 @@
+---
+title: "Modular modules"
+subtitle: "Types of response and predictor variables"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## This week
+
+1. Types of response and predictor variables
+2. Bivariate models and regularizing priors
+3. Multiple regression and interactions
+4. Drawing conclusions
+
+
+## Why modular?
+
+Rethink traditional statistical tests
+
+- OLS, *t*-test, ANOVA, ANCOVA, multiple regression
+
+as linear models with some combnination of predictors
+
+- Categorical or continuous?
+- How many of each?
+
+
+## Categorical or continuous?
+
+Categorical:
+
+- Shift the mean of the outcome (intercept)
+
+Continuous:
+
+- How much does the outcome change for a 1 unit increase in the predictor
+
+
+## Problem
+
+<center>
+<img src="https://i.imgur.com/GsL12KL.jpg" width="80%" />
+</center>
+
+
+## Outcome: Birth mass
+
+Possible predictors:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+- Birth date
+- Year
+- Sex
+- Maternal fecundity (nulliparous / primiparous / pluriparous)
+:::
+
+::: {.column width="50%"}
+- Maternal age
+- Population size
+- Temperature (min, max, avg)
+- Rainfall
+- ...
+:::
+
+::::
+
+
+## Categorical model 1
+
+$$\textrm{Birth Mass} \sim Normal(\mu, \sigma)$$
+
+$$\mu = \beta_0 + \beta_1 \textrm{Sex}$$
+
+$$\beta_0 \sim Normal(3.5, 1)$$
+
+$$\beta_1 \sim Normal(0, 1)$$
+
+`Sex` can be coded `0` = Female and `1` = Male.
+
+- $\beta_0$ is the female mean
+- $\beta_0 + \beta_1$ is the male mean
+
+
+## Categorical model 2
+
+$$\textrm{Birth Mass} \sim Normal(\mu, \sigma)$$
+
+$$\mu = \beta[\textrm{Sex}]$$
+
+$$\beta[\textrm{Sex}] \sim Normal(3.5, 1)$$
+
+- `Sex` is estimated simultaneously and separately for both sexes
+- No added prior uncertainty for males
+
+
+## Continuous model
+
+$$\textrm{Birth Mass} \sim Normal(\mu, \sigma)$$
+
+$$\mu = \beta_0 + \beta_1 \textrm{Population size}$$
+
+$$\beta_0 \sim Normal(3.5, 1)$$
+
+$$\beta_1 \sim Normal(0, 10)$$
+
+- $\beta_0$ is the mean when population size = 0
+- $\beta_1$ is the increase in birth mass for a 1 unit increase in population size
+  - Scale the prior to the units of population size 
+
+
+## Predictor types vs. analysis types
+
+- ANOVA just a comparison of means for $\geq$ 3 groups
+  - 1 categorical predictor with 3 or more levels
+- *t*-test is just a comparison of means for 2 groups
+  - 1 categorical predictor with 2 levels
+  - A special case of ANOVA
+
+Thinking this way will let you begin thinking about multiple regression a little easier.
+
