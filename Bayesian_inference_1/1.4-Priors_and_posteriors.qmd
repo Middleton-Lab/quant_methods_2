@@ -482,7 +482,7 @@ plot_grid(P_little, P_a_lot)
 ```
 
 
-## Frequentist confidence intervals
+## Frequentist confidence intervals [see @Morey2016-yh]
 
 - 95% confidence interval for a proportion of 9 / 72 is 0.07 - 0.22 (via Wilson's method)
 - "If we repeated this experiment over and over, 95% of those experiments would have a proportion between 0.07	and 0.22."
