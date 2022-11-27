@@ -19,9 +19,8 @@ bibliography: Bayes.bib
 
 1. Bayesian workflow
 2. Choosing priors and prior predictive simulation
-3. Sampling and diagnostics
-4. Posteriors
-5. Drawing conclusions
+3. Sampling
+4. Diagnostics and posteriors
 
 
 ## Workflow
