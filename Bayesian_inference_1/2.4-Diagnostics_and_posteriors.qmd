@@ -252,7 +252,7 @@ quantile(post$mu, probs = c(0.055, 0.945))
 
 ## Highest posterior density intervals
 
-- The highest density region of the distribution
+- The highest "mass" region of the distribution
 
 89% HDPI:
 
