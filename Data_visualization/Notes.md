@@ -6,6 +6,7 @@
 
 - Find a plot that you think is terrible
   - Explain why
+- Read Midway SR. 2020. Principles of Effective Data Visualization. Patterns 1:100141.
 
 ### Week 2
 
