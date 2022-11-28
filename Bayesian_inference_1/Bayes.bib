@@ -2620,6 +2620,59 @@
   arxivid       = "2011.01808"
 }
 
+@ARTICLE{Vasishth2022-pq,
+  title    = "Sample Size Determination for Bayesian Hierarchical Models
+              Commonly Used in Psycholinguistics",
+  author   = "Vasishth, Shravan and Yadav, Himanshu and Schad, Daniel J and
+              Nicenboim, Bruno",
+  abstract = "We discuss an important issue that is not directly related to the
+              main theses of the van Doorn et al. (Computational Brain and
+              Behavior, 2021) paper, but which frequently comes up when using
+              Bayesian linear mixed models: how to determine sample size in
+              advance of running a study when planning a Bayes factor analysis.
+              We adapt a simulation-based method proposed by Wang and Gelfand
+              (Statistical Science 193–208, 2002) for a Bayes factor-based
+              design analysis, and demonstrate how relatively complex
+              hierarchical models can be used to determine approximate sample
+              sizes for planning experiments.",
+  journal  = "Computational Brain \& Behavior",
+  month    =  mar,
+  year     =  2022,
+  url      = "https://doi.org/10.1007/s42113-021-00125-y",
+  keywords = "Reading list;Bayes Readings",
+  issn     = "2522-087X",
+  doi      = "10.1007/s42113-021-00125-y"
+}
+
+@ARTICLE{Van_Doorn2021-ns,
+  title    = "Bayes Factors for Mixed Models",
+  author   = "van Doorn, Johnny and Aust, Frederik and Haaf, Julia M and
+              Stefan, Angelika M and Wagenmakers, Eric-Jan",
+  abstract = "Although Bayesian linear mixed effects models are increasingly
+              popular for analysis of within-subject designs in psychology and
+              other fields, there remains considerable ambiguity on the most
+              appropriate Bayes factor hypothesis test to quantify the degree
+              to which the data support the presence or absence of an
+              experimental effect. Specifically, different choices for both the
+              null model and the alternative model are possible, and each
+              choice constitutes a different definition of an effect resulting
+              in a different test outcome. We outline the common approaches and
+              focus on the impact of aggregation, the effect of measurement
+              error, the choice of prior distribution, and the detection of
+              interactions. For concreteness, three example scenarios showcase
+              how seemingly innocuous choices can lead to dramatic differences
+              in statistical evidence. We hope this work will facilitate a more
+              explicit discussion about best practices in Bayes factor
+              hypothesis testing in mixed models.",
+  journal  = "Computational Brain \& Behavior",
+  month    =  jul,
+  year     =  2021,
+  url      = "https://doi.org/10.1007/s42113-021-00113-2",
+  keywords = "Reading list;Bayes Readings",
+  issn     = "2522-087X",
+  doi      = "10.1007/s42113-021-00113-2"
+}
+
 @ARTICLE{Burkner2021-mp,
   title    = "Efficient leave-one-out cross-validation for Bayesian
               non-factorized normal and Student-t models",
@@ -2727,16 +2780,121 @@
                should be used in practice.",
   journal   = "Bayesian Analysis",
   publisher = "International Society for Bayesian Analysis",
-  volume    = "-1",
-  number    = "-1",
-  pages     = "1--38",
+  volume    =  16,
+  number    =  2,
+  pages     = "667--718",
   month     =  jan,
   year      =  2021,
   url       = "http://dx.doi.org/10.1214/20-BA1221",
-  keywords  = "Alligator\_Morphology;Bayes Readings",
+  keywords  = "Reading list;Alligator\_Morphology;Bayes Readings",
   language  = "en",
   issn      = "1936-0975, 1931-6690",
   doi       = "10.1214/20-BA1221"
+}
+
+@ARTICLE{Paananen2019-jo,
+  title         = "Implicitly Adaptive Importance Sampling",
+  author        = "Paananen, Topi and Piironen, Juho and Bürkner,
+                   Paul-Christian and Vehtari, Aki",
+  abstract      = "Adaptive importance sampling is a class of techniques for
+                   finding good proposal distributions for importance sampling.
+                   Often the proposal distributions are standard probability
+                   distributions whose parameters are adapted based on the
+                   mismatch between the current proposal and a target
+                   distribution. In this work, we present an implicit adaptive
+                   importance sampling method that applies to complicated
+                   distributions which are not available in closed form. The
+                   method iteratively matches the moments of a set of Monte
+                   Carlo draws to weighted moments based on importance weights.
+                   We apply the method to Bayesian leave-one-out
+                   cross-validation and show that it performs better than many
+                   existing parametric adaptive importance sampling methods
+                   while being computationally inexpensive.",
+  month         =  jun,
+  year          =  2019,
+  url           = "http://arxiv.org/abs/1906.08850",
+  keywords      = "Bayes Readings",
+  archivePrefix = "arXiv",
+  eprint        = "1906.08850",
+  primaryClass  = "stat.CO",
+  arxivid       = "1906.08850"
+}
+
+@ARTICLE{Aguilar2022-mv,
+  title         = "Intuitive Joint Priors for Bayesian Linear Multilevel
+                   Models: The {R2-D2-M2} prior",
+  author        = "Aguilar, Javier Enrique and Bürkner, Paul-Christian",
+  abstract      = "The training of high-dimensional regression models on
+                   comparably sparse data is an important yet complicated
+                   topic, especially when there are many more model parameters
+                   than observations in the data. From a Bayesian perspective,
+                   inference in such cases can be achieved with the help of
+                   shrinkage prior distributions, at least for generalized
+                   linear models. However, real-world data usually possess
+                   multilevel structures, such as repeated measurements or
+                   natural groupings of individuals, which existing shrinkage
+                   priors are not built to deal with. We generalize and extend
+                   one of these priors, the R2-D2 prior by Zhang et al. (2020),
+                   to linear multilevel models leading to what we call the
+                   R2-D2-M2 prior. The proposed prior enables both local and
+                   global shrinkage of the model parameters. It comes with
+                   interpretable hyperparameters, which we show to be
+                   intrinsically related to vital properties of the prior, such
+                   as rates of concentration around the origin, tail behavior,
+                   and amount of shrinkage the prior exerts. We offer
+                   guidelines on how to select the prior's hyperparameters by
+                   deriving shrinkage factors and measuring the effective
+                   number of non-zero model coefficients. Hence, the user can
+                   readily evaluate and interpret the amount of shrinkage
+                   implied by a specific choice of hyperparameters. Finally, we
+                   perform extensive experiments on simulated and real data,
+                   showing that our prior is well calibrated, has desirable
+                   global and local regularization properties and enables the
+                   reliable and interpretable estimation of much more complex
+                   Bayesian multilevel models than was previously possible.",
+  month         =  aug,
+  year          =  2022,
+  url           = "http://arxiv.org/abs/2208.07132",
+  keywords      = "ABC;Reading list;Bayes Readings",
+  archivePrefix = "arXiv",
+  eprint        = "2208.07132",
+  primaryClass  = "stat.ME",
+  arxivid       = "2208.07132"
+}
+
+@ARTICLE{Schad2022-dc,
+  title    = "Workflow techniques for the robust use of bayes factors",
+  author   = "Schad, Daniel J and Nicenboim, Bruno and Bürkner, Paul-Christian
+              and Betancourt, Michael and Vasishth, Shravan",
+  abstract = "Inferences about hypotheses are ubiquitous in the cognitive
+              sciences. Bayes factors provide one general way to compare
+              different hypotheses by their compatibility with the observed
+              data. Those quantifications can then also be used to choose
+              between hypotheses. While Bayes factors provide an immediate
+              approach to hypothesis testing, they are highly sensitive to
+              details of the data/model assumptions and it's unclear whether
+              the details of the computational implementation (such as bridge
+              sampling) are unbiased for complex analyses. Here, we study how
+              Bayes factors misbehave under different conditions. This includes
+              a study of errors in the estimation of Bayes factors; the
+              first-ever use of simulation-based calibration to test the
+              accuracy and bias of Bayes factor estimates using bridge
+              sampling; a study of the stability of Bayes factors against
+              different MCMC draws and sampling variation in the data; and a
+              look at the variability of decisions based on Bayes factors using
+              a utility function. We outline a Bayes factor workflow that
+              researchers can use to study whether Bayes factors are robust for
+              their individual analysis. (PsycInfo Database Record (c) 2022
+              APA, all rights reserved).",
+  journal  = "Psychol. Methods",
+  month    =  mar,
+  year     =  2022,
+  url      = "http://dx.doi.org/10.1037/met0000472",
+  keywords = "Reading list;Bayes Readings",
+  language = "en",
+  issn     = "1082-989X, 1939-1463",
+  pmid     = "35266787",
+  doi      = "10.1037/met0000472"
 }
 
 @ARTICLE{Metropolis1953-lm,

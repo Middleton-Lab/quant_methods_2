@@ -1,0 +1,387 @@
+---
+title: "Sampling"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## Sampling to avoid complicated math
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(truncnorm)
+
+library(cmdstanr)
+library(posterior)
+library(bayesplot)
+```
+
+$$\textrm{posterior} = \frac{\textrm{prior} \cdot \textrm{likelihood}}{\textrm{normalizing constant}}$$
+
+Many ways to sample
+
+- Metropolis algorithm (1953)
+- Metropolis-Hastings algorithm (1970)
+- Gibbs sampling (1984)
+- Hamiltonian Monte Carlo (1987, 1996, 2014)
+
+
+## Sampling is not optimization
+
+- Sampling yields a set of samples
+  - *n* chains $\times$ *n* iterations
+- Samples represent the most plausible values *in proportion to their relative compatibility with the data, model, and priors*.
+
+The posterior contains simultaneous samples for each parameter.
+
+
+## Basics of MCMC
+
+1. Current parameter values (have a model likelihood)
+1. Propose a new set of values based a slight permutation of the current values (have a model likelihood)
+1. Move to proposed values with probability proportional to their ratio
+1. *Repeat*
+
+. . .
+
+"Bad" jumps are possible with non-zero probability
+
+- Not optimization or "hill-climbing"
+
+
+## Simulate data
+
+- Generate a small dataset, to make looking at likelihoods easier
+
+```{r}
+#| echo: true
+
+set.seed(467456)
+(y <- rnorm(n = 8, mean = 50, sd = 2))
+mean(y)
+sd(y)
+```
+
+
+## Choose starting values
+
+```{r}
+#| echo: true
+
+set.seed(45738)
+(mu <- rnorm(1))
+(sigma <- rtruncnorm(1, a = 0))
+```
+
+
+## Calculate the probability for $y_i$
+
+Use `dnorm()` to get the normal density for two observations of $y$ given the current values of $\mu$ and $\sigma$
+
+```{r}
+#| echo: true
+
+dnorm(y[1], mean = mu, sd = sigma)
+dnorm(y[2], mean = mu, sd = sigma)
+```
+
+. . .
+
+Model likelihood is the product of the probabilities for all the observations
+
+- Use a log scale
+- Add instead of multiply
+
+
+## Calculate model log-likelihood
+
+Add up the logged probabilities for each observation (`log = TRUE`):
+
+```{r}
+#| echo: true
+
+(LL_current <- sum(dnorm(y, mean = mu, sd = sigma, log = TRUE)))
+```
+
+Now what? 
+
+- We need something to compare this likelihood to: a *proposal*
+
+
+## Proposal
+
+- Add a small random amount to each value
+- Calculate the model likelihood
+
+```{r}
+#| echo: true
+
+(mu_prop <- mu + rnorm(1))
+(sigma_prop <- rtruncnorm(1, a = 0) + rnorm(1))
+if (sigma_prop < 0) sigma_prop <- abs(sigma_prop)
+(LL_prop <- sum(dnorm(y, mean = mu_prop, sd = sigma_prop, log = TRUE)))
+```
+
+
+## Evaluate the proposal
+
+Take the ratio of the likelihoods by subtraction
+
+```{r}
+#| echo: true
+
+exp(LL_prop - LL_current)
+```
+
+- If the ratio is > 1
+  - The proposal is better
+  - Make the move
+- If the ratio is < 1
+  - Draw a random number between 0 and 1: `runif(1)`
+  - If the ratio is > `runif(1)`, make the move
+  - Otherwise draw a new proposal
+  
+
+## Evaluating the proposal
+
+```{r}
+#| echo: true
+
+set.seed(3427)
+runif(1)
+exp(LL_prop - LL_current)
+```
+
+- Do not make the move.
+  - Save the current values.
+- Move to the next iteration.
+
+
+## Metropolis Sampling Setup
+
+```{r}
+#| echo: true
+
+set.seed(435739)
+n_samp <- 10000
+
+s <- matrix(NA, ncol = 2, nrow = n_samp)
+s[1, ] <- c(1.011675, 0.5373229)
+
+n_accepted <- 0
+n_rejected <- 0
+```
+
+
+## Run the sampler
+
+```{r}
+#| echo: true
+
+for (ii in 2:n_samp) {
+  LL_current <- sum(dnorm(y, mean = s[ii - 1, 1], sd = s[ii - 1, 2],
+                          log = TRUE))
+
+  mu_prop <- s[ii - 1, 1] + rnorm(1)
+  sigma_prop <- s[ii - 1, 2] + rnorm(1)
+  if (sigma_prop < 0) sigma_prop <- abs(sigma_prop)
+  
+  LL_prop <- sum(dnorm(y, mean = mu_prop, sd = sigma_prop, log = TRUE))
+
+  if (exp(LL_prop - LL_current) > runif(1)) {
+    s[ii, ] <- c(mu_prop, sigma_prop)
+    mu <- mu_prop
+    sigma <- sigma_prop
+    n_accepted <- n_accepted + 1
+  } else {
+    s[ii, ] <- s[ii - 1, ]
+    n_rejected <- n_rejected + 1
+  }
+}
+
+```
+
+
+## Examine the output
+
+```{r}
+#| echo: true
+
+head(s, n = 10)
+n_accepted
+n_rejected
+```
+
+
+## Plotting the chain
+
+```{r}
+Post <- as.data.frame(s) |> 
+  rename(mu = V1, sigma = V2) |> 
+  mutate(Sample = 1:n()) |> 
+  pivot_longer(cols = -Sample, names_to = "Parameter", values_to = "Estimate")
+ggplot(Post, aes(x = Sample, y = Estimate, color = Parameter)) +
+  geom_path() +
+  scale_color_manual(guide = "none", values = c("#4570E6", "#C32148")) +
+  facet_grid(Parameter ~ ., scales = "free_y")
+```
+
+
+## Examining the chain
+
+```{r}
+ggplot(Post |> filter(Sample <= 20),
+       aes(x = Sample, y = Estimate, color = Parameter)) +
+  geom_point() +
+  geom_path() +
+  scale_color_manual(guide = "none", values = c("#4570E6", "#C32148")) +
+  facet_grid(Parameter ~ ., scales = "free_y")
+```
+
+
+## Problems
+
+- Chains can take a while to begin oscillating around the optimum
+  - Discard samples for burn-in
+- Autocorrelation
+  - Save every *n*th sample (thinning)
+
+Don't write you own MCMC sampler.
+
+
+## Chain diagnostics
+
+```{r}
+library(coda)
+s_mcmc <- as.mcmc(s)
+autocorr.diag(s_mcmc)
+autocorr.plot(s_mcmc)
+```
+
+
+## Naive improvements
+
+- Take a lot more samples (10^6^)
+- Discard the initial 25% of the samples
+- Keep every 100th sample
+
+```{r}
+set.seed(435739)
+n_samp <- 1000000
+
+s <- matrix(NA, ncol = 2, nrow = n_samp)
+s[1, ] <- c(1, 1)
+
+n_accepted <- 0
+n_rejected <- 0
+
+for (ii in 2:n_samp) {
+  LL_current <- sum(dnorm(y, mean = s[ii - 1, 1], sd = s[ii - 1, 2],
+                          log = TRUE))
+
+  mu_prop <- s[ii - 1, 1] + rnorm(1)
+  sigma_prop <- s[ii - 1, 2] + rnorm(1)
+  if (sigma_prop < 0) sigma_prop <- abs(sigma_prop)
+  
+  LL_prop <- sum(dnorm(y, mean = mu_prop, sd = sigma_prop, log = TRUE))
+
+  if (exp(LL_prop - LL_current) > runif(1)) {
+    s[ii, ] <- c(mu_prop, sigma_prop)
+    mu <- mu_prop
+    sigma <- sigma_prop
+    n_accepted <- n_accepted + 1
+  } else {
+    s[ii, ] <- s[ii - 1, ]
+    n_rejected <- n_rejected + 1
+  }
+}
+```
+
+```{r}
+#| echo: true
+s <- s[(n_samp * 0.25):n_samp, ]
+s_thin <- s[seq(1, nrow(s), by = 100), ]
+s_mcmc <- as.mcmc(s_thin)
+autocorr.diag(s_mcmc)
+```
+
+
+## Plotting
+
+```{r}
+Post <- as.data.frame(s_thin) |> 
+  rename(mu = V1, sigma = V2) |> 
+  mutate(Sample = 1:n()) |> 
+  pivot_longer(cols = -Sample, names_to = "Parameter", values_to = "Estimate")
+ggplot(Post, aes(x = Sample, y = Estimate, color = Parameter)) +
+  geom_path() +
+  scale_color_manual(guide = "none", values = c("#4570E6", "#C32148")) +
+  facet_grid(Parameter ~ ., scales = "free_y")
+```
+
+
+## Zooming
+
+```{r}
+ggplot(Post |> filter(Sample <= 20),
+       aes(x = Sample, y = Estimate, color = Parameter)) +
+  geom_point() +
+  geom_path() +
+  scale_color_manual(guide = "none", values = c("#4570E6", "#C32148")) +
+  facet_grid(Parameter ~ ., scales = "free_y")
+```
+
+
+## Summarizing
+
+```{r}
+#| echo: true
+
+Post |> 
+  group_by(Parameter) |> 
+  summarize(Median = median(Estimate),
+            Q2.5 = quantile(Estimate, 0.025),
+            Q97.5 = quantile(Estimate, 0.975))
+
+median(y)
+sd(y)
+```
+
+
+## Bayesian inference by Monte Carlo sampling
+
+- More complicated than simple MCMC
+  - Include the prior
+- Challenging when there are many predictors
+  - High proportion of rejected moves
+- Gibbs sampling improves performance
+  - Sample one parameter at a time within each step
+  - Still can have high autocorrelation of parameter estimates
+
+
+## Hamiltonian Monte Carlo
+
+- Samping by "Physics simulation"
+  - [Explanation](http://elevanth.org/blog/2017/11/28/build-a-better-markov-chain/)
+  - [Demos of lots of MC samplers](https://chi-feng.github.io/mcmc-demo/)
+- No burn-in (does have "warmup" iterations)
+- Very very low autocorrelation
+- Stan's sampler 

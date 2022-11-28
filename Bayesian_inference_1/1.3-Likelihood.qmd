@@ -179,7 +179,12 @@ logistic(coef(fm))
 
 ## What does this likelihood represent?
 
+### FIXME
+
 Frequentist interpretation
+
+https://lakens.github.io/statistical_inferences/confint.html#singleCI
+
 
 
 ## What have we learned so far?

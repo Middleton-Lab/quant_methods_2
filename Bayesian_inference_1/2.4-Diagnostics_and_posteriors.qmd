@@ -1,0 +1,317 @@
+---
+title: "Diagnostics and Posteriors"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## Learning path
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(truncnorm)
+
+library(rethinking)
+```
+
+`rethinking` package [@McElreath2020-tk]
+
+- Between pure stan code and convenience tools
+- Teaches careful practices, diagnosis, summaries
+- Lacks integration with other tools
+
+"High level" packages: `rstanarm` and `brms`
+
+- Work well with other tools (`posterior`, `tidybayes`, `bayesplot`)
+- Graduate to these packages once you are comfortable
+
+
+## Diagnostics
+
+- Bayesian inference is active
+  - More than just `lm()` and `summary()`
+- Define a model and sample it
+- Check that sampling was "good"
+
+
+## Use our simulated data
+
+```{r}
+#| echo: true
+
+set.seed(467456)
+(y <- rnorm(n = 8, mean = 50, sd = 2))
+mean(y)
+sd(y)
+```
+
+
+## Write the model statements
+
+Likelihood:
+
+$$y \sim Normal(\mu, \sigma)$$
+
+Priors:
+
+$$\mu \sim Normal(45, 10)$$
+
+$$\sigma \sim HalfNormal(0, 3)$$
+
+
+## Look at the priors
+
+Skip prior predictive simulation (for now)
+
+```{r}
+p1 <- ggplot(tibble(x = seq(20, 70, length.out = 200),
+                    Density = dnorm(x, 45, 10)),
+             aes(x, Density)) +
+  geom_line(linewidth = 2) +
+  labs(x = expression(mu))
+
+p2 <- ggplot(tibble(x = seq(0, 10, length.out = 200),
+                    Density = dtruncnorm(x, a = 0, mean = 0, sd = 3)),
+             aes(x, Density)) +
+  geom_line(linewidth = 2) +
+  labs(x = expression(sigma))
+plot_grid(p1, p2)
+```
+
+
+## Create `ulam()` model
+
+Note the correspondence to the model statements.
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+fm <- ulam(
+  alist(
+    y ~ dnorm(mu, sigma),
+    mu ~ dnorm(45, 10),
+    sigma ~ dhalfnorm(0, 3)
+  ),
+  data = list(y = y),
+  chains = 4,
+  iter = 1e4
+)
+```
+
+50% of iterations are used for warm-up (default)
+
+
+## Traceplot
+
+```{r}
+#| echo: true
+
+traceplot_ulam(fm)
+```
+
+
+## Rank histogram plot [@Vehtari2021-yi]
+
+```{r}
+#| echo: true
+
+trankplot(fm)
+```
+
+
+## Examining `ulam` objects
+
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
+
+## `rethinking::precis()`: shorter summary
+
+```{r}
+#| echo: true
+
+precis(fm)
+```
+
+
+## `n_eff`
+
+- Effect sample size (4 chains $\times$ 5000 samples = 10,000)
+  - We have ~8000
+- Standard deviations are often lower than other parameters
+- Be worried if you have 10,000 samples but `n_eff` is small
+  - Usually accompanied by lots of warnings and high $\hat{R}$
+
+
+## `Rhat4` [@Vehtari2021-yi]
+
+- Approaches 1 from above as the chains converge to the same distribution
+- Be concerned if this is more than \~1.01
+  - High values (>1.5) are usually accompanied by lots of warnings and low effective sample size.
+
+
+## Sampling gone bad
+
+When sampling fails, it usually fails very badly and very obviously.
+
+- Investigate your model
+
+Gelman's *[Folk Theorem of Statistical Computing](https://statmodeling.stat.columbia.edu/2008/05/13/the_folk_theore/)*:
+
+> When you have computational problems, often there's a problem with your model.
+
+
+## Posteriors
+
+`ulam` object contains samples:
+
+```{r}
+#| echo: true
+
+post <- extract.samples(fm) |> 
+  as.data.frame()
+head(post)
+```
+
+- Samples are simultaneous at each iteration
+  - Important later when doing math on samples
+
+
+## Prior vs. Posterior: $\mu$
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot() +
+  geom_line(data = tibble(x = seq(20, 70, length.out = 200),
+                          Density = dnorm(x, 45, 10)),
+            aes(x, Density),
+            color = "#CDDC39",
+            linewidth = 2) +
+  geom_density(data = post, aes(mu),
+               color = "#004C71",
+               linewidth = 2) +
+  labs(x = expression(mu))
+```
+
+
+## Prior vs. Posterior: $\sigma$
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot() +
+  geom_line(data = tibble(x = seq(0, 10, length.out = 200),
+                          Density = dtruncnorm(x, a = 0, mean = 0, sd = 3)),
+            aes(x, Density),
+            color = "#CDDC39",
+            linewidth = 2) +
+  geom_density(data = post, aes(sigma),
+               color = "#004C71",
+               linewidth = 2) +
+  labs(x = expression(sigma))
+```
+
+
+## Quantiles
+
+- Divide the samples into percentiles
+
+89% credible interval:
+
+```{r}
+#| echo: true
+quantile(post$mu, probs = c(0.055, 0.945))
+```
+
+
+## Highest posterior density intervals
+
+- The highest "mass" region of the distribution
+
+89% HDPI:
+
+```{r}
+#| echo: true
+
+HPDI(post$mu)
+```
+
+
+## Quantiles vs. HPDIs
+
+(Usually) identical for symmetrical distributions:
+
+```{r}
+q <- quantile(post$mu, probs = c(0.055, 0.945)) |> as.numeric()
+hdi <- HPDI(post$mu) |> as.numeric()
+
+ggplot(post, aes(mu)) +
+  geom_histogram(bins = 30) +
+  geom_vline(xintercept = q, color = "#FA7A00", linewidth = 2) +
+  geom_vline(xintercept = hdi, color = "#56418C", linewidth = 2) +
+    annotate(geom = "text", label = "89% quantile", color = "#FA7A00",
+           x = 45, y = 1000, size = 8, hjust = 0) +
+  annotate(geom = "text", label = "89% HDPI", color = "#56418C",
+           x = 45, y = 800, size = 8, hjust = 0)
+
+```
+
+
+## Quantiles vs. HPDIs
+
+(Can) differ for asymmetrical distributions:
+
+```{r}
+q <- quantile(post$sigma, probs = c(0.055, 0.945)) |> as.numeric()
+hdi <- HPDI(post$sigma) |> as.numeric()
+
+ggplot(post, aes(sigma)) +
+  geom_histogram(bins = 30) +
+  geom_vline(xintercept = q, color = "#FA7A00", linewidth = 2) +
+  geom_vline(xintercept = hdi, color = "#56418C", linewidth = 2) +
+  annotate(geom = "text", label = "89% quantile", color = "#FA7A00",
+           x = 4, y = 1000, size = 8, hjust = 0) +
+  annotate(geom = "text", label = "89% HDPI", color = "#56418C",
+           x = 4, y = 800, size = 8, hjust = 0)
+```
+
+
+## Quantiles vs. HPDIs
+
+- Use HPDIs if you can.
+  - `rethinking::HPDI()`
+  - `HDInterval::hdi()`
+- Equivalent for symmetrical (e.g., Gaussian) distributions
+- Better represent the posterior for asymmetrical distributions
+
+
+## References
+
+::: {#refs}
+:::
