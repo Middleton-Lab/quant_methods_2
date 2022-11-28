@@ -20,6 +20,7 @@ Don’t add complexity to your plot without a good reason.
 
 Some journals don't like text in plots.
 
+
 ## Annotating plots
 
 ```{r}
@@ -78,6 +79,7 @@ WR <- read_csv("Data/Mouse_wheel.csv", show_col_types = FALSE) |>
 WR
 ```
 
+
 ## Create a tibble with `x` bounds of the box
 
 ```{r}
@@ -91,6 +93,7 @@ DayNight <- tibble(
 ```{r}
 DayNight
 ```
+
 
 ## Plot with background `geom_rect()`
 
@@ -186,6 +189,7 @@ ggplot(data = coords, aes(x, y)) +
     coord_equal() +
     ggpubr::theme_transparent()
 ```
+
 
 ## Maps
 
@@ -305,7 +309,6 @@ ggplot(M, aes(x, y)) +
   labs(x = expression(Area~(sqrt(m^2))),
        y = expression(Species~density~(Species / m^2)))
 ```
-
 
 
 ## Adding an annotation
