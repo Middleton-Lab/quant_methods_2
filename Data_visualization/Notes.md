@@ -1,5 +1,16 @@
 # Notes
 
+## Lectures
+
+- Lecture 1.4 
+  - go over some plots from link
+  - a difficult decision with real uncertainty about what is best
+  - no dynamite plots (with few exceptions)
+
+Lecture 3.1 
+  - show where we are going - several high information plots 
+    - e.g. TT plot with DEseq & RNAi
+
 ## Problem sets
 
 ### Week 1
@@ -9,6 +20,9 @@
 - Read Midway SR. 2020. Principles of Effective Data Visualization. Patterns 1:100141.
 
 ### Week 2
+
+- Experience working inside and outside aes()
+- changing axis limits - when you get warning about dropping points
 
 ### Week 3
 
