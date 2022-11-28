@@ -103,6 +103,7 @@ plot_grid(p1, p2)
 Note the correspondence to the model statements.
 
 ```{r}
+#| label: ulam_model
 #| echo: true
 #| output-location: slide
 
