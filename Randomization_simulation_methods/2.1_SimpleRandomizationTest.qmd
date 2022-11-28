@@ -14,7 +14,7 @@ format:
     show-slide-number: all
 ---
 
-## Monte Carlo Methods
+## A simple randomization test
 
 ```{r}
 #| label: setup
@@ -27,18 +27,6 @@ library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 ```
 
-## Reminder of some terminology
-- parameter estimation
-- significance testing
-
-## Limitations of different methods
-- generalizable
-- cross validation vs randomization
-- list questions asked
-
-## what is a null model
-
-## simulating a null
 
 
 
