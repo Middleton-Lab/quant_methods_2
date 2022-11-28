@@ -23,6 +23,7 @@ Many ways to accomplish the same goal in R / ggplot.
   - Plotting 10^5^ or 10^6^ points? It might.
 - Some might be more or less convoluted
   - Pre-compute quantities or use a within-plot function?
+- Some might be more or less error-prone
 
 Our way might not be the "best" way (for some definition of "best").
 
