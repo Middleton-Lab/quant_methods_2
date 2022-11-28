@@ -2,14 +2,25 @@
 
 ## Lectures
 
+- possible threads throughout
+  - anything is possible
+  - what am i trying to show?
+      - problem set where they need to figure out the answer to a sci ? with the plot
+
 - Lecture 1.4 
   - go over some plots from link
   - a difficult decision with real uncertainty about what is best
   - no dynamite plots (with few exceptions)
 
-Lecture 3.1 
+- Lecture 3.1 
   - show where we are going - several high information plots 
     - e.g. TT plot with DEseq & RNAi
+    
+- Lecture 5.1
+  - add eps as option
+
+- Lecture 5.4
+  - show them how to source a file with ggplot functions & themes 
 
 ## Problem sets
 
