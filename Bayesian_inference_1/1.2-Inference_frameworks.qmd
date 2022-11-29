@@ -7,7 +7,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     standalone: true
-    self-contained: true
+    embed-resources: true
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -81,7 +81,7 @@ $$\hat\beta=(X^TX)^{-1}X^Ty$$
 For a given set of model parameter estimates, how likely is my data?
 
 - e.g., Search for the values of slope and intercept that maximizes the likelihood
-- Optimization problem
+  - Optimization problem
 - General solution for questions that don't have closed form solutions (e.g., generalized linear models, multilevel models, etc.)
 
 
