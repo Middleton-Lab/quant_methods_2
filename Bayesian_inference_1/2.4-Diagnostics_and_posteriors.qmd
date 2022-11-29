@@ -49,7 +49,9 @@ library(rethinking)
 
 - Bayesian inference is active
   - More than just `lm()` and `summary()`
-- Define a model and sample it
+- Define a model
+- Prior prediction
+- Sampling
 - Check that sampling was "good"
 
 
