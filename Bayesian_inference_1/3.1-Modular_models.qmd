@@ -46,6 +46,10 @@ Continuous:
 
 - How much does the outcome change for a 1 unit increase in the predictor
 
+. . .
+
+*Interactions come later*
+
 
 ## Problem
 
@@ -90,7 +94,7 @@ $$\beta_1 \sim Normal(0, 1)$$
 
 `Sex` can be coded `0` = Female and `1` = Male.
 
-- $\beta_0$ is the female mean
+- $\beta_0$ is the female mean ($\beta_1 \times 0 = 0$)
 - $\beta_0 + \beta_1$ is the male mean
 
 
@@ -131,3 +135,10 @@ $$\beta_1 \sim Normal(0, 10)$$
 
 Thinking this way will let you begin thinking about multiple regression a little easier.
 
+
+## Is the estimate different from zero?
+
+Categorical
+
+
+Continuous
