@@ -7,7 +7,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     standalone: true
-    self-contained: true
+    embed-resources: true
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -72,7 +72,7 @@ The range of probabilities for an event is 0 $\rightarrow$ 1 (including 0 and 1)
 ![](https://upload.wikimedia.org/wikipedia/commons/d/dc/%D0%9A%D0%B0%D1%80%D0%BF.jpg)
 
 
-### Carp movement data
+## Carp movement data
 
 - 71 carp that approached a dam or lock on the Mississippi River^[Riesgraf AT, Finger JS, Zielinski DP, Dennis III CE, Whitty JM, Sorensen PW. 2022. Evaluation of a broadband sound projected from the gates of a navigation lock in the Mississippi River shows it to be a weak deterrent for common carp and unable to block passage. *Management of Biological Invasions* 13]
 - `Pass` is `0` if the fish did not enter, `1` if it did
@@ -82,7 +82,7 @@ The range of probabilities for an event is 0 $\rightarrow$ 1 (including 0 and 1)
 What is the probability of a carp entering the dam or lock?
 
 
-# Carp movement data
+## Carp movement data
 
 ```{r}
 #| echo: true
