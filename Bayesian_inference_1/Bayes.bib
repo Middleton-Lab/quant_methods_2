@@ -2205,7 +2205,7 @@
   url         = "http://dx.doi.org/10.3758/s13423-015-0947-8",
   keywords    = "Bayesian inference and parameter estimation; Bayesian
                  statistics; Statistical inference; Statistics;Bayes
-                 Readings;Quantitative Methods;Module - Bayes;Module - Data Viz",
+                 Readings;Quantitative Methods;Module - Bayes;Module - DataViz",
   language    = "en",
   issn        = "1069-9384, 1531-5320",
   pmid        = "26450628",
@@ -3059,4 +3059,140 @@
   issn     = "1069-9384, 1531-5320",
   pmid     = "28660424",
   doi      = "10.3758/s13423-017-1317-5"
+}
+
+@ARTICLE{Hastings1970-gr,
+  title     = "Monte Carlo Sampling Methods Using Markov Chains and Their
+               Applications",
+  author    = "Hastings, W K",
+  abstract  = "[A generalization of the sampling method introduced by
+               Metropolis et al. (1953) is presented along with an exposition
+               of the relevant theory, techniques of application and methods
+               and difficulties of assessing the error in Monte Carlo
+               estimates. Examples of the methods, including the generation of
+               random orthogonal matrices and potential applications of the
+               methods to numerical problems arising in statistics, are
+               discussed.]",
+  journal   = "Biometrika",
+  publisher = "[Oxford University Press, Biometrika Trust]",
+  volume    =  57,
+  number    =  1,
+  pages     = "97--109",
+  year      =  1970,
+  url       = "http://www.jstor.org/stable/2334940",
+  keywords  = "Module - Bayes",
+  issn      = "0006-3444",
+  doi       = "10.2307/2334940"
+}
+
+@ARTICLE{Geman1984-bc,
+  title    = "Stochastic relaxation, Gibbs distributions, and the Bayesian
+              restoration of images",
+  author   = "Geman, S and Geman, D",
+  abstract = "We make an analogy between images and statistical mechanics
+              systems. Pixel gray levels and the presence and orientation of
+              edges are viewed as states of atoms or molecules in a
+              lattice-like physical system. The assignment of an energy
+              function in the physical system determines its Gibbs
+              distribution. Because of the Gibbs distribution, Markov random
+              field (MRF) equivalence, this assignment also determines an MRF
+              image model. The energy function is a more convenient and natural
+              mechanism for embodying picture attributes than are the local
+              characteristics of the MRF. For a range of degradation
+              mechanisms, including blurring, nonlinear deformations, and
+              multiplicative or additive noise, the posterior distribution is
+              an MRF with a structure akin to the image model. By the analogy,
+              the posterior distribution defines another (imaginary) physical
+              system. Gradual temperature reduction in the physical system
+              isolates low energy states (``annealing''), or what is the same
+              thing, the most probable states under the Gibbs distribution. The
+              analogous operation under the posterior distribution yields the
+              maximum a posteriori (MAP) estimate of the image given the
+              degraded observations. The result is a highly parallel
+              ``relaxation'' algorithm for MAP estimation. We establish
+              convergence properties of the algorithm and we experiment with
+              some simple pictures, for which good restorations are obtained at
+              low signal-to-noise ratios.",
+  journal  = "IEEE Trans. Pattern Anal. Mach. Intell.",
+  volume   =  6,
+  number   =  6,
+  pages    = "721--741",
+  month    =  jun,
+  year     =  1984,
+  url      = "http://dx.doi.org/10.1109/tpami.1984.4767596",
+  keywords = "Module - Bayes",
+  language = "en",
+  issn     = "0162-8828, 0098-5589",
+  pmid     = "22499653",
+  doi      = "10.1109/tpami.1984.4767596"
+}
+
+@ARTICLE{Duane1987-cd,
+  title    = "Hybrid Monte Carlo",
+  author   = "Duane, Simon and Kennedy, A D and Pendleton, Brian J and Roweth,
+              Duncan",
+  abstract = "We present a new method for the numerical simulation of lattice
+              field theory. A hybrid (molecular dynamics/Langevin) algorithm is
+              used to guide a Monte Carlo simulation. There are no
+              discretization errors even for large step sizes. The method is
+              especially efficient for systems such as quantum chromodynamics
+              which contain fermionic degrees of freedom. Detailed results are
+              presented for four-dimensional compact quantum electrodynamics
+              including the dynamical effects of electrons.",
+  journal  = "Phys. Lett. B",
+  volume   =  195,
+  number   =  2,
+  pages    = "216--222",
+  month    =  sep,
+  year     =  1987,
+  url      = "https://www.sciencedirect.com/science/article/pii/037026938791197X",
+  keywords = "Module - Bayes",
+  issn     = "0370-2693",
+  doi      = "10.1016/0370-2693(87)91197-X"
+}
+
+@ARTICLE{Neal1994-gb,
+  title    = "An Improved Acceptance Procedure for the Hybrid Monte Carlo
+              Algorithm",
+  author   = "Neal, Radford M",
+  abstract = "The probability of accepting a candidate move in the hybrid Monte
+              Carlo algorithm can be increased by considering a transition to
+              be between windows of several states at the beginning and end of
+              the trajectory, with a particular state within the selected
+              window then being chosen according to the Boltzmann
+              probabilities. The detailed balance condition used to justify the
+              algorithm still holds with this procedure, provided the start
+              state is randomly positioned within its window. The new procedure
+              is shown empirically to significantly improve the acceptance rate
+              for a test system of uncoupled oscillators. It also allows
+              expectations to be estimated using data from all states in the
+              windows, rather than just states that are accepted.",
+  journal  = "J. Comput. Phys.",
+  volume   =  111,
+  number   =  1,
+  pages    = "194--203",
+  month    =  mar,
+  year     =  1994,
+  url      = "https://www.sciencedirect.com/science/article/pii/S0021999184710540",
+  keywords = "Module - Bayes",
+  issn     = "0021-9991",
+  doi      = "10.1006/jcph.1994.1054"
+}
+
+@ARTICLE{Hoffman2014-vv,
+  title       = "The {No-U-turn} sampler: adaptively setting path lengths in
+                 Hamiltonian Monte Carlo",
+  author      = "Hoffman, M D and Gelman, A",
+  abstract    = "Abstract Hamiltonian Monte Carlo (HMC) is a Markov chain Monte
+                 Carlo (MCMC) algorithm that avoids the random walk behavior
+                 and sensitivity to correlated parameters that plague many MCMC
+                 methods by taking a series of steps informed by first-order
+                 gradient",
+  journal     = "J. Mach. Learn. Res.",
+  publisher   = "jmlr.org",
+  year        =  2014,
+  url         = "http://www.jmlr.org/papers/volume15/hoffman14a/hoffman14a.pdf",
+  keywords    = "Module - Bayes",
+  issn        = "1532-4435",
+  original_id = "325118bf-5488-0cc7-a833-a63e1ba58762"
 }
