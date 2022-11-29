@@ -13,6 +13,8 @@ format:
     slide-number: true
     show-slide-number: all
     link-external-newwindow: true
+bibliography: DataViz.bib
+csl: evolution.csl
 ---
 
 ## Module overview
@@ -40,13 +42,13 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Module prerequisites
 
-- *Quantitative Methods in Life Sciences I*
+- *Quantitative Methods in Life Sciences 1*
 - Updated R and RStudio
 - Basics of data import and manipulation
 - Basics of `ggplot`
 
 
-## Relevant *Quantitative Methods I* course materials
+## Relevant *Quantitative Methods 1* course materials
 
 - Week 2: Data organization, loading, visualization
 - Week 3: Tidy data and transformations
@@ -57,11 +59,11 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Resources
 
-- [R for Data Science](https://r4ds.had.co.nz/) Grolemund and Wickham [-@Grolemund2017-jh]
-- [ggplot2](https://ggplot2-book.org/) Wickham [@Wickham2016-tm], *In-progress* 3rd edition
-- [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/) Baumer et al. [-@Baumer2021-nm]
-- [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html) Wilke [-@Wilke2019-il]
-- [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface) Healy [-@Healy2018-cx]
+- Grolemund and Wickham [-@Grolemund2017-jh]. [R for Data Science](https://r4ds.had.co.nz/)
+- Wickham [-@Wickham2016-tm]. [ggplot2](https://ggplot2-book.org/), 3rd ed. *In-progress*
+- Baumer et al. [-@Baumer2021-nm]. [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/)
+- Wilke [-@Wilke2019-il]. [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html)
+- Healy [-@Healy2018-cx]. [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
 - [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
 - [Tidyverse style guide](https://style.tidyverse.org/)
 - [The Work of Edward Tufte](https://www.edwardtufte.com/tufte/): Data-to-ink ratio
@@ -162,3 +164,10 @@ Keep in mind throughout this module:
 - Remember what "problems" you have solved before
 - Keep a code "gallery" of those solutions
 - Mastering ggplot takes time and experience
+
+
+## References
+
+::: {#refs}
+:::
+
