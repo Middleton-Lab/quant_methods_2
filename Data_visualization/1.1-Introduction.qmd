@@ -57,11 +57,11 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Resources
 
-- [R for Data Science](https://r4ds.had.co.nz/)
-- [ggplot2](https://ggplot2-book.org/) *In-progress* 3rd edition
-- [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/)
-- [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html)
-- [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface)
+- [R for Data Science](https://r4ds.had.co.nz/) Grolemund and Wickham [-@Grolemund2017-jh]
+- [ggplot2](https://ggplot2-book.org/) Wickham [@Wickham2016-tm], *In-progress* 3rd edition
+- [Modern Data Science with R](https://mdsr-book.github.io/mdsr2e/) Baumer et al. [-@Baumer2021-nm]
+- [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/index.html) Wilke [-@Wilke2019-il]
+- [Data Visualization: A Practical Introduction](https://socviz.co/index.html#preface) Healy [-@Healy2018-cx]
 - [ggplot2 cheatsheet](https://www.maths.usyd.edu.au/u/UG/SM/STAT3022/r/current/Misc/data-visualization-2.1.pdf)
 - [Tidyverse style guide](https://style.tidyverse.org/)
 - [The Work of Edward Tufte](https://www.edwardtufte.com/tufte/): Data-to-ink ratio
