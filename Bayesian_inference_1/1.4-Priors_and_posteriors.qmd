@@ -7,7 +7,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     standalone: true
-    self-contained: true
+    embed-resources: true
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -179,6 +179,7 @@ ggplot(D, aes(P, Density, color = Pr_Post)) +
   scale_color_manual(values = c("gray50", "red"), name = NULL) +
   labs(title = "a = 1, b = 2")
 ```
+
 
 ## Carp 2: No pass
 
@@ -427,6 +428,7 @@ The order of the data does not matter
 
 ## Informative priors
 
+::: {.incremental}
 - Almost no knowledge
   - Carp either pass or do not pass
   - a = 1; b = 1
@@ -436,6 +438,7 @@ The order of the data does not matter
 - A lot of knowledge
   - Previous studies show that <25% of carp pass
   - a = 5; b = 40
+:::
 
 
 ## Informative priors
@@ -515,4 +518,10 @@ plot_grid(P_little, P_a_lot)
   - Multilevel/mixed models
   - Generalized linear models
   - Nonlinear models
+
+
+## References
+
+::: {#refs}
+:::
 
