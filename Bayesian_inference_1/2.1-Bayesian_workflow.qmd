@@ -7,7 +7,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     standalone: true
-    self-contained: true
+    embed-resources: true
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -105,10 +105,16 @@ $f(y)$ the probability of observing the data across all possible $\beta$, which 
 
 ::: {.incremental}
 - Historically, only outcomes with a few distributions were feasible (Gaussian, Binomial) for hand-calculations.
-- With "fast computing machines"^[Metropolis N, Rosenbluth AW, Rosenbluth MN, Teller AH, Teller E. 1953. Equation of State Calculations by Fast Computing Machines. *J Chem Phys* 21:1087–1092.], we can just sample from the posterior directly
-- Many ways to sample (Monte Carlo):
-  - Metropolis algorithm (1953)
-  - Metropolis-Hastings algorithm (1970)
-  - Gibbs sampling (1984)
-  - Hamiltonian Monte Carlo (1987, 1996, 2014)
+- With "fast computing machines" [@Metropolis1953-lm], we can just sample (Monte Carlo) from the posterior directly
+  - Metropolis algorithm [@Metropolis1953-lm]
+  - Metropolis-Hastings algorithm [@Hastings1970-gr]
+  - Gibbs sampling [@Geman1984-bc]
+  - Hamiltonian Monte Carlo [@Duane1987-cd; @Neal1994-gb; @Hoffman2014-vv]
 :::
+
+
+## References
+
+::: {#refs}
+:::
+
