@@ -8,7 +8,7 @@ format:
   revealjs:
     theme: [default, custom.scss]
     standalone: true
-    self-contained: true
+    embed-resources: true
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
@@ -55,7 +55,7 @@ ggplot2::theme_set(theme_cowplot())
 ## Books: Introductory
 
 - McElreath R. 2020. *Statistical Rethinking: A Bayesian Course with Examples in R and Stan*. 2nd ed. CRC Press.
-  - [Excellent lectures on Youtube](https://www.youtube.com/playlist?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN)
+  - [Excellent lectures on YouTube](https://www.youtube.com/playlist?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN)
 - Johnson AA, Ott MQ, Dogucu M. 2022. *Bayes Rules! An Introduction to Applied Bayesian Modeling*. Chapman & Hall.
   - Free online: [https://www.bayesrulesbook.com/](https://www.bayesrulesbook.com/)
 
