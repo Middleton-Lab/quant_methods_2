@@ -120,8 +120,8 @@ $$\beta_0 \sim Normal(3.5, 1)$$
 
 $$\beta_1 \sim Normal(0, 10)$$
 
-- $\beta_0$ is the mean when population size = 0
-- $\beta_1$ is the increase in birth mass for a 1 unit increase in population size
+- $\beta_0$: mean when population size = 0
+- $\beta_1$: increase in birth mass for a 1 unit increase in population size
   - Scale the prior to the units of population size 
 
 
@@ -141,7 +141,7 @@ Thinking this way will let you begin thinking about multiple regression a little
 *Categorical*
 
 - No difference in means (with 0/1 coding)
-- Differences of posteriors (coming soon)
+- Differences between posteriors (coming soon)
 
 *Continuous*
 
