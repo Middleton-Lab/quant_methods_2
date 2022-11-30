@@ -30,7 +30,7 @@ Rethink traditional statistical tests
 
 - OLS, *t*-test, ANOVA, ANCOVA, multiple regression
 
-as linear models with some combnination of predictors
+as linear models with some combination of predictors
 
 - Categorical or continuous?
 - How many of each?
