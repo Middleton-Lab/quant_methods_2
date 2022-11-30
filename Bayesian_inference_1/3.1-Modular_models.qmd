@@ -138,7 +138,13 @@ Thinking this way will let you begin thinking about multiple regression a little
 
 ## Is the estimate different from zero?
 
-Categorical
+*Categorical*
 
+- No difference in means (with 0/1 coding)
+- Differences of posteriors (coming soon)
 
-Continuous
+*Continuous*
+
+- No change in $y$ for a 1 unit increase in the predictor
+- Sometimes this is a true slope, sometimes just a continuous predictor
+
