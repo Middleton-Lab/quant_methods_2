@@ -1,0 +1,82 @@
+---
+title: "Bivariate models and regularizing priors"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+---
+
+## Bivariate models
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(truncnorm)
+
+library(rethinking)
+```
+
+$$y ~ \beta_0 + \beta_1 x$$
+
+- Need to explicitly include the intercept
+- $x$ is continuous: "linear regression"
+- $x$ is categorical: $t$-test or ANOVA
+  - $\beta_0 == 0$
+
+
+## Simulate data
+
+- $\beta_0 = 2$
+- $\beta_1 = 6.7$
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(4534759)
+D <- tibble(x = runif(20, 0, 10),
+            y = 2 + 6.7 * x + rnorm(20, 0, 3))
+
+ggplot(D, aes(x, y)) +
+  geom_point(size = 4)
+```
+
+
+## Model statements
+
+$y$ follows a normal distribution with a mean and standard deviation:
+
+$$y \sim  \mathcal{N}(\mu, \sigma)$$
+
+The mean is a linear function of an intercept ($a$) and a slope ($b$):
+
+$$\mu =  a + b \cdot x$$
+
+. . .
+
+$a$ and $b$ are arbitrary names.
+
+- With more predictors, more meaningful names are useful
+
+
+## Prior prediction: Reasonable values for $a$, $b$, and $\sigma$
+
+
+
