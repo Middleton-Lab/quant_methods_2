@@ -78,5 +78,150 @@ $a$ and $b$ are arbitrary names.
 
 ## Prior prediction: Reasonable values for $a$, $b$, and $\sigma$
 
+- Think about the slope first
+- Intercept depends on the slope, so let it vary more
+  - Intercept is often not "interesting"
+  - Byproduct of the other parameters
+- Don't need to think about $\sigma$ for prior prediction (usually)
 
+
+## Normal distributions
+
+$\sim 95\%$ of points fall within $\pm 2$ standard deviations of the mean
+
+- Center parameter estimates on 0 (unless you have a reason otherwise *a priori*)
+  - "Slope not different from zero"
+  - "No difference in means"
+  - "No difference between groups"
+
+
+## Regularizing priors
+
+- Bayesian priors are conservative
+  - All values *not* equally likely (true for maximum likelihood)
+- Less likely to find an effect by chance
+- Lessens the influence of extreme or unusual values automatically
+
+
+## Prior prediction
+
+- Intercept probably $\pm 40$
+- Slope probably $\pm 10$
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(3457522)
+
+sim_model <- function(ii) {
+  a <- rnorm(1, 0, 20)
+  b <- rnorm(1, 0, 5)
+  tibble(rep = ii,
+         x = seq(0:10),
+         y = a + b * x)
+}
+
+sims <- map_dfr(.x = 1:50,
+                .f = sim_model)
+print(sims, n = 200)
+```
+
+
+## Plotting the prior predictions
+
+Are the predicted outcomes on the right scale?
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot(sims, aes(x, y, group = rep)) +
+  geom_line(alpha = 0.5)
+```
+
+
+## Fitting the model
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+fm <- ulam(
+  alist(
+    y ~ normal(mu, sigma),
+    mu <- a + b * x,
+    a ~ dnorm(0, 20),
+    b ~ dnorm(0, 5),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = D,
+  chains = 4,
+  iter = 5e3
+)
+```
+
+
+## Inspecting the chains: `traceplot`
+
+```{r}
+#| echo: true
+
+traceplot(fm)
+```
+
+
+## Inspecting the chains: Rank histogram
+
+```{r}
+#| echo: true
+
+trankplot(fm)
+```
+
+
+## Inspecting the output
+
+```{r}
+#| echo: true
+
+precis(fm)
+```
+
+Compare to `lm()`
+
+```{r}
+#| echo: true
+
+fm_lm <- lm(y ~ x, data = D)
+coef(fm_lm)
+confint(fm_lm, level = 0.89)
+```
+
+
+## Posteriors
+
+```{r}
+#| echo: true
+
+post <- extract.samples(fm) |> 
+  as.data.frame()
+post
+```
+
+
+## Distributions of posterior parameter estimates
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+post |> 
+  pivot_longer(cols = everything(),
+               names_to = "Parameter",
+               values_to = "Estimate") |> 
+  ggplot(aes(Estimate)) +
+  geom_density() +
+  facet_wrap("Parameter", scales = "free")
+```
 
