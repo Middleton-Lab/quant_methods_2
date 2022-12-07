@@ -16,3 +16,253 @@ bibliography: Bayes.bib
 ---
 
 
+## Multiple regression
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(truncnorm)
+
+library(rethinking)
+
+```
+
+
+## Snake diets
+
+- 112 species of snakes
+- Ambush or active foragers
+- Snout-vent length (`SVL`)
+- Relative prey mass (`RPM`): 0 $\rightarrow$ 1
+- Data from Glaudas et al. [-@Glaudas2019-qc]
+
+
+```{r}
+Snakes <- read_excel("Data/Snakes.xlsx") |> 
+  rename(Species = SPECIES,
+         Family = FAMILY,
+         ForagingMode = `FORAGING MODE (AMBUSH/ACTIVE)`,
+         SVL = `SNOUT-VENT LENGTH (CM)`,
+         RPM = `AVERAGE RPM (PROP)`) |> 
+  filter(!(Family %in% c("Aniliidae", "Grayiinae", "Homalopsidae"))) |> 
+  dplyr::select(ForagingMode, SVL, RPM) |> 
+  mutate(ForagingMode = factor(ForagingMode))
+```
+
+```{r}
+#| echo: true
+
+Snakes |> count(ForagingMode)
+```
+
+
+## Exploratory visualization
+
+```{r}
+#| echo: true
+ggplot(Snakes, aes(SVL, RPM, color = ForagingMode)) +
+  geom_point(size = 4) +
+  scale_colour_manual(values = c("red", "blue"))
+```
+
+
+## Transformation and visualization
+
+```{r}
+#| echo: true
+Snakes <- Snakes |> 
+  mutate(log10SVL = log10(SVL))
+```
+
+```{r}
+ggplot(Snakes, aes(log10SVL, RPM, color = ForagingMode)) +
+  geom_point(size = 4) +
+  scale_colour_manual(values = c("red", "blue"))
+```
+
+
+## Model statements
+
+$RPM$ follows a normal distribution:
+
+$$RPM \sim  Normal(\mu, \sigma)$$
+
+$\mu$ is a linear function of an intercept $a$ for each level of `ForagingMode` and a slope ($b$) associated with `log10SVL` that is shared by both levels of `ForagingMode`:
+
+$$\mu =  a[ForagingMode] + b \cdot log10SVL$$
+
+. . .
+
+Corresponds to the additive model: `RPM ~ ForagingMode + log10SVL - 1`
+
+
+## Priors
+
+The scale of `RPM` is pretty small, so the intercepts and slope will probably also be small:
+
+$$a[ForagingMode] \sim Normal(0, 0.5)$$
+
+$$b \sim Normal(0, 0.5)$$
+
+$$\sigma \sim HalfNormal(0, 0.5)$$
+
+
+## Recode `ForagingMode` as integer
+
+```{r}
+#| echo: true
+
+Snakes <- Snakes |> 
+  mutate(ForagingMode = as.integer(ForagingMode))
+head(Snakes)
+```
+
+
+## Fitting the model
+
+`refresh = 1000` makes stan's output a little less verbose
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+fm <- ulam(
+  alist(
+    RPM ~ dnorm(mu, sigma),
+    mu <- a[ForagingMode] + b * log10SVL,
+    a[ForagingMode] ~ dnorm(0, 0.5),
+    b ~ dnorm(0, 0.5),
+    sigma ~ dhalfnorm(0, 0.5)
+  ),
+  data = Snakes,
+  chains = 4,
+  iter = 1e4,
+  refresh = 1000
+)
+```
+
+
+## Examining the stan code
+
+`SVL` is passed to stan even though it is not used.
+
+- Limit the data to the variables that are used
+- stan will error if there are characters or factors (but not in `brms` or `rstanarm`)
+
+```{r}
+#| echo: true
+
+stancode(fm)
+```
+
+
+## Inspecting the chains: `traceplot`
+
+```{r}
+#| echo: true
+
+traceplot(fm)
+```
+
+
+## Inspecting the chains: Rank histogram
+
+```{r}
+#| echo: true
+
+trankplot(fm)
+```
+
+
+## Inspecting the output
+
+```{r}
+#| echo: true
+
+precis(fm, depth = 2)
+```
+
+
+## Posterior distributions
+
+Use `tidy_draws()` to extract samples into an orderly structure.
+
+- Unnest the levels of `a[ForagingMode]`
+
+```{r}
+#| echo: true
+
+library(tidybayes)
+library(tidybayes.rethinking)
+
+post <- tidy_draws(fm)
+head(post)
+colnames(post)
+```
+
+
+## Plotting posteriors
+
+Use `ggdist::stat_halfeye()` to plot density + intervals
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+post |> 
+  dplyr::select(a.1, a.2, b) |>
+  pivot_longer(cols = everything(),
+               names_to = "Parameter",
+               values_to = "Estimate") |> 
+  ggplot(aes(x = Estimate, y = Parameter)) +
+  stat_halfeye(point_interval = "median_hdi", .width = c(0.50, 0.89)) +
+  scale_y_discrete(limits = rev) +
+  labs(title = "50% and 89% HDPI of the Median")
+```
+
+
+## Posterior predictions
+
+Sample from the posterior
+
+```{r}
+#| echo: true
+
+post_sub <- post |> 
+  slice_sample(n = 50) |> 
+  dplyr::select(a.1, a.2, b)
+
+post_sub
+```
+
+
+## Plotting posterior predictions
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ggplot() +
+  geom_point(data = Snakes,
+             aes(log10SVL, RPM, color = factor(ForagingMode)),
+             size = 4) +
+    scale_colour_manual(values = c("red", "blue"),
+                        name = "Foraging Mode",
+                        labels = c("Active", "Ambush")) +
+  geom_abline(data = post_sub, aes(slope = b, intercept = a.1),
+              color = "red", alpha = 0.5) +
+  geom_abline(data = post_sub, aes(slope = b, intercept = a.2),
+              color = "blue", alpha = 0.5)
+```
+
+
+## Interactions
+
