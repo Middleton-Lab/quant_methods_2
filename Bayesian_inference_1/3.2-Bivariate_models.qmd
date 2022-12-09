@@ -63,20 +63,20 @@ ggplot(D, aes(x, y)) +
 
 $y$ follows a normal distribution with a mean and standard deviation:
 
-$$y \sim  \mathcal{N}(\mu, \sigma)$$
+$$y \sim  Normal(\mu, \sigma)$$
 
 The mean is a linear function of an intercept ($a$) and a slope ($b$):
 
-$$\mu =  a + b \cdot x$$
+$$\mu =  \beta_0 + \beta_1 \cdot x$$
 
 . . .
 
-$a$ and $b$ are arbitrary names.
+$\beta_0$ and $\beta_1$ are arbitrary names.
 
 - With more predictors, more meaningful names are useful
 
 
-## Prior prediction: Reasonable values for $a$, $b$, and $\sigma$
+## Prior prediction: Reasonable values for $\beta_0$, $\beta_1$, and $\sigma$
 
 - Think about the slope first
 - Intercept depends on the slope, so let it vary more
@@ -115,11 +115,11 @@ $\sim 95\%$ of points fall within $\pm 2$ standard deviations of the mean
 set.seed(3457522)
 
 sim_model <- function(ii) {
-  a <- rnorm(1, 0, 20)
-  b <- rnorm(1, 0, 5)
+  b0 <- rnorm(1, 0, 20)
+  b1 <- rnorm(1, 0, 5)
   tibble(rep = ii,
          x = seq(0:10),
-         y = a + b * x)
+         y = b0 + b1 * x)
 }
 
 sims <- map_dfr(.x = 1:50,
@@ -150,9 +150,9 @@ ggplot(sims, aes(x, y, group = rep)) +
 fm <- ulam(
   alist(
     y ~ normal(mu, sigma),
-    mu <- a + b * x,
-    a ~ dnorm(0, 20),
-    b ~ dnorm(0, 5),
+    mu <- b0 + b1 * x,
+    b0 ~ dnorm(0, 20),
+    b1 ~ dnorm(0, 5),
     sigma ~ dhalfnorm(0, 5)
   ),
   data = D,
@@ -273,7 +273,7 @@ print(D, n = 100)
 
 $y$ follows a normal distribution with a mean and standard deviation:
 
-$$y \sim  \mathcal{N}(\mu, \sigma)$$
+$$y \sim  Normal(\mu, \sigma)$$
 
 The mean is a linear function of a mean for Group 0 ($Group0$) and an offset for Group 1 ($b1$):
 
@@ -417,7 +417,8 @@ head(post)
 post |> 
   dplyr::select(Group0, Group1) |> 
   pivot_longer(cols = everything(),
-               names_to = "Group", values_to = "Estimate") |> 
+               names_to = "Group",
+               values_to = "Estimate") |> 
   ggplot(aes(Estimate, fill = Group)) +
   geom_density()
 ```
@@ -440,7 +441,7 @@ HPDI(post$Group1)
 - Use 1, 2, 3, etc. for groups
 - Use `[ ]` notation in the model statement
 
-$$y \sim  \mathcal{N}(\mu, \sigma)$$
+$$y \sim  Normal(\mu, \sigma)$$
 
 $$\mu = b[Group12]$$
 
@@ -483,7 +484,8 @@ Are the predicted outcomes on the right scale?
 sims |> 
   dplyr::select(-rep) |> 
   pivot_longer(cols = everything(),
-               values_to = "Mean", names_to = "Group") |>
+               values_to = "Mean",
+               names_to = "Group") |>
   ggplot(aes(x = Group, y = Mean)) +
   geom_point(position = position_jitter(width = 0.25))
 ```
@@ -553,7 +555,8 @@ post <- extract.samples(fm)$b |>
 
 post |> 
   pivot_longer(cols = everything(),
-               names_to = "Group", values_to = "Estimate") |> 
+               names_to = "Group",
+               values_to = "Estimate") |> 
   ggplot(aes(Estimate, fill = Group)) +
   geom_density()
 ```
