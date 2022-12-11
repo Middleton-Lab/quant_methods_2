@@ -46,3 +46,14 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.g12p0j2
 ## Snake diet
 
 https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/1365-2656.12972
+
+
+## `mosaicData`
+
+https://cran.r-project.org/web/packages/mosaicData/mosaicData.pdf
+
+
+## NHANES
+
+https://cran.r-project.org/web/packages/NHANES/NHANES.pdf
+
