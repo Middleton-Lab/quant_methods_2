@@ -235,7 +235,7 @@ Sample from the posterior
 #| echo: true
 
 post_sub <- post |> 
-  slice_sample(n = 50) |> 
+  slice_sample(n = 100) |> 
   dplyr::select(a.1, a.2, b)
 
 post_sub
@@ -243,6 +243,8 @@ post_sub
 
 
 ## Plotting posterior predictions
+
+Each pair of lines has the same slope
 
 ```{r}
 #| echo: true
@@ -256,11 +258,139 @@ ggplot() +
                         name = "Foraging Mode",
                         labels = c("Active", "Ambush")) +
   geom_abline(data = post_sub, aes(slope = b, intercept = a.1),
-              color = "red", alpha = 0.5) +
+              color = "red", alpha = 0.25) +
   geom_abline(data = post_sub, aes(slope = b, intercept = a.2),
-              color = "blue", alpha = 0.5)
+              color = "blue", alpha = 0.25)
 ```
 
 
 ## Interactions
+
+Interactions are multiploications of predictors
+
+- $x_1$ and $x_2$ are continuous: $\beta_1 \cdot x_1 \cdot x_2$
+- One $x$ is categorical: 0 and 1 coding turn predictors "off" and "on"
+
+
+## Model statements
+
+$RPM$ follows a normal distribution:
+
+$$RPM \sim  Normal(\mu, \sigma)$$
+
+$\mu$ is a linear function of an intercept $a$ for each level of `ForagingMode` and a slope ($b$) associated with `log10SVL` estimated separately for each level of `ForagingMode`:
+
+$$\mu =  a[ForagingMode] + b[ForagingMode] \cdot log10SVL$$
+
+. . .
+
+Corresponds to the interaction model: `RPM ~ ForagingMode * log10SVL`
+
+
+## Fitting the model
+
+`b[ForagingMode] * log10SVL` directly estimates both slopes
+
+- Consider the prior
+
+```{r}
+#| echo: true
+#| output: false
+
+fm <- ulam(
+  alist(
+    RPM ~ dnorm(mu, sigma),
+    mu <- a[ForagingMode] + b[ForagingMode] * log10SVL,
+    a[ForagingMode] ~ dnorm(0, 0.5),
+    b[ForagingMode] ~ dnorm(0, 0.5),
+    sigma ~ dhalfnorm(0, 0.5)
+  ),
+  data = Snakes,
+  chains = 4,
+  iter = 1e4,
+  refresh = 1000
+)
+```
+
+
+## Inspecting the chains: `traceplot`
+
+```{r}
+#| echo: true
+
+traceplot(fm)
+```
+
+
+## Inspecting the chains: Rank histogram
+
+```{r}
+#| echo: true
+
+trankplot(fm)
+```
+
+
+## Inspecting the output
+
+```{r}
+#| echo: true
+
+precis(fm, depth = 2)
+```
+
+
+## Posterior distributions
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+post <- tidy_draws(fm)
+post |> 
+  dplyr::select(a.1, a.2, b.1, b.2) |>
+  pivot_longer(cols = everything(),
+               names_to = "Parameter",
+               values_to = "Estimate") |> 
+  ggplot(aes(x = Estimate, y = Parameter)) +
+  stat_halfeye(point_interval = "median_hdi", .width = c(0.50, 0.89)) +
+  scale_y_discrete(limits = rev) +
+  labs(title = "50% and 89% HDPI of the Median")
+```
+
+
+## Posterior predictions
+
+Sample from the posterior
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+post_sub <- post |> 
+  slice_sample(n = 100) |> 
+  dplyr::select(a.1, a.2, b.1, b.2)
+
+ggplot() +
+  geom_point(data = Snakes,
+             aes(log10SVL, RPM, color = factor(ForagingMode)),
+             size = 4) +
+    scale_colour_manual(values = c("red", "blue"),
+                        name = "Foraging Mode",
+                        labels = c("Active", "Ambush")) +
+  geom_abline(data = post_sub, aes(slope = b.1, intercept = a.1),
+              color = "red", alpha = 0.25) +
+  geom_abline(data = post_sub, aes(slope = b.2, intercept = a.2),
+              color = "blue", alpha = 0.25)
+```
+
+
+## Next steps
+
+- Are these models "good"?
+  - Posterior predictive bands
+- Are parameter estimates credibly different from zero?
+  - Regions of practical equivalence
+- Which model is "better"?
+  - Model comparison
 
