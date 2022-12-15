@@ -24,31 +24,35 @@ bibliography: Bayes.bib
 4. Drawing conclusions
 
 
-## Why modular?
+## Rethink traditional "named" tests
 
-Rethink traditional statistical tests
+Useful for communication but mathematically just variations of a theme
 
-- OLS, *t*-test, ANOVA, ANCOVA, multiple regression
-
-as linear models with some combination of predictors
-
-- Categorical or continuous?
-- How many of each?
-
-
-## Categorical or continuous?
-
-Categorical:
-
-- Shift the mean of the outcome (intercept)
-
-Continuous:
-
-- How much does the outcome change for a 1 unit increase in the predictor
+  - OLS, *t*-test, ANOVA, ANCOVA
+  - Multiple regression
 
 . . .
 
-*Interactions come later*
+Linear models with some combination of predictors
+
+  - Categorical or continuous?
+  - How many of each?
+
+. . .
+
+Interpret coefficients directly
+
+
+## Predictor types
+
+1. *Categorical*: Shift the mean of the outcome (intercept)
+1. *Continuous*: How much does the outcome change for a 1 unit increase in the predictor (slope)
+
+Note: Not the outcome ($y$) variable's distribution
+
+. . .
+
+*Interactions (multiplications) come later*
 
 
 ## Problem
