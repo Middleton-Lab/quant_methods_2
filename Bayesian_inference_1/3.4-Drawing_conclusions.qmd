@@ -15,3 +15,301 @@ format:
 bibliography: Bayes.bib
 ---
 
+## Next steps
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(brms)
+library(bayesplot)
+
+library(bayestestR)
+```
+
+- Are these models "good"?
+  - Posterior predictive checks and highest density intervals
+- Are parameter estimates credibly different from zero?
+  - Regions of practical equivalence
+- Which model is "better"?
+  - Model comparison
+
+
+## Making decisions with data
+
+- Bayesian inference doesn't solve the "P-value" problem
+- Null hypothesis significance testing (NHST) can still be done
+  - Whether it should or not
+
+
+## Convenience tools
+
+- `rethinking` and `ulam()` are great for learning
+  - Explicitly ask for everything
+  - Must set priors
+- We'll start using the [`brms` package](https://paul-buerkner.github.io/brms/)
+  - Automates some aspects of model fitting
+  - Uses R model syntax
+  - Converts factors
+  - Sets default flat priors (so you should set your own)
+  - Easier to work with posteriors (`tidybayes`, `bayestestR`)
+  
+
+
+## Load the `Snakes` data
+
+```{r}
+#| echo: false
+Snakes <- read_excel("Data/Snakes.xlsx") |> 
+  rename(Species = SPECIES,
+         Family = FAMILY,
+         ForagingMode = `FORAGING MODE (AMBUSH/ACTIVE)`,
+         SVL = `SNOUT-VENT LENGTH (CM)`,
+         RPM = `AVERAGE RPM (PROP)`) |> 
+  filter(!(Family %in% c("Aniliidae", "Grayiinae", "Homalopsidae"))) |> 
+  dplyr::select(ForagingMode, SVL, RPM) |> 
+  mutate(ForagingMode = factor(ForagingMode),
+         log10SVL = log10(SVL))
+
+str(Snakes)
+```
+
+
+## Fit two models with `brm()`
+
+- Use `lm()` model syntax
+- Set prior for all `b` parameters: intercepts and slopes
+  - Customize later
+
+```{r}
+#| echo: true
+#| output: false
+
+library(brms)
+options(brms.backend = "cmdstanr")
+
+fm_add <- brm(RPM ~ ForagingMode + log10SVL - 1, data = Snakes,
+              prior = set_prior("normal(0, 0.5)", class = "b"), iter = 5e3)
+
+fm_inter <- brm(RPM ~ ForagingMode * log10SVL, data = Snakes,
+              prior = set_prior("normal(0, 0.5)", class = "b"), iter = 5e3)
+```
+
+
+## Prior summary
+
+```{r}
+#| echo: true
+
+prior_summary(fm_add)
+```
+
+
+## Model Summaries: Additive model
+
+```{r}
+#| echo: true
+
+summary(fm_add)
+```
+
+
+## Model Summaries: Interaction model
+
+```{r}
+#| echo: true
+
+summary(fm_inter)
+```
+
+
+## Plot posteriors
+
+[`bayesplot`](http://mc-stan.org/bayesplot/) has many functions for working with models.
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+library(bayesplot)
+color_scheme_set(scheme = "red")
+
+post <- as_draws_array(fm_add)
+
+mcmc_combo(fm_add, regex_pars = "b",
+           combo = c("dens_overlay", "rank_overlay"))
+```
+
+
+## Posterior predictive checks
+
+Plot the distribution of `RPM` ($y$) and a sample of 100 draws from the posterior
+
+```{r}
+#| echo: true
+#| output-location: slide
+yrep <- posterior_predict(fm_add, ndraws = 100)
+ppc_dens_overlay(y = Snakes$RPM, yrep)
+```
+
+
+## Posterior predictive checks
+
+Plot samples from the posteriors separately for `ForagingMode` with the mean of `RPM` for each.
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| warning: false
+ppc_stat_grouped(y = Snakes$RPM, yrep, group = Snakes$ForagingMode)
+```
+
+
+## Do foraging modes differ in mean RPM?
+
+Approaches
+
+- Compare credible intervals of posteriors for Active and Ambush
+- Compare the *difference* in the posteriors to 0
+- Compare the *difference* in the posteriors to 0 $\pm$ some small value
+
+. . .
+
+You still have to make subjective decisions (what CI level?).
+
+
+## Compare credible intervals
+
+Several ways to calculate (highest density vs. equal tails)
+
+```{r}
+#| echo: true
+post <- as_draws_df(post) |> as_tibble()
+
+library(bayestestR)
+hdi(post$b_ForagingModeActive, ci = 0.89)
+hdi(post$b_ForagingModeAmbush, ci = 0.89)
+```
+
+
+## Compare credible intervals
+
+```{r}
+#| echo: true
+ci(post[, 1:4], method = "HDI", ci = 0.89)
+ci(post[, 1:4], method = "ETI", ci = 0.89)
+```
+
+
+## HDI of the difference between Ambush and Active
+
+```{r}
+#| echo: true
+post <- post |> 
+  mutate(d = b_ForagingModeAmbush - b_ForagingModeActive)
+post
+```
+
+
+## HDI of the difference between Ambush and Active
+
+```{r}
+#| echo: true
+ggplot(post, aes(d)) +
+  geom_density()
+```
+
+
+## HDI of the difference between Ambush and Active
+
+```{r}
+#| echo: true
+hdi(post$d, ci = 0.89)
+```
+
+
+## Region of practical equivalence
+
+> "A difference of zero plus or minus some small amount is for practical purposes 'not different' from zero."
+
+[Easystats](https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html) has a good introduction.
+
+Additional reading:
+
+- Kruschke [-@Kruschke2010-wi; @Kruschke2015-rp; @Kruschke2018-mg]
+- Kruschke et al. [-@Kruschke2012-sb]
+
+
+## ROPE
+
+Uses `rope_range()` to automatically find the most suitable range for comparison.
+
+```{r}
+#| echo: true
+rope(post$d, ci = 0.89)
+```
+
+
+## ROPE
+
+```{r}
+#| echo: true
+ggplot(post, aes(d)) +
+  geom_density() +
+  geom_vline(xintercept = c(-0.1, 0.1), color = "red") +
+  geom_vline(xintercept = as.numeric(hdi(post$d))[2:3], color = "blue")
+```
+
+
+## Leave-one-out Cross Validation (LOO)
+
+Stan uses an approximation of the LOO-CV: expected log probability density (elpd) [@Vehtari2017-we; @Gelman2014-jh; @Burkner2021-mp]
+
+- Interpret like AIC
+
+```{r}
+#| echo: true
+
+fm_add <- add_criterion(fm_add, "loo")
+fm_inter <- add_criterion(fm_inter, "loo")
+
+loo_compare(fm_add, fm_inter)
+```
+
+
+## Model weights
+
+Distribute the expected out-of-sample predictive ability across 100%.
+
+```{r}
+#| echo: true
+
+model_weights(fm_add, fm_inter)
+```
+
+The interaction model has >80% of the model weight.
+
+- We should probably go back and look more closely at that model.
+
+
+## No decision is completely objective
+
+- P-values, confidence intervals
+- AIC, AICc
+- Credible intervals, HDIs
+- ROPEs
+- LOO-CV values
+
+
+## References
+
+::: {#refs}
+:::
+
