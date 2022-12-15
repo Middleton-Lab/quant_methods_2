@@ -13,6 +13,7 @@ format:
     show-slide-number: all
     link-external-newwindow: true
 bibliography: Bayes.bib
+csl: evolution.csl
 ---
 
 

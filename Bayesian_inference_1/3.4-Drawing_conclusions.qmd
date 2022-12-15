@@ -13,6 +13,7 @@ format:
     show-slide-number: all
     link-external-newwindow: true
 bibliography: Bayes.bib
+csl: evolution.csl
 ---
 
 ## Next steps
@@ -257,7 +258,7 @@ rope(post$d, ci = 0.89)
 ```
 
 
-## ROPE
+## ROPE vs. HDI
 
 ```{r}
 #| echo: true
