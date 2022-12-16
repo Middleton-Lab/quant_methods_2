@@ -8,6 +8,7 @@
 
 ## Week 3
 
+- Revisit RPM data and analyze the interaction model
 
 ## Week 4
 
