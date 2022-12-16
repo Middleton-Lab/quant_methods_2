@@ -29,6 +29,7 @@ library(readxl)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 
+library(cmdstanr)
 library(brms)
 library(bayesplot)
 
@@ -201,8 +202,27 @@ pred_values
 
 ## Predicting with brms
 
+Draw from the posterior predictive distribution
+
+- What is the envelope in which I expect to see values?
+- Higher variance than draws for the expected value of the posterior
+- Includes residual error
+
 ```{r}
-posterior_predict(fm_add, newdata = pred_values)
+p_pred <- posterior_predict(fm_add, newdata = pred_values)
+str(p_pred)
+```
+
+10,000 draws for each of 200 combinations of `log10SVL` and `ForagingMode`. Each column is 1 row.
+
+
+## Computing credible intervals
+
+```{r}
+#| echo: true
+
+post <- post |> 
+  mutate(median_prediction = apply(p_pred, margin = 2, median))
 ```
 
 
