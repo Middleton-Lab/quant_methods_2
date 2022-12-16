@@ -186,6 +186,26 @@ Approaches
 You still have to make subjective decisions (what CI level?).
 
 
+## HDPI bands
+
+Predict across a range of `log10SVL` for each level of `ForagingMode`.
+
+```{r}
+pred_values <- crossing(
+  log10SVL = seq(1.3, 2.5, length.out = 100),
+  ForagingMode = levels(Snakes$ForagingMode)
+)
+pred_values
+```
+
+
+## Predicting with brms
+
+```{r}
+posterior_predict(fm_add, newdata = pred_values)
+```
+
+
 ## Compare credible intervals
 
 Several ways to calculate (highest density vs. equal tails)
