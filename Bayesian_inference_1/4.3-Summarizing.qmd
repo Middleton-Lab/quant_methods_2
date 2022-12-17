@@ -1,0 +1,38 @@
+---
+title: "Summarizing results"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## Summarizing results
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+
+library(bayestestR)
+```
+
