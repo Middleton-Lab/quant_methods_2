@@ -35,13 +35,15 @@ ggplot2::theme_set(theme_cowplot())
 ```{r}
 library(palmerpenguins)
 penguins2 <- penguins |> 
-mutate(sex = if_else(sex == "female", "Female", "Male")) |> 
-  select(species, island, sex, year) |> 
+  mutate(sex = if_else(sex == "female", "Female", "Male")) |> 
+  select(species, island, sex, year, starts_with("bill")) |> 
   drop_na() |> 
   rename(Species = species,
          Island = island,
          Sex = sex,
-         Year = year)
+         Year = year,
+         Bill_length = bill_length_mm,
+         Bill_depth = bill_depth_mm)
 
 penguins2 |>
   slice(1:11) |> 
