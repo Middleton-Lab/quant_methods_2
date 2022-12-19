@@ -26,6 +26,7 @@ format:
 library(tidyverse)
 library(cowplot)
 library(colorblindr)
+library(paletteer)
 ggplot2::theme_set(theme_cowplot())
 ```
 
@@ -77,5 +78,95 @@ p2 <- ggplot(M, aes(Value, color = Variable)) +
        title = "x Scaled to Biological Range") +
   theme(legend.position = c(0.8, 0.8))
 plot_grid(p1, p2, ncol = 2)
+```
+
+
+## Always show as much of the raw data as you can
+
+[Dynamite plots must die](https://simplystatistics.org/posts/2019-02-21-dynamite-plots-must-die/)
+
+```{r}
+
+set.seed(3775222)
+
+dyndat <- tibble("Treatment" = c(rep("A",20),rep("B", 20)),
+                 "Outcome" = c(rnorm(20), rnorm(20,1))) 
+
+d1 <- ggplot(dyndat, aes(Treatment, Outcome)) +
+  #geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.05,
+               color = "red", linewidth = 0.7)
+d1
+
+```
+
+## Always show as much of the raw data as you can
+
+[Dynamite plots must die](https://simplystatistics.org/posts/2019-02-21-dynamite-plots-must-die/)
+
+```{r}
+
+d1 <- ggplot(dyndat, aes(Treatment, Outcome)) +
+  geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.05,
+               color = "red", linewidth = 0.7)
+d1
+
+```
+
+
+## Always show as much of the raw data as you can
+
+[Dynamite plots must die](https://simplystatistics.org/posts/2019-02-21-dynamite-plots-must-die/)
+
+```{r}
+
+dyndat <- tibble("Treatment" = c(rep("A",20),rep("B", 20)),
+                 "Outcome" = c(rnorm(20), rnorm(17), 25,20,18)) 
+
+d1 <- ggplot(dyndat, aes(Treatment, Outcome)) +
+  #geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.05,
+               color = "red", linewidth = 0.7)
+d1
+
+```
+
+## Always show as much of the raw data as you can
+
+[Dynamite plots must die](https://simplystatistics.org/posts/2019-02-21-dynamite-plots-must-die/)
+
+```{r}
+
+d1 <- ggplot(dyndat, aes(Treatment, Outcome)) +
+  geom_point(position = position_jitter(width = 0.05), alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.05,
+               color = "red", linewidth = 0.7)
+d1
+
+```
+
+
+## The complexity - communication challenge
+
+```{r}
+library(palmerpenguins)
+penguins <- penguins |> 
+  mutate(sex = if_else(sex == "female", "Female", "Male"))
+
+penguins |> 
+  drop_na(body_mass_g, sex) |> 
+  mutate(year = factor(year)) |> 
+  ggplot(aes(x = year, y = body_mass_g, color = species, shape = island)) +
+  geom_point(position = position_jitter(width = 0.1)) +
+  labs(x = "Year", y = "Body Mass (g)") +
+  scale_color_paletteer_d(`"beyonce::X56"`, name = "Species") +
+  scale_shape_manual(values = c(1, 3, 16), name = "Island") +
+  facet_grid(species ~ sex)
+
 ```
 
