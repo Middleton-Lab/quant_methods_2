@@ -11,6 +11,7 @@
   - go over some plots from link
   - a difficult decision with real uncertainty about what is best
   - no dynamite plots (with few exceptions)
+  
 
 - Lecture 3.1 
   - show where we are going - several high information plots 
@@ -21,6 +22,13 @@
 
 - Lecture 5.4
   - show them how to source a file with ggplot functions & themes 
+
+
+## recording mistakes
+
+- Lecture 1.3
+  - go back to end of slide 15 to pick up again
+  
 
 ## Problem sets
 
