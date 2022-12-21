@@ -47,6 +47,21 @@ library(abdData)
 - Highlighting different elements with color, labels or arrows
 
 
+## Example
+
+![](Images/CGCS.png)
+
+
+## Example
+
+![](Images/RNAi_DEseq.jpg)
+
+
+## Example
+
+![](Images/Climate.png)
+
+
 ## Zooplankton diversity {.scrollable}
 
 Diversity of zooplankton (`Diversity`) prey in each of 5 replicate `Block`s of three `Treatment` levels.^[Svanbäck, R and DI Bolnick. 2007. Intraspecific competition drives increased resource use diversity within a natural population. *Proc R Soc London Ser B, Biol Sci* 274: 839-844.]
@@ -367,18 +382,18 @@ predict(fm)
 ```
 
 
-## Grid construction with `crossing()`
+## Grid construction with `expand_grid()`
 
 `predict()` option `newdata` allows passing a set of values for which to predict.
 
 - Generate predictors over a range of `log_Area` for each level of `Landscape_type`
 - Variable names must match the right-hand side of the formula
-- `tidyr` function `crossing()`
+- `tidyr` function `expand_grid()` (or `crossing()`)
 
 ```{r}
 #| echo: true
 #| output-location: slide
-Preds <- crossing(
+Preds <- expand_grid(
   log_Area = seq(-0.5, 2, length.out = 200),
   Landscape_type = levels(BSR$Landscape_type) |> factor()
 )
