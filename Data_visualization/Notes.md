@@ -29,7 +29,10 @@
 - Lecture 1.3
   - go back to end of slide 15 to pick up again
   
-
+- Lecture 2.1 
+  - cuts in third section 
+  
+  
 ## Problem sets
 
 ### Week 1

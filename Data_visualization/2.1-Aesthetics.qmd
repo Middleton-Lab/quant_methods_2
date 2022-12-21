@@ -183,10 +183,6 @@ ggplot(M,
 
 ## Color by `factor(x2)`
 
-::: {.panel-tabset}
-
-### Code
-
 ```{r}
 #| echo: true
 #| output-location: slide
