@@ -32,6 +32,9 @@
 - Lecture 2.1 
   - cuts in third section 
   
+- Lecture 3.1 
+  - cut on last slide
+  
   
 ## Problem sets
 

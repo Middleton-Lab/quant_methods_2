@@ -68,7 +68,7 @@ M
 ## Working with lists
 
 - Lists can hold any kind of R object
-- Easy to crate empty lists and fill 
+- Easy to create empty lists and fill 
 
 ```{r}
 #| echo: true
