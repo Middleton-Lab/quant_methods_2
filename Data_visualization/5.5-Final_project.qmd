@@ -1,0 +1,33 @@
+---
+title: "Final project"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+---
+
+## Final project
+
+- No week 5 problem set
+- Final project instead
+    - 4-6 publication quality images
+
+
+## Guidelines
+
+- At least 2 paper/manuscript/dissertation figures
+    - Both should have multiple panels
+    - Include appropriate labels and figure legends
+- At least 1 oral presentation figure (e.g., for a PowerPoint presentation)
+- At least 1 poster presentation figure 
+- All figures should include:
+    - Appropriate font and geometry sizes
+    - Appropriate alt text
