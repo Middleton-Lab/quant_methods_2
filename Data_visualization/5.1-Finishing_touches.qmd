@@ -82,7 +82,7 @@ Everything in a figure needs to be readable
 
 ## Figure output
 
-Use vector output (pdf, svg, wmf [Windows]) for as long as possible.
+Use vector output (pdf, svg, eps, wmf [Windows]) for as long as possible.
 
 - `ggsave()`
   - `width`, `height`

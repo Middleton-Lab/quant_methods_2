@@ -51,9 +51,13 @@
 
 ### Week 3
 
+- size plots in a quarto file
+
 ### Week 4
 
 ### Week 5
+  - show them how to source a file with ggplot functions & themes 
+
 
 ## Final project
 
