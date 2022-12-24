@@ -65,7 +65,10 @@ ggplot(tibble(x = rnorm(1e3)), aes(x)) + geom_density() +
 - Use full local path to font file
 - Provide italic, bold, and bolditalic if needed.
 
-```{{r}}
+```{r}
+#| echo: true
+#| output-location: slide
+
 font_add(family = "times",
          regular = "/System/Library/Fonts/Supplemental/Times New Roman.ttf")
 

@@ -36,8 +36,10 @@ Just like your data analysis, visualization is reproducible
 
 ## Git and Github
 
+- [Happy Git and GitHub for the useR](https://happygitwithr.com/)
 - [Slides for an intro to Git and Github lecture](https://github.com/egking/comp_bio_MU)
 - [Video tutorial](https://youtu.be/rlXnVs1Xods)
+
 
 
 ## Your reproducible research as an R package

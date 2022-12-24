@@ -1,6 +1,6 @@
 ---
 title: "Complex plot operations"
-subtitle: "Here is a strange plot things we have done before"
+subtitle: "Here are some strange plot things we have done before"
 author:
   - Elizabeth King
   - Kevin Middleton
