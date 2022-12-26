@@ -1,0 +1,30 @@
+---
+title: "What do you want to say with your plot?"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format: 
+  html:
+    code-fold: true
+---
+
+##Outline
+
+- What does this plot say? - What would you conclude? Different versions of a figure?
+
+- Dataset 
+  - plot that needs long format
+  - plot that needs wide format
+
+- Dataset 
+  - plot that reveals data problems
+  - do some cleaning
+
+- Dataset
+  - lots of geoms
+  
+
+
+
+
