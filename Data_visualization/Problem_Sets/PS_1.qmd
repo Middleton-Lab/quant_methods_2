@@ -1,15 +1,28 @@
 ---
-title: "What do you want to say with your plot?"
-subtitle: "Introduction"
+title: "Problem Set 1"
 author:
-  - Elizabeth King
-  - Kevin Middleton
+  - Your Name Here
 format: 
   html:
     code-fold: true
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
 ---
 
-##Outline
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+```
+
+
+## Outline
 
 - What does this plot say? - What would you conclude? Different versions of a figure?
 
