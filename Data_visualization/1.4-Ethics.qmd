@@ -41,6 +41,7 @@ ggplot2::theme_set(theme_cowplot())
 - [Data science ethics](https://mdsr-book.github.io/mdsr2e/ch-ethics.html) in *Modern Data Science with R* by Baumer, Kaplan, and Horton
 - [The Ethics of Data Visualization](https://medium.com/@peter.haferl/the-ethical-responsibilities-of-data-visualization-4d12b7c9640d)
 
+
 ## Example
 
 Two variables with a lot of samples. Similar standard deviations. Means differ by 0.5%
@@ -59,6 +60,7 @@ M |>
 M <- M |> 
   pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
 ```
+
 
 ## Two ways to plot the same data
 
@@ -101,6 +103,7 @@ d1
 
 ```
 
+
 ## Always show as much of the raw data as you can
 
 [Dynamite plots must die](https://simplystatistics.org/posts/2019-02-21-dynamite-plots-must-die/)
@@ -134,6 +137,7 @@ d1 <- ggplot(dyndat, aes(Treatment, Outcome)) +
 d1
 
 ```
+
 
 ## Always show as much of the raw data as you can
 
