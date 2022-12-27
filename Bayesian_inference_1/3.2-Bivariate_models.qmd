@@ -122,8 +122,9 @@ sim_model <- function(ii) {
          y = b0 + b1 * x)
 }
 
-sims <- map_dfr(.x = 1:50,
-                .f = sim_model)
+sims <- purrr::map(.x = 1:50,
+            .f = sim_model) |> 
+  list_rbind()
 print(sims, n = 200)
 ```
 
@@ -301,8 +302,9 @@ sim_model <- function(ii) {
          y = Group0 + Grp1 * Group01 + rnorm(n = 50, mean = 0, sd = 1))
 }
 
-sims <- map_dfr(.x = 1:500,
-                .f = sim_model)
+sims <- purrr::map(.x = 1:500,
+            .f = sim_model) |> 
+  list_rbind()
 print(sims, n = 200)
 ```
 
@@ -467,8 +469,9 @@ sim_model <- function(ii) {
          Group1 = mean(Group1))
 }
 
-sims <- map_dfr(.x = 1:500,
-                .f = sim_model)
+sims <- purrr::map(.x = 1:500,
+            .f = sim_model) |> 
+  list_rbind()
 print(sims, n = 200)
 ```
 

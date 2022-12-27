@@ -118,14 +118,15 @@ ggplot(tibble(DBH), aes(DBH)) +
 #| echo: true
 #| output-location: slide
 set.seed(3247922)
-Sim_data <- map_dfr(
+Sim_data <- purrr::map(
   .x = 1:20,
   .f = function(ii) {
     tibble(ID = ii,
            DBH = rnorm(100,
                        mean = rnorm(1, 10, 2.5),
                        sd = rtruncnorm(5, mean = 2, sd = 1, a = 0)))
-  })
+  }) |> 
+  list_rbind()
 Sim_data
 ```
 
@@ -160,14 +161,15 @@ ggplot(tibble(DBH), aes(DBH)) +
 ```{r}
 #| echo: true
 set.seed(87349)
-Sim_data <- map_dfr(
+Sim_data <- purrr::map(
   .x = 1:20,
   .f = function(ii) {
     tibble(ID = ii,
            DBH = rnorm(100,
                        mean = rnorm(1, 12, 5),
                        sd = rtruncnorm(5, mean = 5, sd = 3, a = 0)))
-  })
+  }) |> 
+  list_rbind()
 ```
 
 
@@ -195,14 +197,15 @@ ggplot(tibble(DBH), aes(DBH)) +
 ```{r}
 #| echo: true
 set.seed(4623864)
-Sim_data <- map_dfr(
+Sim_data <- purrr::map(
   .x = 1:20,
   .f = function(ii) {
     tibble(ID = ii,
            DBH = rlnorm(100,
                         mean = rnorm(1, 2, 0.01),
                         sd = rtruncnorm(1, mean = 1, sd = 0.01, a = 0)))
-  })
+  }) |> 
+  list_rbind()
 ```
 
 ## Plotting #3
@@ -223,14 +226,15 @@ ggplot(tibble(DBH), aes(DBH)) +
 ```{r}
 #| echo: true
 set.seed(623469)
-Sim_data <- map_dfr(
+Sim_data <- purrr::map(
   .x = 1:20,
   .f = function(ii) {
     tibble(ID = ii,
            DBH = rlnorm(100,
                         mean = rnorm(1, 3, 0.2),
                         sd = rtruncnorm(1, mean = 1, sd = 0.25, a = 0)))
-  })
+  }) |> 
+  list_rbind()
 ```
 
 ## Plotting #4
