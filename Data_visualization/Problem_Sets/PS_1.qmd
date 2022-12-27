@@ -21,23 +21,43 @@ library(cowplot)
 theme_set(theme_cowplot())
 ```
 
+## Necessary packages
+
+The following are packages you will need. install
+- tidyverse
+- cowplot
+- patchwork
+- paletteer
+
 
 ## Outline
 
+1.
+- give stats - what do you conclude? Then plot and now what?
+
+2.
 - What does this plot say? - What would you conclude? Different versions of a figure?
 
+3. 
+- here is a question. how would a plot show the answer?
+
+4.
 - Dataset 
   - plot that needs long format
   - plot that needs wide format
 
+5. Separate or unite 
+
+6.
 - Dataset 
   - plot that reveals data problems
   - do some cleaning
 
+7.
 - Dataset
   - lots of geoms
   
-
+8. find a terrible image from lit - explain why - give link
 
 
 

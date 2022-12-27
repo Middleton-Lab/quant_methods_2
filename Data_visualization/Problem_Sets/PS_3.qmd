@@ -1,0 +1,52 @@
+---
+title: "Problem Set 3"
+author:
+  - Your Name Here
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+```
+
+
+## Outline
+
+1. 
+- correctly size plots in a quarto file
+- change size & see how it changes
+
+2. data 
+- add some stuff, line at zero 
+
+3. reaction norms
+- precompute some stuff - means etc
+
+4. annotation - rectangle
+
+ggrepel
+
+math notation
+
+scale_color_manual
+- screw up colors to show how it can happen
+
+make a theme - grab list and use again
+
+predict, map 
+
+
+
+

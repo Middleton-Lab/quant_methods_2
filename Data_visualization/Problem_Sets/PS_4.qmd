@@ -1,0 +1,44 @@
+---
+title: "Problem Set 4"
+author:
+  - Your Name Here
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+```
+
+
+## Outline
+
+- show them how to source a file with ggplot functions & themes 
+
+- composite figure
+  - both methods
+  - .....
+
+- functions and map
+
+- pull out plot elements
+
+- make a list of plots 
+
+- slide 10 lec 4-4 
+
+- programming stuff
+
+
+

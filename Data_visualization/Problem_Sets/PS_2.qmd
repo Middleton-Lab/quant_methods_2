@@ -1,0 +1,57 @@
+---
+title: "Problem Set 2"
+author:
+  - Your Name Here
+format: 
+  html:
+    code-fold: true
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+```
+
+
+## Outline
+
+1.
+- map to different aes 
+- inside and outside the aes
+
+1. 
+- changing axis limits - when you get warning about dropping points
+
+
+2. factors 
+- number that needs to change
+- re ordering
+
+3. color with a numeric where the range is a challenge - e.g. pvals
+
+4. fill - pch 21?
+
+5. position jitter and dodge - show them too wide 
+
+6. faceting 
+- free axis
+
+7. themes ^^
+removing stuff ^^
+
+8. check colorblind
+
+
+
+
+
+

@@ -54,9 +54,9 @@
 - size plots in a quarto file
 
 ### Week 4
+  - show them how to source a file with ggplot functions & themes 
 
 ### Week 5
-  - show them how to source a file with ggplot functions & themes 
 
 
 ## Final project
