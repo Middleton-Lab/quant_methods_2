@@ -25,7 +25,7 @@ csl: evolution.csl
 4. Drawing conclusions
 
 
-## Rethink traditional "named" tests
+## Reframe traditional "named" tests
 
 Useful for communication but mathematically just variations of a theme
 
@@ -41,15 +41,13 @@ Linear models with some combination of predictors
 
 . . .
 
-Interpret coefficients directly
+Interpret coefficients directly. Don't rely on P-values.
 
 
 ## Predictor types
 
-1. *Categorical*: Shift the mean of the outcome (intercept)
-1. *Continuous*: How much does the outcome change for a 1 unit increase in the predictor (slope)
-
-Note: Not the outcome ($y$) variable's distribution
+1. *Categorical*: Shift the mean of the outcome by group ("intercept")
+1. *Continuous*: How much does the outcome change for a 1 unit increase in the predictor ("slope")
 
 . . .
 
@@ -151,5 +149,5 @@ Thinking this way will let you begin thinking about multiple regression a little
 *Continuous*
 
 - No change in $y$ for a 1 unit increase in the predictor
-- Sometimes this is a true slope, sometimes just a continuous predictor
+- Sometimes this is a "true" slope (e.g., allometric scaling)
 
