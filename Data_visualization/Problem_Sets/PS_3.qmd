@@ -21,38 +21,27 @@ theme_set(theme_cowplot())
 
 library(latex2exp)
 library(paletteer)
+library(ggrepel)
+library(lubridate)
 ```
-
-
-## Outline
-
-1. 
-- correctly size plots in a quarto file
-- change size & see how it changes
-
-2. data 
-- add some stuff, line at zero 
-
-4. annotation - rectangle
-
-ggrepel
-
-scale_color_manual
-- screw up colors to show how it can happen
-
-make a theme - grab list and use again
-
-predict, map
 
 
 ## Setting up a reusable theme
 
-Correctly size plot elements
+For this problem set, we will create a reusable theme that we can apply to each plot. This is similar to the process that you would use when designing slides for manuscripts, posters, or presentations. In those cases, you would likely make the plots first and then modify them to fit.
+
+Here we will make the theme first, since we will use it for all the plots in this problem set. Additionally, while you would be outputting files as PDF or an image format normally, we'll just use the native Quarto html rendering. We can still make a theme.
+
+The code chunk below makes a basic plot with some points. We don't care now about the contents of the plot. 
 
 ```{r}
-
+## FIXME
+ggplot(data = tibble(x = 1:10, y = runif(10)),
+       aes(x, y)) +
+  geom_point()
 ```
 
+Now put the `theme()` elements into a list and save that so you can reuse it
 
 ## Floristic diversity
 
@@ -73,9 +62,12 @@ ggplot(D, aes(Diameter_m, Height_m, color = Family)) +
   coord_equal()
 ```
 
+
 ## Shark physiology
 
 Blacktip reef shark (*Carcharhinus melanopterus*)
+
+![](https://upload.wikimedia.org/wikipedia/commons/0/01/Carcharhinus_melanopterus_mirihi.jpg)
 
 ```{r}
 library(ggrepel)
@@ -97,7 +89,7 @@ ggplot(Shark, aes(y = activity, x = pco2, color = temp, label = Label)) +
 ```
 
 
-## Spiny damselfish
+## Spiny damselfish respirometry
 
 ![](https://upload.wikimedia.org/wikipedia/commons/e/e3/Acanthochromis_polyacanthus.jpg)
 
@@ -162,14 +154,67 @@ t.test(D_diff$d, mu = 0)
 
 ```{r}
 library(lubridate)
-GR <- mosaicData::SnowGR |> drop_na(Total)
+GR <- read_csv("../Data/GR_Snow.csv",
+               show_col_types = FALSE)
 
 ggplot(GR, aes(SeasonStart, Total)) +
-  geom_path()
+  geom_line()
+```
 
-GR |> 
+```{r}
+GR_long <- GR |> 
+  filter(SeasonStart >= 1960) |> 
   select(-SeasonEnd, -Total) |> 
-  pivot_longer(cols = -SeasonStart) |> 
-  mutate(Date = ym(paste(SeasonStart, name, sep = "-")))
+  pivot_longer(cols = -SeasonStart, names_to = "Month", values_to = "Snow") |> 
+  mutate(Date = ym(paste(SeasonStart, Month, sep = "-")))
+
+ggplot(GR_long, aes(x = Date, y = Snow)) +
+  geom_line()
+```
+
+```{r}
+GR_long |> arrange(desc(Snow)) |> slice(1)
+```
+
+
+```{r}
+Decades <- tribble(
+  ~ Start, ~ End,
+  ym("1960-Jul"), ym("1970-Jun"),
+  ym("1980-Jul"), ym("1990-Jun"),
+  ym("2000-Jul"), ym("2010-Jun")
+)
+
+ggplot() +
+  geom_rect(data = Decades,
+            aes(xmin = Start, xmax = End,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_line(data = GR_long,
+            aes(x = Date, y = Snow))
+```
+
+
+```{r}
+ggplot() +
+  geom_rect(data = Decades,
+            aes(xmin = Start, xmax = End,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_line(data = GR_long,
+            aes(x = Date, y = Snow)) +
+  geom_point(data = GR_long |> arrange(desc(Snow)) |> slice(1),
+             aes(x = Date, y = Snow),
+             color = "red",
+             size = 3) +
+  annotate(geom = "text",
+           label = "December, 2000: 59.2 in",
+           x = ym("1993-Oct"),
+           y = 60,
+           size = 5) +
+  scale_x_date(breaks = seq(ym("1960-Jul"), ym("2010-Jun"), by = "5 years"),
+               date_labels = "%Y",
+               name = "Year")
+
 ```
 
