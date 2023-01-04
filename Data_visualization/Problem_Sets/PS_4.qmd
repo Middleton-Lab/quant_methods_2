@@ -4,7 +4,6 @@ author:
   - Your Name Here
 format: 
   html:
-    code-fold: true
     embed-resources: true
     toc: true
     toc-depth: 2

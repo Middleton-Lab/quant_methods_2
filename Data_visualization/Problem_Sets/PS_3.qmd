@@ -4,7 +4,6 @@ author:
   - Your Name Here
 format: 
   html:
-    code-fold: true
     embed-resources: true
     toc: true
     toc-depth: 2
@@ -19,6 +18,9 @@ format:
 library(tidyverse)
 library(cowplot)
 theme_set(theme_cowplot())
+
+library(latex2exp)
+library(paletteer)
 ```
 
 
@@ -31,22 +33,143 @@ theme_set(theme_cowplot())
 2. data 
 - add some stuff, line at zero 
 
-3. reaction norms
-- precompute some stuff - means etc
-
 4. annotation - rectangle
 
 ggrepel
-
-math notation
 
 scale_color_manual
 - screw up colors to show how it can happen
 
 make a theme - grab list and use again
 
-predict, map 
+predict, map
 
 
+## Setting up a reusable theme
 
+Correctly size plot elements
+
+```{r}
+
+```
+
+
+## Floristic diversity
+
+Myrtaceae, Fabaceae, Santalaceae, etc.
+
+```{r}
+D <- read_csv("../Data/Floristic_composition_and_Diversity.csv",
+              show_col_types = FALSE) |> 
+  mutate(Diameter_m = Diameter_cm / 100,
+         Family = fct_infreq(Family))
+
+ggplot(D, aes(Diameter_m, Height_m, color = Family)) +
+  geom_abline(slope = 0.728, intercept = 1.5967) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap("Family") +
+  coord_equal()
+```
+
+## Shark physiology
+
+Blacktip reef shark (*Carcharhinus melanopterus*)
+
+```{r}
+library(ggrepel)
+Shark <- read_csv("../Data/bouyoucos_et_al_activity.csv",
+                  show_col_types = FALSE) |> 
+  mutate(temp = str_remove(temp, "C") |> factor(),
+         pco2 = str_remove(pco2, "uatm") |> factor(levels = c(650, 1050)))
+
+Shark |> arrange(desc(activity)) |> slice(1)
+
+Shark <- Shark |> 
+  mutate(Label = if_else(shark == "Cm47", "Cm47", ""))
+
+ggplot(Shark, aes(y = activity, x = pco2, color = temp, label = Label)) +
+  geom_point(size = 4, position = position_jitter(width = 0.05, seed = 48727)) +
+  geom_text_repel(box.padding = 0.5, seed = 17346) +
+  labs(y = "Activity", x = expression(pCO[2])) +
+  scale_color_discrete(name = "Temperature (C)")
+```
+
+
+## Spiny damselfish
+
+![](https://upload.wikimedia.org/wikipedia/commons/e/e3/Acanthochromis_polyacanthus.jpg)
+
+
+Rodgers, Giverny (2018): A comparison of closed system and flow-through respirometry techniques using adult *Acanthochromis polyacanthus*. James Cook University. [https://doi.org/10.4225/28/5ab08a55baf15](https://doi.org/10.4225/28/5ab08a55baf15)
+
+Six adult spiny chromis damselfish (Acanthochromis polyacanthus) were used to compare closed system and flow-through respirometry techniques.
+
+oxygen consumption of each fish in mg of O~2~ consumed kg^-1^ h^-1^
+
+```{r}
+D <- read_csv("../Data/A_polyacanthus_respirometry.csv",
+              show_col_types = FALSE)
+
+D_long <- D |> 
+  pivot_longer(cols = -Time_min, values_to = "O2_Consumption") |> 
+  separate(col = name, into = c("Treatment", "ID"), sep = "-") |> 
+  mutate(Treatment = factor(Treatment, levels = c("Static", "Recirculation")),
+         ID = factor(ID))
+
+ggplot(D_long,
+       aes(x = Time_min, y = O2_Consumption,
+           linetype = Treatment, color = ID)) +
+  geom_line() +
+  facet_grid(ID ~ .) +
+  labs(y = expression(Oxygen~consumption~(mg~O[2]~kg^-1~hr^-1)),
+       x = "Time (min)")
+```
+
+Reaction norm at 120 min
+
+```{r}
+D_120 <- D_long |>
+  filter(Time_min == 120)
+
+ggplot(D_120, aes(x = Treatment, y = O2_Consumption, group = ID)) +
+  geom_point() +
+  geom_line() +
+  labs(y = TeX("$Oxygen~Consumption~(\\frac{mg~O_2}{kg / hr})$"),
+       x = "Time (min)")
+```
+
+Add mean and 2 x SEM
+
+```{r}
+
+```
+
+Calculate per-fish difference
+
+```{r}
+D_diff <- D_120 |> 
+  select(-Time_min) |> 
+  pivot_wider(names_from = "Treatment", values_from = "O2_Consumption") |> 
+  mutate(d = Static - Recirculation)
+
+t.test(D_diff$d, mu = 0)
+```
+
+
+## Snow GR
+
+```{r}
+library(lubridate)
+GR <- mosaicData::SnowGR |> drop_na(Total)
+
+ggplot(GR, aes(SeasonStart, Total)) +
+  geom_path()
+
+GR |> 
+  select(-SeasonEnd, -Total) |> 
+  pivot_longer(cols = -SeasonStart) |> 
+  mutate(Date = ym(paste(SeasonStart, name, sep = "-")))
+```
 

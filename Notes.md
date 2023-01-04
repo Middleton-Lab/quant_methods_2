@@ -17,6 +17,7 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.8kt4675
 
 https://datadryad.org/stash/dataset/doi:10.5061/dryad.6880rf1
 
+Vesterinen, E. J., A. I. E. Puisto, A. S. Blomberg, and T. M. Lilley. 2018. Table for five, please: Dietary partitioning in boreal bats. Ecol. Evol. 8:10914–10937.
 
 ## Data from: Large‐scale molecular diet analysis in a generalist marine mammal reveals male preference for prey of conservation concern
 
@@ -42,15 +43,30 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.7h62c8t
 
 https://datadryad.org/stash/dataset/doi:10.5061/dryad.g12p0j2
 
+Moatt, J. P., M. A. Fyfe, E. Heap, L. J. M. Mitchell, F. Moon, and C. A. Walling. 2019. Reconciling nutritional geometry with classical dietary restriction: Effects of nutrient intake, not calories, on survival and reproduction. Aging Cell 18:e12868.
+
 
 ## Snake diet
 
 https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/1365-2656.12972
 
 
+## Social insects
+
+https://datadryad.org/stash/dataset/doi:10.5061/dryad.m280g
+
+Giraldo, Y. M., J. F. Kamhi, V. Fourcassié, M. Moreau, S. K. A. Robson, A. Rusakov, L. Wimberly, A. Diloreto, A. Kordek, and J. F. A. Traniello. 2016. Lifespan behavioural and neural resilience in a social insect. Proc. Biol. Sci. 283.
+
 ## `mosaicData`
 
 https://cran.r-project.org/web/packages/mosaicData/mosaicData.pdf
+
+
+## Sharks
+
+Bouyoucos, I. A., S.-A. Watson, S. Planes, C. A. Simpfendorfer, G. D. Schwieterman, N. M. Whitney, and J. L. Rummer. 2020. The power struggle: assessing interacting global change stressors via experimental studies on sharks. Sci. Rep. 10:19887.
+
+
 
 
 ## NHANES
