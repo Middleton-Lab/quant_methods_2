@@ -11,24 +11,32 @@ format:
     toc-title: Contents
 ---
 
+## Important packages you will need for this course
+
+The following are packages you will need for this class: 
+  - tidyverse
+  - cowplot
+  - patchwork
+  - paleteer
+
+Install these packages using `install.packages()` in the R console (e.g. `install.packages("tidyverse", dep = TRUE))`. Remember you only need to do this once and then you will use `library()` to load them. If you already have these packages, update them to the latest version using the same `install.packages()` function.
+
+Once the installations are complete, write your setup chunk below loading these four packages using `library()`. Also load the cowplot theme using the following: `theme_set(theme_cowplot())`. You will use this same setup chunk with some possible additions for most problem sets. Including the options for echo, message, and warning means it won't print anything from this part in the html output. 
+
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 
+#[FIXME]
 library(tidyverse)
 library(cowplot)
+library(patchwork)
+library(paletteer)
+
 theme_set(theme_cowplot())
+
 ```
-
-## Necessary packages
-
-The following are packages you will need. install
-- tidyverse
-- cowplot
-- patchwork
-- paletteer
-
 
 ## Outline
 
