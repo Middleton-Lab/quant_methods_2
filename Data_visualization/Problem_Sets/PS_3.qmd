@@ -30,7 +30,7 @@ library(lubridate)
 
 For this problem set, we will create a reusable theme that we can apply to each plot. This is similar to the process that you would use when designing slides for manuscripts, posters, or presentations. In those cases, you would likely make the plots first and then modify them to fit.
 
-Here we will make the theme first, since we will use it for all the plots in this problem set. Additionally, while you would be outputting files as PDF or an image format normally, we'll just use the native Quarto html rendering. We can still make a theme, and it works the same.
+Here we will make the theme first, since we will use it for some plots in this problem set. Additionally, while you would be outputting files as PDF or an image format normally, we'll just use the native Quarto html rendering. We can still make a theme, and it works the same.
 
 The code chunk below makes a basic plot with some points. We don't care now about the contents of the plot; we will just use it to make a reusable theme. In the chunk below add the following theme elements:
 
