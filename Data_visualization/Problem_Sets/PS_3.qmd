@@ -23,6 +23,12 @@ library(latex2exp)
 library(paletteer)
 library(ggrepel)
 library(lubridate)
+
+# Required data:
+#   - Floristic_composition_and_Diversity.csv
+#   - reef_sharks.csv
+#   - A_polyacanthus_respirometry.csv
+#   - GR_Snow.csv
 ```
 
 
