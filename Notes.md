@@ -1,6 +1,10 @@
 # Datasets
 
-https://www.nature.com/articles/s41559-017-0458-2/tables/1
+- https://www.nature.com/articles/s41559-017-0458-2/tables/1
+- Data4Ecologists: https://github.com/jfieberg/Data4Ecologists
+  - remotes::install_github("jfieberg/Data4Ecologists")
+- abdData: https://middleton-lab.github.io/abdData/reference/index.html
+  - remotes::install_github("Middleton-Lab/abdData")
 
 
 ## Data from: Can microstructural MRI detect subclinical tissue injury in subjects with asymptomatic cervical spinal cord compression? a prospective cohort study
@@ -18,6 +22,7 @@ https://datadryad.org/stash/dataset/doi:10.5061/dryad.8kt4675
 https://datadryad.org/stash/dataset/doi:10.5061/dryad.6880rf1
 
 Vesterinen, E. J., A. I. E. Puisto, A. S. Blomberg, and T. M. Lilley. 2018. Table for five, please: Dietary partitioning in boreal bats. Ecol. Evol. 8:10914–10937.
+
 
 ## Data from: Large‐scale molecular diet analysis in a generalist marine mammal reveals male preference for prey of conservation concern
 
@@ -65,8 +70,6 @@ https://cran.r-project.org/web/packages/mosaicData/mosaicData.pdf
 ## Sharks
 
 Bouyoucos, I. A., S.-A. Watson, S. Planes, C. A. Simpfendorfer, G. D. Schwieterman, N. M. Whitney, and J. L. Rummer. 2020. The power struggle: assessing interacting global change stressors via experimental studies on sharks. Sci. Rep. 10:19887.
-
-
 
 
 ## NHANES

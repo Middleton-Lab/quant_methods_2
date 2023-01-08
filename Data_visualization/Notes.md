@@ -66,13 +66,6 @@
   - Powerpoint slide: appropriate font and geometry sizes
     - Appropriate alt text
 
-## Datasets
-
-- Data4Ecologists: https://github.com/jfieberg/Data4Ecologists
-  - remotes::install_github("jfieberg/Data4Ecologists")
-- abdData: https://middleton-lab.github.io/abdData/reference/index.html
-  - remotes::install_github("Middleton-Lab/abdData")
-
 ## Gallery
 
 - http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
