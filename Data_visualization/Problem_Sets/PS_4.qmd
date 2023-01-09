@@ -23,20 +23,7 @@ library(patchwork)
 #   - avian_mortality.csv
 ```
 
-> Note that this problem set is mostly unguided. Between your experience in Quantitative Methods 1, the lecture slides for this module, and your own experience with R, you have all the R and plotting skills to make these plots. See what you can do.
-
-
-## Outline
-
-- functions and map
-
-- pull out plot elements
-
-- make a list of plots 
-
-- slide 10 lec 4-4 
-
-- programming stuff
+> Note that this problem set is more unguided than the previous ones. Between your experience in Quantitative Methods 1, the lecture slides for this module, and your own experience with R, you have all the R and plotting skills to make these plots. See what you can do.
 
 
 ## Sourcing a file with a ggplot theme
@@ -54,9 +41,9 @@ Create and save a `.R` file with the following code (do not include the back tic
 library(cowplot)
 theme_set(theme_cowplot(font_size = 10))
 mytheme <- list(
-  theme(axis.title = element_text(face = "bold"),
-        axis.text = element_text(face = "italic")
-  ))
+theme(axis.title = element_text(face = "bold"),
+axis.text = element_text(face = "italic")
+))
 
 ```
 
@@ -177,37 +164,82 @@ p1 / p2 / p3 +
 
 ## Plotting with a custom function
 
-Reload the avian mortality data from above.
+To give you some experience with a plotting in a function, generating a list of plots, and then using that list, we will use the avian mortality data from the previous exercise.
+
+Reload the avian mortality data from above. Drop the columns for species, mating system bias, and cavity nesting.
 
 ```{r}
 # FIXME
 AM <- read_delim("../Data/avian_mortality.csv",
                  delim = ";",
-                 show_col_types = FALSE)
+                 show_col_types = FALSE) |> 
+  select(-species, -mat_sys_bias, -cavity_nest)
 ```
 
-The function
+The very rudimentary function below has a single argument, `y` which is expected to be a numeric vector. The function plots the density of `y` and returns the plot.
 
 ```{r}
 density_plot <- function(y) {
-  ggplot(data = tibble(y), aes(y)) +
+  p <- ggplot(data = tibble(y), aes(y)) +
     geom_density()
+  return(p)
 }
 ```
 
+In the code chunk below, create a list of plots output from `density_plot()`:
+
+- Pass the column names of the data.frame as the `.x` parameter
+- For the function `.f`, write a local ("anonymous") function that:
+    - Extracts the column matching `.x` as a vector
+    - Passes that vector to `density_plot()`
+
 ```{r}
+#| warning: false
 # FIXME
 
-cols <- names(AM)[-1]
+plots <- map(.x = names(AM),
+             .f = function(.x) {
+               y <- AM |> select(all_of(.x)) |> pull()
+               # Alternately:
+               #    y <- AM[[.x]]
+               density_plot(y)
+             })
+```
 
-plots <- map(.x = cols,
-    .f = function(.x) {
-      y <- AM |> select(all_of(.x)) |> pull()
-      # Also:
-      # y <- AM[[.x]]
-      density_plot(y)
-    })
+The result should be a list of plots. Plots the list of plots in a 3 x 4 grid.
 
+```{r}
+#| warning: false
+# FIXME
 wrap_plots(plots)
+save_plot(filename = "PS_4_Fig_2.png", plot = last_plot())
+```
+
+Your figure should look like this:
+
+![](PS_4_Fig_2.png){width=75%}
+
+- Copy the function from above as `density_plot2` and edit the function to take a second argument, the variable name
+- In the function, change the plot statements so that the x-axis title matches the variable name
+- Copy the `map()` code you used to make the list of plot and edit to pass the variable name to `density_plot2()` as well
+- Plot the 3 x 4 grid of plots, which now has the variable name axis title
+
+```{r}
+#| warning: false
+# FIXME
+
+density_plot2 <- function(y, var_name) {
+  p <- ggplot(data = tibble(y), aes(y)) +
+    geom_density() +
+    labs(x = var_name)
+  return(p)
+}
+
+plots2 <- map(.x = names(AM),
+              .f = function(.x) {
+                y <- AM |> select(all_of(.x)) |> pull()
+                density_plot2(y, .x)
+              })
+wrap_plots(plots2)
 ```
 
