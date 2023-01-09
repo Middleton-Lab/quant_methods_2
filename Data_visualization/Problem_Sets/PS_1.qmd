@@ -38,10 +38,62 @@ theme_set(theme_cowplot())
 
 ```
 
-## Outline
+## Lynx population size and hunting^[C Elton and M Nicholson. 1942. The ten-year cycle in numbers of the lynx in Canada. Journal of Animal Ecology 11: 215-244.]
 
-1.
-- give stats - what do you conclude? Then plot and now what?
+![](https://mnmammals.d.umn.edu/sites/mnmammals.d.umn.edu/files/styles/folwell_full/public/2020-06/Lynx_Canadensis.jpg?itok=NY4KW5g0)
+
+Hudson's Bay Company is one of the oldest corporations in Canada. It still operates retail stores across Canada today but for much of history, it was a fur trading business. One of the animals targeted by fur trappers in the 1700's and 1800's was the lynx. The number of pelts obtained by the Hudson's Bay Company each year between 1752 and 1819 is in the `LynxPopulation.csv` dataset. Given the intense hunting, one might predict a decline in the population size over time. Read in the data and perform a linear regression predicting number of pelts by year using `lm()`.   
+
+```{r}
+
+LL <- read.csv("../Data/LynxPopulation.csv")
+
+mod <- lm(pelts ~ year, data=LL)
+summary(mod)
+
+```
+
+Summarize your conclusions regarding the effect of fur trapping over time on lynx population size. 
+
+>
+
+Let's construct a plot displaying the linear regression results. Plot pelt number versus year and use `geom_point` and `geom_smooth(method="lm")`. 
+
+```{r}
+
+LL %>%
+  ggplot(aes(year, pelts)) +
+  geom_point() +
+  geom_smooth(method = 'lm')
+
+```
+
+Do you notice anything in the plot that suggests there might be an issue with using linear regression to analyze these data?
+
+>
+
+Because these data were collected over time, let's connect the points so we can see trends over time more clearly. Add `geom_line` to your plot to do this. 
+
+```{r}
+
+LL %>%
+  ggplot(aes(year, pelts)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = 'lm')
+
+```
+
+Does connecting the points change your conclusions about the appropriateness of linear regression to address your question about population decline? Do you have any ideas of better ways to analyze these data?
+
+>
+
+If you had plotted the data as a first step, how do you think that would affect your conclusions?
+
+>
+
+
+
 
 2.
 - What does this plot say? - What would you conclude? Different versions of a figure?
