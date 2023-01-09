@@ -16,18 +16,17 @@ format:
 #| warning: false
 
 library(tidyverse)
-library(cowplot)
-theme_set(theme_cowplot())
+library(patchwork)
+
+# Required files:
+#   - PS_4_Fig_1.png
+#   - avian_mortality.csv
 ```
+
+> Note that this problem set is mostly unguided. Between your experience in Quantitative Methods 1, the lecture slides for this module, and your own experience with R, you have all the R and plotting skills to make these plots. See what you can do.
 
 
 ## Outline
-
-- show them how to source a file with ggplot functions & themes 
-
-- composite figure
-  - both methods
-  - .....
 
 - functions and map
 
@@ -40,4 +39,175 @@ theme_set(theme_cowplot())
 - programming stuff
 
 
+## Sourcing a file with a ggplot theme
+
+If you are going to use the same ggplot theme to make many plots in one or potentially many different files, it makes sense to save the theme to a separate file. You can then `source()` that file in each of your separate plotting files. The benefits are:
+
+- Keep your plotting code files simpler
+- Make it easier to edit the plot theme (edit once, use many times)
+- Reuse the plotting theme across different projects
+
+Create and save a `.R` file with the following code (do not include the back ticks).
+
+```
+
+library(cowplot)
+theme_set(theme_cowplot(font_size = 10))
+mytheme <- list(
+  theme(axis.title = element_text(face = "bold"),
+        axis.text = element_text(face = "italic")
+  ))
+
+```
+
+Now `source()` the file in a code chunk. `source()` simply executes the R code contained in the file. The only argument you need to pass is the name of the file as a string.
+
+```{r}
+#| message: false
+# FIXME
+source("mytheme.R")
+```
+
+From here on you can add `+ mytheme` to a plot to assign the theme.
+
+
+## Making a multipanel figure
+
+Rubolini et al. (2022)^[Rubolini, Diego et al. (2022), Annual egg productivity predicts female-biased mortality in avian species, Dryad, Dataset, https://doi.org/10.5061/dryad.bnzs7h4dw] studied the effects of parental care on avian mortality in 178 species of birds. Although these authors did account for the phylogenetic non-independence of species-level data in their analysis, we'll just ignore species for the purposes of plotting and data exploration.
+
+The data file `avian_mortality.csv` contains the following columns (taken from the associated key file on Dryad):
+
+```
+species = species name (according to https://birdtree.org/)
+M_mor = adult male mortality rate (from Székely et al. 2014)
+F_mor = adult female mortality rate (from Székely et al. 2014)
+F_bias = female-biased mortality (logit(F_mor) - logit(M_mor))
+M_mass = male body mass (g) (from Lislevand et al. 2007)
+F_mass = female body mass (g) (from Lislevand et al. 2007)
+prod = annual egg production (g per year) (from Sibly et al. 2012)
+prod_F = annual egg productivity (prod/F_mass) (y^-1)	
+log_prod_F = log10(prod_F)
+mat_sys_bias = mating system bias (from Székely et al. 2014)	
+sex_dim	= sexual size dimorphism, computed as log10(M_mass) - log10(F_mass) 
+prehatch_bias = relative participation of females to prehatching parental care (from Liker et al. 2015)	
+posthatch_bias = relative participation of females to posthatching parental care (from Liker et al. 2015)	
+mean_bias = female parental care, computed as (prehatch_bias + posthatch_bias)/2
+cavity_nest = cavity nesting (0 = non-cavity nesting; 1 = cavity-nesting)
+```
+
+Here is the plot that you want to make:
+
+![](PS_4_Fig_1.png){width=50%}
+
+Load the data and make any modifications that you need to. Note that this file is semicolon (`;`) delimited.
+
+```{r}
+# FIXME
+AM <- read_delim("../Data/avian_mortality.csv",
+                 delim = ";",
+                 show_col_types = FALSE) |> 
+  mutate(cavity_nest = if_else(cavity_nest == 0,
+                               "Non-cavity", "Cavity") |> 
+           factor(levels = c("Non-cavity", "Cavity")))
+```
+
+Create each subplot separately and assign (save) to an object. Use the saved theme loaded from above. Make note of:
+
+- Axis titles (or lack of)
+- Axis scales
+- Plot annotations (e.g., lines)
+- Point color, size, and alpha
+
+```{r}
+# FIXME
+p1 <- ggplot(AM, aes(F_mass, M_mass)) +
+  geom_abline(slope = 1) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Male body mass (g)",
+       y = "Female body mass (g)") +
+  mytheme
+
+p2 <- ggplot(AM, aes(prehatch_bias, posthatch_bias)) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_vline(xintercept = 0, linetype = "dotted") +
+  geom_point(position = position_jitter(width = 0.03, height = 0.03,
+                                        seed = 32434),
+             size = 1,
+             alpha = 0.5) +
+  labs(x = "Pre-hatching Bias", y = "Post-hatching Bias") +
+  mytheme
+
+p3 <- ggplot(AM, aes(cavity_nest, prod_F)) +
+  geom_point(position = position_jitter(width = 0.05, seed = 457347),
+             alpha = 0.25) +
+  stat_summary(aes(group = -1),
+               fun.data = "mean_cl_boot",
+               color = "red",
+               size = 0.5,
+               linewidth = 1) +
+  labs(y = "Annual egg productivity\n(g egg / g mass / year)") +
+  theme(axis.title.x = element_blank()) +
+  mytheme
+```
+
+Finally, create the final composite figure in two ways:
+
+1. Using `plot_grid()`
+2. Using the `patchwork` package
+
+Both figures should be very similar, with only minor differences in plot element spacing. The chunk below will output figures that are 3 inches wide and 8 inches tall. `warning: false` tells the chunk to ignore a warning about a missing value (an `NA` in `posthatch_bias`).
+
+```{r}
+#| fig-width: 3
+#| fig-height: 8
+#| warning: false
+# FIXME
+plot_grid(p1, p2, p3, nrow = 3,
+          labels = c("a.", "b.", "c."),
+          label_size = 10)
+save_plot(filename = "PS_4_Fig_1.png", plot = last_plot(),
+          base_height = 8, base_width = 3)
+
+p1 / p2 / p3 +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+```
+
+
+## Plotting with a custom function
+
+Reload the avian mortality data from above.
+
+```{r}
+# FIXME
+AM <- read_delim("../Data/avian_mortality.csv",
+                 delim = ";",
+                 show_col_types = FALSE)
+```
+
+The function
+
+```{r}
+density_plot <- function(y) {
+  ggplot(data = tibble(y), aes(y)) +
+    geom_density()
+}
+```
+
+```{r}
+# FIXME
+
+cols <- names(AM)[-1]
+
+plots <- map(.x = cols,
+    .f = function(.x) {
+      y <- AM |> select(all_of(.x)) |> pull()
+      # Also:
+      # y <- AM[[.x]]
+      density_plot(y)
+    })
+
+wrap_plots(plots)
+```
 
