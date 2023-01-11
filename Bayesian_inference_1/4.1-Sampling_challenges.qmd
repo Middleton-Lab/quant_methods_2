@@ -33,15 +33,301 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 library(cmdstanr)
 library(brms)
 library(bayesplot)
-
-library(bayestestR)
+color_scheme_set(scheme = "blue")
 ```
 
 1. Sampling challenges
-2. Robust regression and centering
+2. Regularizing priors, centering, and normalization
 3. Summarizing results
 4. Convenience packages
 
 
-## Good and bad sampling
+## Folk theorem of statistical computing
 
+According to [Andrew Gelman (2008)](https://statmodeling.stat.columbia.edu/2008/05/13/the_folk_theore/)
+
+> When you have computational problems, often there's a problem with your model.
+
+. . .
+
+When sampling goes poorly, often there is a problem with the code:
+
+- Coding mistake or typo
+- Asking too much of the data
+- Poor prior specification
+
+
+## "Good" sampling
+
+- Traceplot looks like a fuzzy caterpillar
+- Rank histogram is mostly flat
+- Stan samples quickly
+- $\widehat{R}$ is close to 1
+- Effective sample size is near the number of post-warmup samples
+
+
+## "Bad" sampling
+
+- Chains converge to different distributions
+- Rank histogram is wavy
+- Stan samples slowly (but also you jmight just have a lot of data)
+- $\widehat{R}$ is >1
+- Effective sample size is < 100
+
+
+## Well-behaved samping
+
+See lecture 2-4.
+
+```{r}
+#| echo: true
+
+set.seed(467456)
+(y <- rnorm(n = 80, mean = 50, sd = 2))
+mean(y)
+sd(y)
+```
+
+
+## `brm()` model
+
+```{r}
+#| label: brm_model
+#| echo: true
+#| output: false
+
+priors <- 
+  prior("normal(45, 10)", class = "Intercept") +
+  prior("normal(0, 3)", class = "sigma", lb = 0)
+
+fm <- brm(y ~ 1,
+          data = list(y = y),
+          prior = priors,
+          chains = 4,
+          iter = 1e4,
+          refresh = 2000)
+```
+
+
+## Traceplot
+
+```{r}
+#| echo: true
+
+mcmc_trace(fm, pars = c("b_Intercept", "sigma"))
+```
+
+
+## Rank histogram plot
+
+```{r}
+#| echo: true
+
+mcmc_rank_overlay(fm, pars = c("b_Intercept", "sigma"))
+```
+
+
+## `brm` summary
+
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
+
+## Poor sampling
+
+- Model is incorrect
+- Prior is too narrow, too broad, or misspecified
+- Multilevel (hierarchical / mixed) models
+    - Many "random effects" with few points
+- Nonlinear models
+
+
+## Non-linear growth
+
+```{r}
+#| echo: false
+
+library(lubridate)
+
+D <- tribble(
+  ~ Date, ~ Mass,
+  "08-22-2022", 6.2,
+  "09-12-2022", 9.1,
+  "10-03-2022", 10,
+  # "10-13-2022", 11,
+  "10-15-2022", 10.6,
+  "10-24-2022", 11.2,
+  "11-09-2022", 12.0
+) |> 
+  mutate(Date = mdy(Date),
+         Age_d = Date - mdy("05-10-2022"),
+         Age = as.numeric(Age_d) / 7)
+
+ggplot(D, aes(Age, Mass)) +
+  geom_point() +
+  cowplot::theme_cowplot() +
+  labs(x = "Age (weeks)")
+```
+
+
+## Growth model
+
+$$ Mass = \frac{a_1}{1 + \exp (-b_1 (age - c_1))} + \frac{a_2}{1 + \exp (-b_2 (age - c_2))}$$
+
+- two growth spurts
+- 6 parameters
+- 6 data points
+
+
+## `brm` model
+
+```{r}
+#| echo: true
+#| output: false
+
+priors <-
+  prior(normal(9, 5), nlpar = "a1") +
+  prior(normal(4, 5), nlpar = "a2") +
+  prior(normal(0.5, 0.001), nlpar = "b1") +
+  prior(normal(0.1, 0.001), nlpar = "b2") +
+  prior(normal(10, 5), nlpar = "c1") +
+  prior(normal(17, 5), nlpar = "c2")
+
+fm <- brm(
+  bf(Mass ~ a1 / (1 + exp(-1 * b1 * (Age - c1))) +
+            a2 / (1 + exp(-1 * b2 * (Age - c2))),
+     a1 + b1 + c1 + a2 + b2 + c2 ~ 1,
+     nl = TRUE),
+  data = D,
+  prior = priors,
+  backend = "cmdstan",
+  chains = 4,
+  cores = 4,
+  iter = 1e4,
+  refresh = 2000,
+  seed = 347922,
+  save_pars = save_pars(all = TRUE)
+)
+```
+
+
+## Warning
+
+```
+Warning: 2070 of 20000 (10.0%) transitions ended with a divergence.
+See https://mc-stan.org/misc/warnings for details.
+```
+
+
+## Traceplot
+
+```{r}
+#| echo: true
+
+mcmc_trace(fm, regex_pars = "b")
+```
+
+
+## Rank histogram plot
+
+```{r}
+#| echo: true
+
+mcmc_rank_overlay(fm, regex_pars = "b")
+```
+
+
+## `brm` summary
+
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
+## `brm` model
+
+```{r}
+#| echo: true
+#| output: false
+
+priors <-
+  prior(normal(9, 5), nlpar = "a1") +
+  prior(normal(4, 5), nlpar = "a2") +
+  prior(normal(0, 2), nlpar = "b1") +
+  prior(normal(0, 2), nlpar = "b2") +
+  prior(normal(10, 5), nlpar = "c1") +
+  prior(normal(17, 5), nlpar = "c2")
+
+fm <- brm(
+  bf(Mass ~ a1 / (1 + exp(-1 * b1 * (Age - c1))) +
+            a2 / (1 + exp(-1 * b2 * (Age - c2))),
+     a1 + b1 + c1 + a2 + b2 + c2 ~ 1,
+     nl = TRUE),
+  data = D,
+  prior = priors,
+  backend = "cmdstan",
+  chains = 4,
+  cores = 4,
+  iter = 1e4,
+  refresh = 2000,
+  seed = 984575,
+  save_pars = save_pars(all = TRUE)
+)
+
+```
+
+## Traceplot
+
+```{r}
+#| echo: false
+
+mcmc_trace(fm, regex_pars = "b")
+```
+
+
+## Rank histogram plot
+
+```{r}
+#| echo: false
+
+mcmc_rank_overlay(fm, regex_pars = "b")
+```
+
+
+## `brm` summary
+
+```{r}
+#| echo: false
+
+summary(fm)
+```
+
+## Warnings
+
+```
+Warning messages:
+1: Parts of the model have not converged (some Rhats are > 1.05). Be careful when analysing the results! We recommend running more iterations and/or setting stronger priors. 
+2: There were 3227 divergent transitions after warmup. Increasing adapt_delta above 0.8 may help. See http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup 
+```
+
+
+## Folk theorem of Bayesian modeling with stan
+
+> When stan models fail, they often fail badly and obviously.
+
+
+## Possible solutions
+
+- Check for errors
+- Determine better priors (use your knowledge)
+- Redefine model (centering, standardizing)
+- Ask stan to work harder during warmup
+
+```
+control = list(adapt_delta = 0.99,
+               max_treedepth = 15)
+```
