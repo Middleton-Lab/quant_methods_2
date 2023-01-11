@@ -12,6 +12,8 @@
 
 ## Week 4
 
+- Fix sampling errors
+    - Reni growth data
 
 ## Week 5
 
