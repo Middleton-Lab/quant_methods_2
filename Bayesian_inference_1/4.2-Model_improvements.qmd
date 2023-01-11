@@ -1,0 +1,209 @@
+---
+title: "Model improvements"
+subtitle: "Regularizing priors, centering, and normalization"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## Improving sampling
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+library(rethinking)
+
+library(bayestestR)
+```
+
+- Check for errors in the model
+    - Particularly if you are writing `.stan` files
+- Determine better priors (use your knowledge)
+- Redefine model (centering, standardizing)
+- Ask stan to work harder during warmup
+
+
+## Divergences
+
+`Warning: 2070 of 20000 (10.0%) transitions ended with a divergence.`
+
+- HMC particle simulation fails in an unexpected way
+- You (mostly) don't need to understand *why*
+    - You should be concerned *about* divergences
+- [Taming Divergences in Stan Models](https://www.martinmodrak.cz/2018/02/19/taming-divergences-in-stan-models/) by Martin Modrák
+
+
+## Divergences
+
+> The amazing thing about divergences is that what is essentially a numerical problem actually signals a wide array of possibly severe modelling problems. Be glad - few algorithms (in any area) have such a clear signal that things went wrong. -- Martin Modrák
+
+Explore and (hopefully) eliminate divergences
+
+
+## stan `control` parameters
+
+1. [`adapt_delta`](https://mc-stan.org/rstanarm/reference/adapt_delta.html)
+    - Defaults to 0.8
+    - Values closer to 1 (0.9, 0.95, 0.99) decrease the step size and reduce divergences
+2. [`max_treedepth`](https://mc-stan.org/misc/warnings.html#maximum-treedepth)
+    - Warnings about reaching maximum tree depth
+    - Increase the number of simulation steps
+
+Both slow down sampling.
+
+
+## Multilevel data
+
+```{r}
+#| echo: true
+
+D <- abdData::Zooplankton |> 
+  mutate(treatment = fct_inorder(treatment),
+         block = factor(block))
+head(D)
+```
+
+
+## Multilevel data
+
+```{r}
+#| echo: false
+
+ggplot(D, aes(x = treatment, y = zooplankton, color = block)) +
+  geom_point(size = 3,
+             position = position_jitter(width = 0.1))
+```
+
+
+## Multilevel model
+
+```{r}
+#| echo: true
+#| output: false
+
+fm <- brm(zooplankton ~ treatment - 1 + (1 | block),
+          data = D,
+          seed = 4547359,
+          iter = 5e3, chains = 4, cores = 4)
+```
+
+```
+Warning messages:
+1: There were 45 divergent transitions after warmup. See
+https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+to find out why this is a problem and how to eliminate them. 
+2: Examine the pairs() plot to diagnose sampling problems
+```
+
+
+## Pairs
+
+```{r}
+#| echo: true
+
+pairs(fm)
+```
+
+
+## Increase `adapt_delta`
+
+```{r}
+#| echo: true
+#| output: false
+
+fm <- brm(zooplankton ~ treatment - 1 + (1 | block),
+          data = D,
+          seed = 4547359,
+          iter = 5e3, chains = 4, cores = 4,
+          control = list(adapt_delta = 0.99))
+```
+
+```
+Warning messages:
+1: There were 1 divergent transitions after warmup. See
+https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+to find out why this is a problem and how to eliminate them. 
+2: Examine the pairs() plot to diagnose sampling problems
+```
+
+
+## Examining the priors
+
+```{r}
+#| echo: true
+
+prior_summary(fm)
+```
+
+
+## Examining the data
+
+```{r}
+#| echo: false
+
+ggplot(D, aes(x = treatment, y = zooplankton, color = block)) +
+  geom_point(size = 3,
+             position = position_jitter(width = 0.1))
+```
+
+
+## Regularizing priors
+
+
+```{r}
+#| echo: true
+#| output: false
+
+priors <- prior(normal(0, 3), class = b, lb = 0)
+
+fm <- brm(zooplankton ~ treatment - 1 + (1 | block),
+          data = D,
+          prior = priors,
+          seed = 4547359,
+          iter = 5e3, chains = 4, cores = 4,
+          control = list(adapt_delta = 0.99))
+```
+
+
+## Examining the priors
+
+```{r}
+#| echo: true
+
+prior_summary(fm)
+```
+
+
+## Centering
+
+- stan is most efficient when sampling  
+
+## Normalization
+
+
+## "Beta regression"
+
+
+## Robust regression
