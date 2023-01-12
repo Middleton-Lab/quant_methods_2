@@ -325,7 +325,7 @@ Warning messages:
 - Check for errors
 - Determine better priors (use your knowledge)
 - Redefine model (centering, standardizing)
-- Ask stan to work harder during warmup
+- Ask stan to work harder
 
 ```
 control = list(adapt_delta = 0.99,
