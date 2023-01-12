@@ -1,46 +1,60 @@
 ---
 title: "Quantitative Methods in Life Sciences 2"
-author: "Kevin Middleton and Elizabeth King"
-date: "Spring 2023"
+subtitle: "BIO_SC 8002 -- Spring 2023"
+author:
+  - name: Elizabeth King
+    affiliations:
+      - Division of Biological Sciences
+      - University of Missouri
+      - kingeg@missouri.edu
+  - name: Kevin Middleton
+    affiliations:
+      - Division of Biological Sciences
+      - University of Missouri
+      - middletonk@missouri.edu
 format: html
 geometry: margin=1in
 mainfont: Arial
 mathfont: Arial
 fontsize: 12pt
-subtitle: BIO_SC 8642
 csl: evolution.csl
 ---
+
 
 ## Course Overview
 
 In this course we will take an in-depth look at advanced statistical topics of your choice that are widely used in the life sciences. You are welcome to choose the modules of interest, with the hopes that they apply to your dissertation. There are multiple topics available, including: 1) nonlinear statistics, 2) multivariate statistics, 3) structural equation modelling, 4) correlation structures (phylogenetic and kinship methods), 5) experimental design, 6) Bayesian statistics, 7) permutation and distribution free methods, 7) mathematical modelling. We will run all analyses in R, and emphasize the communication of data through the creation of figures and results. This will be a self-paced course designed to help you learn the statistics you need to be successful as a scientist. 
 
-Because science is often a collaborative process, we encourage you to find others interested in taking the modules with you, so you can have a partner/group while learning these concepts.  If you are interested in a module, but do not know someone interested in also taking it, please contact the instructors who will assign groups.
+Because science is often a collaborative process, we encourage you to find others interested in taking the modules with you, so you can have a partner/group while learning these concepts. If you are interested in a module, but do not know someone interested in also taking it, please contact the instructors who will assign groups.
 
-We do not tolerate racism, sexism, ableism, or any other kind of intolerance in our class.  If you hear something offensive from a fellow student, report this to your instructors and we will have a discussion with the person who made the remark.  If they are not able to change their behaviors they will be asked to leave class. 
+We do not tolerate racism, sexism, ableism, or any other kind of intolerance in our class. If you hear something offensive from a fellow student, report this to your instructors and we will have a discussion with the person who made the remark. If they are not able to change their behaviors they will be asked to leave class. 
+
 
 ## Learning Objectives
 
   - Understand advanced concepts in statistics.
-  - Practice independent problem-solving when you are stuck with your statistical models.
+  - Practice independent problem-solving when you are stuck with your own statistical models and analyses.
   - Apply concepts in the course to your dissertation data.
   - Write about statistical results as expected in peer-reviewed journals.
 
+
 ## Background Knowledge
 
-A basic understanding of statistics and/or R programming is required for this course.  Prerequisites include BioSci/PthAs 8640 or permission from the instructor. If you are unsure if you have the necessary prerequisites please contact the instructors.
+A basic understanding of statistics and/or R programming is required for this course. Prerequisites include BioSci/PthAs 8640 or permission from the instructor. If you are unsure if you have the necessary prerequisites please contact the instructors.
+
 
 ## Course Structure and Expectations
 
-This course is made up of multiple modules, each one can be taken for 1 credit (up to 3 per semester). For each module you will be responsible for watching lecture videos on your own and working to complete assignments related to the topic material.  These assignments can be done alone or in groups - group work is encouraged when possible.
+This course is made up of multiple modules, each one can be taken for 1 credit (up to 3 per semester). For each module you will be responsible for watching lecture videos on your own and working to complete assignments related to the topic material. These assignments can be done alone or in groups - group work is encouraged when possible.
 
-1. Lecture Videos: For each module, lecture videos will be available. You will be responsible for watching these videos. 
+1. **Lecture Videos**: For each module, lecture videos will be available. You will be responsible for watching these videos. 
 
-2. Problem Sets: Each module will have associated problem sets to practice using the statistical methods. These will not be graded for correctness, just completion. An answer key will be provided once the module is nearing the end. We encourage you to work in groups on these problem sets.
+2. **Problem Sets**: Each module will have associated problem sets to practice using the statistical methods. These will not be graded for correctness, just completion. An answer key will be provided once the module is nearing the end. We encourage you to work in groups on these problem sets.
 
-3. End-of-Module Project: There will be an end-of-module project for each module enrolled, in which students need to take the methods learned from this class and apply it to their own data for their thesis. We expect students to analyze their data, create publication-ready figures, and write the associated statistical methods and results as would appear in a peer-reviewed journal. If students do not have appropriate data of their own for each module, datasets will be provided. To keep students on track, halfway through each module there will be an outline due to help solidify ideas.
+3. **End-of-Module Project**: There will be an end-of-module project for each module enrolled, in which students need to take the methods learned from this class and apply it to their own data. We expect students to analyze their data, create publication-ready figures, and write the associated statistical methods and results as would appear in a peer-reviewed journal. If students do not have appropriate data of their own for each module, datasets will be provided or can be simulated. To keep students on track, halfway through each module there will be an outline due to help solidify ideas.
 
 *You will get as much out of this class as you put in, thus we expect you to actively participate in the class and ask questions when you are unsure. Remember you are learning to become independent researchers, thus use all of your own means of learning (e.g. the internet, classmates, etc) before asking for help, and if you are still confused, then ask your instructors for help.*
+
 
 ## Course information
 
@@ -56,9 +70,11 @@ Kevin Middleton
 - middletonk@missouri.edu
 - Tucker 222
 
+
 ### Meeting times and place
 
 The course meeting time will be based on the enrolled students' schedules and will occur on Zoom.
+
 
 ### Grading
 
@@ -68,15 +84,17 @@ Your grade in the course will be a function of:
 2. Completion of weekly problem sets
 3. Being an engaged and contributing group member 
 
+
 ## Schedule
 
 Note that this is a general outline. The schedule of topics is subject to change.
 
-_#_  | _Date_  | _Topic_                          |
------|---------|----------------------------------|
-Module 1 | 1/17 - 2/17  | Data Visualization |
-Module 2 | 2/20 - 3/24  | Bayes 1 |
-Module 3 | 4/23 - 5/5 | Randomization and Simulation Methods |
+_#_      | _Date_       | _Topic_                              |
+---------|--------------|--------------------------------------|
+Module 1 | 1/17 - 2/17  | Data Visualization                   |
+Module 2 | 2/20 - 3/24  | Bayesian Inference 1                 |
+Module 3 | 4/23 - 5/5   | Randomization and Simulation Methods |
+
 
 ## Course Communication
 
@@ -116,6 +134,7 @@ If disability related accommodations are necessary (for example, a note taker, e
 ## Academic Dishonesty
 
 Academic integrity is fundamental to the activities and principles of a university. All members of the academic community must be confident that each person's work has been responsibly and honorably acquired, developed, and presented. Any effort to gain an advantage not given to all students is dishonest whether or not the effort is successful. The academic community regards breaches of the academic integrity rules as extremely serious matters. Sanctions for such a breach may include academic sanctions from the instructor, including failing the course for any violation, to disciplinary sanctions ranging from probation to expulsion. When in doubt about plagiarism, paraphrasing, quoting, collaboration, or any other form of cheating, consult the course instructor.
+
 
 ## Executive Order 38, Academic Inquiry, Course Discussion and Privacy
 
