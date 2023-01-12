@@ -17,6 +17,7 @@ bibliography: Bayes.bib
 csl: evolution.csl
 ---
 
+
 ## Improving sampling
 
 ```{r}
@@ -34,15 +35,13 @@ library(cmdstanr)
 library(brms)
 library(bayesplot)
 library(rethinking)
-
-library(bayestestR)
 ```
 
 - Check for errors in the model
     - Particularly if you are writing `.stan` files
 - Determine better priors (use your knowledge)
 - Redefine model (centering, standardizing)
-- Ask stan to work harder during warmup
+- Ask stan to work harder (`adapt_delta`, `stepsize`)
 
 
 ## Divergences
@@ -82,7 +81,7 @@ Both slow down sampling.
 D <- abdData::Zooplankton |> 
   mutate(treatment = fct_inorder(treatment),
          block = factor(block))
-head(D)
+D
 ```
 
 
@@ -92,8 +91,7 @@ head(D)
 #| echo: false
 
 ggplot(D, aes(x = treatment, y = zooplankton, color = block)) +
-  geom_point(size = 3,
-             position = position_jitter(width = 0.1))
+  geom_point(size = 3, position = position_jitter(width = 0.1))
 ```
 
 
@@ -122,8 +120,41 @@ to find out why this is a problem and how to eliminate them.
 
 ```{r}
 #| echo: true
+#| output-location: slide
 
-pairs(fm)
+mcmc_pairs(fm, 
+           pars = c("sigma", "sd_block__Intercept"),
+           regex_pars = "^b_",
+           np = nuts_params(fm))
+```
+
+
+## Traceplot
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+mcmc_trace(fm, 
+           pars = c("sigma", "sd_block__Intercept"),
+           regex_pars = "^b_",
+           np = nuts_params(fm))
+```
+
+
+## Traceplot
+
+Zoom in on a specific region of samples.
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+mcmc_trace(fm, 
+           pars = c("sigma", "sd_block__Intercept"),
+           regex_pars = "^b_",
+           np = nuts_params(fm),
+           window = c(750, 850))
 ```
 
 
@@ -164,13 +195,16 @@ prior_summary(fm)
 #| echo: false
 
 ggplot(D, aes(x = treatment, y = zooplankton, color = block)) +
-  geom_point(size = 3,
-             position = position_jitter(width = 0.1))
+  geom_point(size = 3, position = position_jitter(width = 0.1))
 ```
 
 
 ## Regularizing priors
 
+Means for each group (`b` parameters) are expected to be
+
+- within about 6 units of zero
+- positive (no negative zooplankton measurements)
 
 ```{r}
 #| echo: true
@@ -196,14 +230,60 @@ prior_summary(fm)
 ```
 
 
-## Centering
+## Model summary
 
-- stan is most efficient when sampling  
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
+
+## Mean centering
+
+- stan is most efficient when sampling near zero
+- If you only care about difference and not absolute magnitude
+- Subtract the mean to center the data on zero
+    - Can add the mean back later
+
+
+## Centered data
+
+```{r}
+#| echo: true
+#| output: false
+
+D <- D |> mutate(zooplankton_c = zooplankton - mean(zooplankton))
+
+priors <- prior(normal(0, 2), class = b)
+
+fm <- brm(zooplankton_c ~ treatment - 1 + (1 | block),
+          data = D,
+          prior = priors,
+          seed = 4547359,
+          iter = 5e3, chains = 4, cores = 4,
+          control = list(adapt_delta = 0.99))
+
+```
+
+
+## Model summary
+
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
 
 ## Normalization
 
+Convert data to *Z*-scores:
 
-## "Beta regression"
+$$Z_i = \frac{(Y_i - \bar{Y})}{sd(Y)}$$
 
-
-## Robust regression
+- Mean is 0
+- Units are now standard deviations
+    - More difficult to apply
+- Values >3 are very uncommon
+- Useful when predictors are on very different scales
