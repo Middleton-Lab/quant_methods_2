@@ -1,0 +1,124 @@
+---
+title: "Quantitative Methods in Life Sciences 2"
+author: "Kevin Middleton and Elizabeth King"
+date: "Spring 2023"
+format: html
+geometry: margin=1in
+mainfont: Arial
+mathfont: Arial
+fontsize: 12pt
+subtitle: BIO_SC 8642
+csl: evolution.csl
+---
+
+## Course Overview
+
+In this course we will take an in-depth look at advanced statistical topics of your choice that are widely used in the life sciences. You are welcome to choose the modules of interest, with the hopes that they apply to your dissertation. There are multiple topics available, including: 1) nonlinear statistics, 2) multivariate statistics, 3) structural equation modelling, 4) correlation structures (phylogenetic and kinship methods), 5) experimental design, 6) Bayesian statistics, 7) permutation and distribution free methods, 7) mathematical modelling. We will run all analyses in R, and emphasize the communication of data through the creation of figures and results. This will be a self-paced course designed to help you learn the statistics you need to be successful as a scientist. 
+
+Because science is often a collaborative process, we encourage you to find others interested in taking the modules with you, so you can have a partner/group while learning these concepts.  If you are interested in a module, but do not know someone interested in also taking it, please contact the instructors who will assign groups.
+
+We do not tolerate racism, sexism, ableism, or any other kind of intolerance in our class.  If you hear something offensive from a fellow student, report this to your instructors and we will have a discussion with the person who made the remark.  If they are not able to change their behaviors they will be asked to leave class. 
+
+## Learning Objectives
+
+  - Understand advanced concepts in statistics.
+  - Practice independent problem-solving when you are stuck with your statistical models.
+  - Apply concepts in the course to your dissertation data.
+  - Write about statistical results as expected in peer-reviewed journals.
+
+## Background Knowledge
+
+A basic understanding of statistics and/or R programming is required for this course.  Prerequisites include BioSci/PthAs 8640 or permission from the instructor. If you are unsure if you have the necessary prerequisites please contact the instructors.
+
+## Course Structure and Expectations
+
+This course is made up of multiple modules, each one can be taken for 1 credit (up to 3 per semester). For each module you will be responsible for watching lecture videos on your own and working to complete assignments related to the topic material.  These assignments can be done alone or in groups - group work is encouraged when possible.
+
+1. Lecture Videos: For each module, lecture videos will be available. You will be responsible for watching these videos. 
+
+2. Problem Sets: Each module will have associated problem sets to practice using the statistical methods. These will not be graded for correctness, just completion. An answer key will be provided once the module is nearing the end. We encourage you to work in groups on these problem sets.
+
+3. End-of-Module Project: There will be an end-of-module project for each module enrolled, in which students need to take the methods learned from this class and apply it to their own data for their thesis. We expect students to analyze their data, create publication-ready figures, and write the associated statistical methods and results as would appear in a peer-reviewed journal. If students do not have appropriate data of their own for each module, datasets will be provided. To keep students on track, halfway through each module there will be an outline due to help solidify ideas.
+
+*You will get as much out of this class as you put in, thus we expect you to actively participate in the class and ask questions when you are unsure. Remember you are learning to become independent researchers, thus use all of your own means of learning (e.g. the internet, classmates, etc) before asking for help, and if you are still confused, then ask your instructors for help.*
+
+## Course information
+
+### Your Collaborators
+
+Elizabeth King
+
+- kingeg@missouri.edu
+- Tucker 401
+
+Kevin Middleton
+
+- middletonk@missouri.edu
+- Tucker 222
+
+### Meeting times and place
+
+The course meeting time will be based on the enrolled students' schedules and will occur on Zoom.
+
+### Grading
+
+Your grade in the course will be a function of:
+
+1. Watching weekly lectures
+2. Completion of weekly problem sets
+3. Being an engaged and contributing group member 
+
+## Schedule
+
+Note that this is a general outline. The schedule of topics is subject to change.
+
+_#_  | _Date_  | _Topic_                          |
+-----|---------|----------------------------------|
+Module 1 | 1/17 - 2/17  | Data Visualization |
+Module 2 | 2/20 - 3/24  | Bayes 1 |
+Module 3 | 4/23 - 5/5 | Randomization and Simulation Methods |
+
+## Course Communication
+
+While we know students are always dealing with a lot, and that has been particularly true the past few years with the global pandemic, adjustment to a lot of remote work, and constant global events that highlight big challenges our society is facing, such as racial injustice and climate change. Our main goal in how we have set up this course is to help you to learn the course material in these challenging circumstances. You should know that we understand that there may be times that your ability to engage with the course is impacted. We will ask in these situations simply that you communicate with us and let us know what is going on. *The more and the earlier, you communicate with us, the more we will be able to help.*
+
+All course material, announcements, and instructions will be available on the course Canvas site. We assume you will check Canvas regularly. We will only communicate with you via Canvas messaging. Please make sure you have checked your notification settings to ensure you receive these messages. You may communicate with us via Canvas messaging or by emailing our university email addresses. 
+
+
+## Diversity and Inclusion
+
+Excellence in science, including teaching and learning, happens only in diverse and inclusive environments. We can accomplish our goal of an excellent learning outcome only in an inclusive, unbiased and prejudice-free environment that values, respects, and welcomes all individuals with their diverse backgrounds, experiences and perspectives. This requires that everybody be respectful of others in the community (students, faculty, and staff), regardless of their backgrounds. It also requires appreciating that interacting with people of different backgrounds is an opportunity for personal and intellectual growth. We expect everyone in this class to follow the principles laid out in the Diversity Statement of the Division of Biological Sciences (https://biology.missouri.edu/diversity-statement). Please take the time to read the complete statement and understand the expectations.
+
+
+## Intellectual Pluralism
+
+The University community welcomes intellectual diversity and respects student rights. Students who have questions or concerns regarding the atmosphere in this class (including respect for diverse opinions) may contact the departmental chair or divisional director; the director of the Office of Students Rights and Responsibilities; the MU Equity Office, or equity@missouri.edu.
+
+All students will have the opportunity to submit an anonymous evaluation of the instructor(s) at the end of the course.
+
+
+## Mental Health
+
+The University of Missouri is committed to supporting student well-being through an integrated network of care, with a wide range of services to help students succeed. The MU Counseling Center offers professional mental health care, and can help you find the best approach to treatment based on your needs. Call to make an appointment at 573-882-6601. Any student in crisis may call or go to the MU Counseling Center between 8:00–-5:00 M-F. After hours phone support is available at 573-882-6601.
+
+Visit our website at https://wellbeing.missouri.edu to take an online mental health screening, find out about workshops and resources that can help you thrive, or learn how to support a friend. Download Sanvello, a phone app that teaches skills and strategies to help you maintain good mental health. Log in with your Mizzou e-mail to unlock all the tools available through Sanvello at no cost to you.
+
+
+## ADA
+
+Students with Disabilities:
+
+If you anticipate barriers related to the format or requirements of this course, if you have emergency medical information to share with me, or if you need to make arrangements in case the building must be evacuated, please let me know as soon as possible.
+
+If disability related accommodations are necessary (for example, a note taker, extended time on exams, captioning), please register with the MU Disability Center, S5 Memorial Union, 573-882-4696, and then notify me of your eligibility for reasonable accommodations.
+
+
+## Academic Dishonesty
+
+Academic integrity is fundamental to the activities and principles of a university. All members of the academic community must be confident that each person's work has been responsibly and honorably acquired, developed, and presented. Any effort to gain an advantage not given to all students is dishonest whether or not the effort is successful. The academic community regards breaches of the academic integrity rules as extremely serious matters. Sanctions for such a breach may include academic sanctions from the instructor, including failing the course for any violation, to disciplinary sanctions ranging from probation to expulsion. When in doubt about plagiarism, paraphrasing, quoting, collaboration, or any other form of cheating, consult the course instructor.
+
+## Executive Order 38, Academic Inquiry, Course Discussion and Privacy
+
+University of Missouri System Executive Order No. 38 lays out principles regarding the sanctity of classroom discussions at the university. The policy is described fully in section 200.015 of the Collected Rules and Regulations. In this class, students may not make audio or video recordings of course activity, except students permitted to record as an accommodation under section 240.040 of the Collected Rules. All other students who record and/or distribute audio or video recordings of class activity are subject to discipline in accordance with provisions of section 200.020 of the Collected Rules and Regulations of the University of Missouri pertaining to student conduct matters.
+
+Those students who are permitted to record are not permitted to redistribute audio or video recordings of statements or comments from the course to individuals who are not students in the course without the express permission of the faculty member and of any students who are recorded. Students found to have violated this policy are subject to discipline in accordance with provisions of section 200.020 of the Collected Rules and Regulations of the University of Missouri pertaining to student conduct matters.
