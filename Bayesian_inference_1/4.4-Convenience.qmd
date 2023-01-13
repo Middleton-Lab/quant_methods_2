@@ -1,5 +1,5 @@
 ---
-title: "Convenience tools"
+title: "Convenience packages"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -16,7 +16,7 @@ bibliography: Bayes.bib
 csl: evolution.csl
 ---
 
-## Convenience tools
+## Convenience packages
 
 ```{r}
 #| label: setup
@@ -35,4 +35,25 @@ library(bayesplot)
 
 library(bayestestR)
 ```
+
+- `rethinking`
+- `brms`
+- `rstanarm`
+
+
+## Inconvenience packages
+
+- `rstan`
+- `cmdstanr`
+
+Inconvenience in one context is convenience in another.
+
+
+## `brms`
+
+
+## `rstanarm`
+
+
+## Inconvenience tools: `rstan` and `cmdstanr`
 
