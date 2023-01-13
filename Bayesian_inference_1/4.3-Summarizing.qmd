@@ -25,14 +25,48 @@ csl: evolution.csl
 #| message: false
 
 library(tidyverse)
-library(readxl)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 
 library(cmdstanr)
 library(brms)
 library(bayesplot)
-
-library(bayestestR)
 ```
+
+- What to summarize?
+- How to summarize?
+- How to write about results?
+- What to figure in results?
+
+
+## Community standards: TBD
+
+- Error on the side of too much information
+
+
+## What do I want to learn from the posterior?
+
+- Estimates
+    - Means
+    - HDPIs
+- Differences of estimates
+    - Means
+    - HDPIs
+- ROPEs
+    - Other hypothesis tests
+
+
+## How many samples is enough?
+
+
+## Writing methods
+
+
+## Critical information to include
+
+
+## Making figures
+
+
+## Hypothesis testing?
 
