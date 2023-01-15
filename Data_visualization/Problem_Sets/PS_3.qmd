@@ -226,8 +226,8 @@ We will start by organizing the data into a format that we can use.
 - Read in the file `A_polyacanthus_respirometry.csv`
 - Pivot the data to long format, keeping the `Time_min` column. You will now have 3 columns.
 - Separate the resulting `name` column into "Treatment" and "ID", by splitting on "-"
-- Convert `Treatment` into a factor, with "Static" as the first level.
-- Convert `ID` to a factor
+- Mutate `Treatment` into a factor, with "Static" as the first level.
+- Mutate `ID` to a factor
 
 ```{r}
 # FIXME
