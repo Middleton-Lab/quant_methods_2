@@ -4,22 +4,29 @@ author:
   - Your Name Here
 format: 
   html:
-    code-fold: true
     embed-resources: true
     toc: true
     toc-depth: 2
     toc-title: Contents
 ---
 
+```{r}
+#Required files for this problem set:
+#LynxPopulation.csv
+#PeacockHoots.csv
+#Kingegal2011.csv
+```
+
+
 ## Important packages you will need for this course
 
-The following are packages you will need for this class: 
+The following are packages you will need for this course: 
   - tidyverse
   - cowplot
   - patchwork
   - paleteer
 
-Install these packages using `install.packages()` in the R console (e.g. `install.packages("tidyverse", dep = TRUE))`. Remember you only need to do this once and then you will use `library()` to load them. If you already have these packages, update them to the latest version using the same `install.packages()` function.
+Install these packages using `install.packages()` in the R console (e.g. `install.packages("tidyverse", dep = TRUE))`. Remember you only need to do this once and then you will use `library()` to load them. If you already have these packages, update them to the latest version using the `update.packages()` function.
 
 Once the installations are complete, write your setup chunk below loading these four packages using `library()`. Also load the cowplot theme using the following: `theme_set(theme_cowplot())`. You will use this same setup chunk with some possible additions for most problem sets. Including the options for echo, message, and warning means it won't print anything from this part in the html output. 
 
@@ -38,15 +45,15 @@ theme_set(theme_cowplot())
 
 ```
 
-## Lynx population size and hunting^[C Elton and M Nicholson. 1942. The ten-year cycle in numbers of the lynx in Canada. Journal of Animal Ecology 11: 215-244.]
+## Lynx population size and hunting^[C Elton and M Nicholson. 1942. The ten-year cycle in numbers of the lynx in Canada. *Journal of Animal Ecology* 11: 215-244.]
 
 ![](https://mnmammals.d.umn.edu/sites/mnmammals.d.umn.edu/files/styles/folwell_full/public/2020-06/Lynx_Canadensis.jpg?itok=NY4KW5g0)
 
 Hudson's Bay Company is one of the oldest corporations in Canada. It still operates retail stores across Canada today but for much of history, it was a fur trading business. One of the animals targeted by fur trappers in the 1700's and 1800's was the lynx. The number of pelts obtained by the Hudson's Bay Company each year between 1752 and 1819 is in the `LynxPopulation.csv` dataset. Given the intense hunting, one might predict a decline in the population size over time. Read in the data and perform a linear regression predicting number of pelts by year using `lm()`.   
 
 ```{r}
-
-LL <- read.csv("../Data/LynxPopulation.csv")
+#FIXME
+LL <- read_csv("../Data/LynxPopulation.csv")
 
 mod <- lm(pelts ~ year, data=LL)
 summary(mod)
@@ -57,14 +64,15 @@ Summarize your conclusions regarding the effect of fur trapping over time on lyn
 
 >
 
-Let's construct a plot displaying the linear regression results. Plot pelt number versus year and use `geom_point` and `geom_smooth(method="lm")`. 
+Let's construct a plot displaying the linear regression results. Plot pelt number versus year and use `geom_point` and `geom_smooth(method="lm")`. By default `geom_smooth()` with `lm`, will use the formula y ~ x. You can make this explicit by adding `formula = y ~ x` to the statement.
 
 ```{r}
+#FIXME
 
 LL %>%
   ggplot(aes(year, pelts)) +
   geom_point() +
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm', formula = y ~ x)
 
 ```
 
@@ -75,12 +83,13 @@ Do you notice anything in the plot that suggests there might be an issue with us
 Because these data were collected over time, let's connect the points so we can see trends over time more clearly. Add `geom_line` to your plot to do this. 
 
 ```{r}
+#FIXME
 
 LL %>%
   ggplot(aes(year, pelts)) +
   geom_point() +
   geom_line() +
-  geom_smooth(method = 'lm')
+  geom_smooth(method = 'lm', formula = y ~ x)
 
 ```
 
@@ -88,36 +97,176 @@ Does connecting the points change your conclusions about the appropriateness of 
 
 >
 
-If you had plotted the data as a first step, how do you think that would affect your conclusions?
+If you had plotted the data as a first step, how do you think that would affect your next steps and conclusions?
 
 >
 
 
+## Peacock hoots
+
+Male peacocks give a hoot call when approaching a female to copulate. Sometimes males will hoot even when a female is not present. Dakin and Montgomerie^[R Dakin and R Montgomerie. 2014. Deceptive Copulation Calls Attract Female Visitors to Peacock Leks. *American Naturalist* 183(4):558-564.] hypothesized that males might perform these solitary hoots as a dishonest signal implying a copulation attempt to attract females. You can see [an example hoot here](https://www.journals.uchicago.edu/doi/full/10.1086/675393#fg3)
+
+The data they collected consists of female presence before and after 131 solo hoot calls. This data is in the `PeacockHoots.csv` file. Load this data in.
+
+```{r}
+#FIXME
+
+PP <- read_csv("../Data/PeacockHoots.csv")
+
+```
+
+What ideas do you have for the type of plot you might want to make that could communicate whether female presence increases following single hoots?
+
+> 
+
+Below is a figure from the paper looking at female presence before and after hoots and two other types of calls. 
+
+![](https://www.journals.uchicago.edu/cms/10.1086/675393/asset/images/large/fg4.jpeg){width=50%}
+
+Examine the datset you just loaded. Is there a better way to present these data?
+
+>
+
+One way you might want to plot counts is to use a bar chart (see Lecture 1.3). Let's make a bar chart showing female presence and absence pre and post hoot using `geom_bar()`. This will allow us to see the actual female counts rather than a proportion. The authors performed this study at multiple zoos so we will also split the data by `Place`. First we'll need to wrangle our data. 
+
+Do the following to create a new tibble that has counts for female presence and absence for each location both pre and post hoot:
+
+- group by both Place and PrePost
+- create two new variables, "Present" and "Absent" that contain the total number of observations for a present female (coded as 1) and an absent female (coded as 0).
+- create a single id, "Place_Time" that codes for both location and pre vs post separated by an underscore
+- use `pivot_longer` to make a single "Presence" column denoting Present or Absent and a "Counts" column holding the count of observations
+
+The first few rows of your resulting tibble should look like this:
+
+```
+# A tibble: 12 × 3
+   Place_Time Presence Counts
+   <chr>      <chr>     <dbl>
+ 1 CA_Post    Present      10
+ 2 CA_Post    Absent       30
+ 3 CA_Pre     Present       4
+ 4 CA_Pre     Absent       31
+```
+
+```{r}
+#FIXME
+
+PPcts <- PP %>% 
+  group_by(Place, PrePost) %>% 
+  summarize("Present" = sum(FemaleVisit.5m), 
+            "Absent" = sum(FemaleVisit.5m==0)) %>%
+  unite("Place_Time", Place:PrePost, sep="_") %>%
+  pivot_longer(!Place_Time, names_to = "Presence", values_to="Counts")
+
+```
+
+Now we are ready to make our bar chart with `Place_Time` on the x-axis and `Counts` on the y-axis. Use fill to show female presence and absence. Don't forget to use `stat = "identity"` to plot the raw counts. Try the plot with and without `position = "dodge"` to decide between stacked or grouped bars. Also use `scale_fill_manual()` and choose two colors you like for your plot. 
+
+```{r}
+#FIXME
+
+PPcts %>% ggplot(aes(x = Place_Time, Counts, fill = Presence)) +
+  geom_bar(stat="identity", position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkred")) 
+
+PPcts %>% ggplot(aes(x = Place_Time, Counts, fill = Presence)) +
+  geom_bar(stat="identity") +
+  scale_fill_manual(values = c("steelblue", "darkred")) 
+
+```
+
+What are the pros and cons of this plots we just made compared to the one in the paper (shown above)? What other changes might you want to make to improve your plot even more?
+
+> 
 
 
-2.
-- What does this plot say? - What would you conclude? Different versions of a figure?
+## Trade-offs in sand crickets
 
-3. 
-- here is a question. how would a plot show the answer?
-
-4.
-- Dataset 
-  - plot that needs long format
-  - plot that needs wide format
-
-5. Separate or unite 
-
-6.
-- Dataset 
-  - plot that reveals data problems
-  - do some cleaning
-
-7.
-- Dataset
-  - lots of geoms
-  
-8. find a terrible image from lit - explain why - give link
+When Dr. King was a graduate student, she collected data on flight muscle mass and ovary mass in sand crickets reared on different diets ^[EG King, DA Roff, and DJ Fairbairn. 2011. The evolutionary genetics of acquisition and allocation in the wing dimorphic cricket, *Gryllus firmus*. *Evolution* 65(8): 2273-2285.] This dataset is called `Kingetal2011.csv`. Read this data in. The diet treatment is in a column called "Food", flight muscle mass is "DLM_Mass" and ovary mass is "Ovary_Mass". There is also information about family ids, wing morphology, and total mass.  
 
 
+```{r}
+
+CC <- read_csv("../Data/Kingetal2011.csv")
+
+```
+
+If we are interested in the trade-off betwen flight muscle mass and ovary mass, we might wish to perform a correlation and/or use a linear regression model with these data. However, we've learned it is a good idea to plot the data before beginning analysis so let's do that. Plot a scatterplot with DLM_Mass on the y axis and Ovary_Mass on the x axis using `geom_point`. Color by Food treatment.
+
+```{r}
+
+CC %>% 
+  ggplot(aes(x = Ovary_Mass, y = DLM_Mass, color = Food)) +
+  geom_point()
+
+```
+
+Do you see any issues with the dataset you want to resolve before moving ahead? 
+
+> 
+
+Correct or drop any problematic data points as you wish. 
+
+```{r}
+
+#These are decimal point errors we inserted on purpose. But, should 78 be 7.8 or 0.78? So in practice we'd probably drop these.
+CC[which(CC$DLM_Mass >40),]
+
+CC <- CC %>% filter(DLM_Mass < 40)
+
+#MED is a typo and should be Med. Fix it. 
+
+CC$Food[CC$Food=="MED"] <-"Med" 
+
+```
+
+Now let's make our plot again.
+
+
+```{r}
+
+CC %>% 
+  ggplot(aes(x = Ovary_Mass, y = DLM_Mass, color = Food)) +
+  geom_point()
+
+```
+
+What do you notice about this dataset from this plot?
+
+>
+
+To try out some different geoms, let's first make a boxplot of the organ masses for with food treatments plotted separately. If you want to plot both organs on one plot, you'll need to `pivot_longer` to create a column for "Organ" with the organ id and another column with "Mass" that holds the values. Do this and then use `geom_boxplot` to make a boxplot of masses with the organ types grouped together and food treatment on the x axis. Only include DLM and Ovary mass.
+
+```{r}
+
+CC_long <- pivot_longer(CC, cols= contains("Mass"), names_to = "Organ", values_to = "Mass")
+
+CC_long %>%
+  filter(Organ %in% c("DLM_Mass", "Ovary_Mass")) %>%
+  ggplot(aes(x = Food, y = Mass, fill=Organ)) +
+  geom_boxplot()
+
+
+```
+
+Because the masses are on pretty different scales, let's instead try out making two density plots using `geom_density` for each organ (DLM and ovary), with food treatment indicated by color. 
+
+```{r}
+
+CC %>%
+  ggplot(aes(x = DLM_Mass, color=Food)) +
+  geom_density()
+
+CC %>%
+  ggplot(aes(x = Ovary_Mass, color=Food)) +
+  geom_density()
+
+
+```
+
+## Take a critical eye to the current state of science visualization
+
+Spend some time looking at the figures in some recent papers (2000 or later). Identify one figure that you think needs major improvement. Give the reference and figure number here and explain what the issues are and what could be done to improve it.  
+
+>
 
