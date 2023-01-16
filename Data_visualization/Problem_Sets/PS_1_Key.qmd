@@ -10,6 +10,15 @@ format:
     toc-title: Contents
 ---
 
+```{r}
+#| echo: false
+
+#Required files for this problem set:
+#   - LynxPopulation.csv
+#   - PeacockHoots.csv
+#   - Kingegal2011.csv
+```
+
 
 ## Package setup
 
@@ -30,6 +39,13 @@ While we won't use all these packages in all the problem sets, it doesn't do any
 #| message: false
 #| warning: false
 
+#[FIXME]
+library(tidyverse)
+library(cowplot)
+library(patchwork)
+library(paletteer)
+
+theme_set(theme_cowplot())
 
 ```
 
@@ -40,39 +56,55 @@ While we won't use all these packages in all the problem sets, it doesn't do any
 Hudson's Bay Company is one of the oldest corporations in Canada. It still operates retail stores across Canada today but, for much of history, it was a fur trading business. One of the animals targeted by fur trappers in the 1700's and 1800's was the lynx. The number of pelts obtained by the Hudson's Bay Company each year between 1752 and 1819 is in the `LynxPopulation.csv` dataset. Given the intense hunting, one might predict a decline in the population size over time. Read in the data and perform a linear regression predicting number of pelts by year using `lm()`.   
 
 ```{r}
+#FIXME
+LL <- read_csv("../Data/LynxPopulation.csv",
+               show_col_types = FALSE)
 
+mod <- lm(pelts ~ year, data=LL)
+summary(mod)
 
 ```
 
 Summarize your conclusions regarding the effect of fur trapping over time on lynx population size. 
 
-> 
+> The slope of the coefficient for `year` is -30.6 which is significantly different from 0. We woudl conclude that the number of lynx pelts decreases by about 30 per year. If the Hudson's Bay Company had been around at year 0, it would have collected over 56,000 pelts.
 
 Let's construct a plot displaying the linear regression results. Plot pelt number versus year and use `geom_point()` and `geom_smooth(method="lm")`. By default `geom_smooth()` with `lm`, will use the formula y ~ x. You can make this explicit by adding `formula = y ~ x` to the statement.
 
 ```{r}
+#FIXME
 
+LL %>%
+  ggplot(aes(year, pelts)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ x)
 
 ```
 
 Do you notice anything in the plot that suggests there might be an issue with using linear regression to analyze these data?
 
-> 
+> There are some low years that seem to have similar values, in clusters of threes and fours. This is particularly noticeable in teh years leading up to 1820.
 
 Because these data were collected over time, let's connect the points so we can see trends over time more clearly. Add `geom_line()` to your plot to do this. 
 
 ```{r}
+#FIXME
 
+LL %>%
+  ggplot(aes(year, pelts)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = 'lm', formula = y ~ x)
 
 ```
 
 Does connecting the points change your conclusions about the appropriateness of linear regression to address your question about population decline? Do you have any ideas of better ways to analyze these data?
 
-> 
+> Now it is clear that there are cycles of number of lynx pelts. There is very obvious correlation year-to-year in the number of pelts and these cycles go up and down. The cycles seem to rise for a few years and then fall to a few low years (noted above). These data do not meet the assumptions of OLS regression: the points are not independent of one another. If we looked at the residuals, they probably would have apparent structure and not look like the errors are normally distributed. We would need a model that somehow can account for the autocorrelation between years and that can model the cycles, while also somehow looking for the change over time. Such models exist but are beyond the scope of this problem set.
 
 If you had plotted the data as a first step, how do you think that would affect your next steps and conclusions?
 
-> 
+> Hopefully, we would have seen the patterns in the data and not moved straight to the linear model.
 
 
 ## Peacock hoots
@@ -82,13 +114,16 @@ Male peacocks give a hoot call when approaching a female to copulate. Sometimes 
 The data they collected consists of female presence before and after 131 solo hoot calls. This data is in the `PeacockHoots.csv` file. Load this data.
 
 ```{r}
+#FIXME
 
-
+PP <- read_csv("../Data/PeacockHoots.csv",
+               show_col_types = FALSE)
+PP
 ```
 
 What ideas do you have for the type of plot you might want to make that could communicate whether female presence increases following single hoots?
 
-> 
+> The data is just female absence or presence. So we would like to visualize the counts of these data across the treatments.
 
 Below is a figure from the paper looking at female presence before and after hoots and two other types of calls. 
 
@@ -96,7 +131,7 @@ Below is a figure from the paper looking at female presence before and after hoo
 
 Examine the datset you just loaded. Is there a better way to present these data?
 
-> 
+> Use a bar chart to show the counts. Or just make a table, because it's not that many numbers.
 
 One way you might want to plot counts is to use a bar chart (see Lecture 1.3). Let's make a bar chart showing female presence and absence pre and post hoot using `geom_bar()`. This will allow us to see the actual female counts rather than a proportion. The authors performed this study at multiple zoos so we will also split the data by `Place`. First we'll need to wrangle our data. 
 
@@ -120,20 +155,36 @@ The first few rows of your resulting tibble should look like this:
 ```
 
 ```{r}
+#FIXME
 
+PPcts <- PP %>% 
+  group_by(Place, PrePost) %>% 
+  summarize("Present" = sum(FemaleVisit.5m), 
+            "Absent" = sum(FemaleVisit.5m==0),
+            .groups = "drop") %>%
+  unite("Place_Time", Place:PrePost, sep="_") %>%
+  pivot_longer(!Place_Time, names_to = "Presence", values_to="Counts")
 
 ```
 
 Now we are ready to make our bar chart with `Place_Time` on the x-axis and `Counts` on the y-axis. Use fill to show female presence and absence. Don't forget to use `stat = "identity"` to plot the raw counts. Try the plot with and without `position = "dodge"` to decide between stacked or grouped bars. Also use `scale_fill_manual()` and choose two colors you like for your plot. 
 
 ```{r}
+#FIXME
 
+PPcts %>% ggplot(aes(x = Place_Time, Counts, fill = Presence)) +
+  geom_bar(stat="identity", position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkred")) 
+
+PPcts %>% ggplot(aes(x = Place_Time, Counts, fill = Presence)) +
+  geom_bar(stat="identity") +
+  scale_fill_manual(values = c("steelblue", "darkred")) 
 
 ```
 
 What are the pros and cons of this plots we just made compared to the one in the paper (shown above)? What other changes might you want to make to improve your plot even more?
 
-> 
+> A positive is that, viewed this way, we can see that there were a lot more observations in the `CA` group, both pre- and post-. The patterns look similar across the groups though. The drawback is that it's very hard to compare proportions between treatments, even in the stacked bar chart. We can say that visually they look similar, but there is no easy way to compare the proportions like there is with the plot from the paper.
 
 
 ## Trade-offs in sand crickets
@@ -142,50 +193,92 @@ When Dr. King was a graduate student, she collected data on flight muscle mass a
 
 
 ```{r}
+#FIXME
 
+CC <- read_csv("../Data/Kingetal2011.csv",
+               show_col_types = FALSE)
 
 ```
 
 If we are interested in the trade-off between flight muscle mass and ovary mass, we might wish to perform a correlation and/or use a linear regression model with these data. However, we've learned it is a good idea to plot the data before beginning analysis so let's do that. Make a scatterplot with `DLM_Mass` on the y-axis and `Ovary_Mass` on the x-axis using `geom_point()`. Color by `Food` treatment.
 
 ```{r}
+#FIXME
 
+CC %>% 
+  ggplot(aes(x = Ovary_Mass, y = DLM_Mass, color = Food)) +
+  geom_point()
 
 ```
 
 Do you see any issues with the dataset you want to resolve before moving ahead? 
 
-> 
+> There are some DLM masses that are about 10x larger than they should be. This is probably a data entry error. Also one of the food treatments is `MED` and should probably have been `Med`.
 
 Correct or drop any problematic data points as you wish. 
 
 ```{r}
+#FIXME
 
+# These are decimal point errors we inserted on purpose. But, should 78 be
+# 7.8 or 0.78? So in practice we'd probably drop these.
 
+CC[which(CC$DLM_Mass >40),]
+
+CC <- CC %>% filter(DLM_Mass < 40)
+
+#MED is a typo and should be Med. Fix it. 
+
+CC$Food[CC$Food=="MED"] <- "Med" 
+
+# Check that only "AD", "Low", and "Med" are present
+unique(CC$Food)
 ```
 
 Now let's make our plot again.
 
 ```{r}
+#FIXME
 
+CC %>% 
+  ggplot(aes(x = Ovary_Mass, y = DLM_Mass, color = Food)) +
+  geom_point()
 
 ```
 
 What do you notice about this dataset from this plot?
 
-> 
+> There seems to be a negative association between the two variables overall (i.e., a tradeoff between flight muscle mass and ovary mass, as predicted). It's not clear if this pattern is consistent across all the treatments. The AD does seem to show it clearly. There are also a lot of points that seem to be at zero DLM mass. We should probably deal with those somehow in any statistical analysis.
 
 To try out some different geoms, let's first make a boxplot of the organ masses for with food treatments plotted separately. If you want to plot both organs on one plot, you'll need to `pivot_longer()` to create a column for `Organ` with the organ id and another column with `Mass` that holds the values. Do this and then use `geom_boxplot()` to make a boxplot of masses with the organ types grouped together and food treatment on the x-axis. Only include DLM and Ovary mass.
 
 ```{r}
+#FIXME
 
+CC_long <- pivot_longer(CC,
+                        cols = contains("Mass"),
+                        names_to = "Organ",
+                        values_to = "Mass")
+
+CC_long %>%
+  filter(Organ %in% c("DLM_Mass", "Ovary_Mass")) %>%
+  ggplot(aes(x = Food, y = Mass, fill = Organ)) +
+  geom_boxplot()
 
 ```
 
 Because the masses are on pretty different scales, let's instead try out making two separate density plots using `geom_density()` for each organ (DLM and ovary), with food treatment indicated by color. 
 
 ```{r}
+#FIXME
 
+CC %>%
+  ggplot(aes(x = DLM_Mass, color = Food)) +
+  geom_density()
+
+CC %>%
+  ggplot(aes(x = Ovary_Mass, color = Food)) +
+  geom_density()
 
 ```
 
