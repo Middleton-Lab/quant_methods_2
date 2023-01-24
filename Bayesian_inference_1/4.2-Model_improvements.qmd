@@ -41,7 +41,7 @@ library(rethinking)
     - Particularly if you are writing `.stan` files
 - Determine better priors (use your knowledge)
 - Redefine model (centering, standardizing)
-- Ask stan to work harder (`adapt_delta`, `stepsize`)
+- Ask stan to work harder (`adapt_delta`, `max_treedepth`, `stepsize`)
 
 
 ## Divergences
