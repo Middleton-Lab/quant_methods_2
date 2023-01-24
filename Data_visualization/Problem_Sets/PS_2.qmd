@@ -83,6 +83,10 @@ D |>
   facet_grid(early_food ~ late_food)
 ```
 
+reordering factors
+
+
+
 
 ## Bat calcars
 
@@ -104,6 +108,8 @@ D_filt |>
   geom_point() +
   facet_wrap("Family")
 ```
+
+facet free axis - both
 
 
 ## Stickleback life history
