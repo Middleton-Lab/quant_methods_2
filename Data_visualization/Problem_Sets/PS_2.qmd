@@ -51,7 +51,67 @@ removing stuff ^^
 8. check colorblind
 
 
+## Aedes food variability
+
+Zeller, M., and J. C. Koella. 2016. Effects of food variability on growth and reproduction of *Aedes aegypti*. *Ecol. Evol.* 6:552–559.
+
+```{r}
+D <- read_delim("../Data/Aedes_food.txt",
+                show_col_types = FALSE) |> 
+  rename(early_food = ef,
+         late_food = lf) |> 
+  mutate(early_food = if_else(early_food == "L", "low", "high"),
+         late_food = if_else(late_food == "L", "low", "high"))
+
+# Write out
+
+# Plots
+
+D |> 
+  ggplot(aes(adultsurvival)) +
+  geom_histogram(bins = 30) +
+  facet_grid(early_food ~ late_food)
+
+D |> 
+  ggplot(aes(wl)) +
+  geom_histogram(bins = 30) +
+  facet_grid(early_food ~ late_food)
+
+D |> 
+  ggplot(aes(delta46)) +
+  geom_histogram(bins = 30) +
+  facet_grid(early_food ~ late_food)
+```
 
 
+## Bat calcars
 
+Stanchak, K. E., J. H. Arbour, and S. E. Santana. 2019. Anatomical diversification of a skeletal novelty in bat feet. *Evolution* 73:1591–1603.
+
+```{r}
+D <- read_csv("../Data/Bat_calcar.csv",
+              show_col_types = FALSE)
+
+Family_counts <- D |> 
+  group_by(Family) |> 
+  count() |> 
+  filter(n > 3)
+
+D_filt <- D |> filter(Family %in% Family_counts$Family)
+
+D_filt |> 
+  ggplot(aes(Tib_mean, Cal_mean)) +
+  geom_point() +
+  facet_wrap("Family")
+```
+
+
+## Stickleback life history
+
+Ghani, N. I. A., G. Herczeg, T. Leinonen, and J. Merilä. 2013. Evidence for genetic differentiation in timing of maturation among nine-spined stickleback populations. *J. Evol. Biol.* 26:775–782.
+
+```{r}
+library(readxl)
+D <- read_excel("../Data/Stickleback_maturation.xlsx")
+```
 
