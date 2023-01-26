@@ -48,7 +48,7 @@ Two traits the authors are interested in are survival time and fecundity. The co
 ```{r}
 #FIXME
 
-DD %>% 
+DD |> 
   ggplot(aes(eggs4, adultsurvival, color = early_food, shape = late_food)) +
   geom_point(alpha=0.75, size=2) +
   ylab("Adult Survival") +
@@ -61,7 +61,7 @@ Notice any warning messages. Compare your axis limits to the minimum and maximum
 ```{r}
 #FIXME
 
-DD %>% 
+DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, color = early_food, shape = late_food)) +
   geom_point(alpha=0.75, size=2) +
@@ -75,7 +75,7 @@ Most egg number values are less than 50 and most survival is above 30. Change th
 ```{r}
 #FIXME
 
-DD %>% 
+DD |> 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, color = early_food, shape = late_food)) +
   geom_point(alpha=0.75, size=2) +
@@ -93,7 +93,7 @@ Try using the single column indicating the four food combinations as a color aes
 ```{r}
 #FIXME
 
-DD %>% 
+DD |> 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, color = EL_food)) +
   geom_point(alpha=0.75, size=2) +
@@ -112,7 +112,7 @@ Let's use the single column with four levels plot to add regression lines for ea
 ```{r}
 #FIXME
 
-DD %>% 
+DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, color = EL_food)) +
   geom_point(alpha=0.75, size=2) +
@@ -128,7 +128,7 @@ There are different point types in R you might want to use in some applications.
 ```{r}
 #FIXME
 
-DD %>% 
+DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, fill = EL_food)) +
   geom_point(alpha=0.75, size=2, pch = 21) +
@@ -150,10 +150,10 @@ In many cases, using color aesthetics is the best approach with customization of
 
 DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
-  mutate("col_plot" = case_when(EL_food == "low_low" ~ "pink",
-                                   EL_food == "low_high" ~ "red",
+  mutate("col_plot" = case_when(EL_food == "low_low" ~ "orange",
+                                   EL_food == "low_high" ~ "darkred",
                                    EL_food == "high_low" ~ "lightblue",
-                                   EL_food == "high_high" ~ "blue")) |>
+                                   EL_food == "high_high" ~ "steelblue")) |>
   ggplot(aes(eggs4, adultsurvival, fill = col_plot)) +
   geom_point(alpha=0.75, size=2, pch=21) +
   geom_smooth(method='lm',se = FALSE, aes(color=col_plot))+
@@ -202,7 +202,7 @@ Let's look at how the food treatments affected the size of the mosquitoes at age
 ```{r}
 #FIXME
 
-DD %>% 
+DD |>
   drop_na(any_of("size.day4")) |>
   ggplot(aes(early_food, size.day4, color = late_food)) +
   geom_point(alpha=0.75, size=2, position = position_jitter(width = 0.1,
@@ -217,7 +217,7 @@ We can improve our plot by ordering the factors so low comes before high and dod
 ```{r}
 #FIXME
 
-DD %>% 
+DD |>
   mutate(early_food = factor(early_food, levels= c("low","high")),
          late_food = factor(late_food, levels= c("low","high"))) |>
   drop_na(any_of("size.day4")) |>
@@ -235,13 +235,13 @@ Let's add means to our plot. Make a tibble using group_by and summarise with the
 ```{r}
 #FIXME
 
-s_means <- DD %>% 
+s_means <- DD |>
   mutate(early_food = factor(early_food, levels= c("low","high")),
          late_food = factor(late_food, levels= c("low","high"))) |>
   group_by(early_food, late_food) |>
   summarise(size.day4 = mean(size.day4, na.rm=TRUE))
   
-DD %>% 
+DD |>
   mutate(early_food = factor(early_food, levels= c("low","high")),
          late_food = factor(late_food, levels= c("low","high"))) |>
   drop_na(any_of("size.day4")) |>
@@ -264,7 +264,7 @@ It is hard to see the points when they are the same color so pick a distinguishi
 ```{r}
 #FIXME
 
-s_means <- DD %>% 
+s_means <- DD |>
   mutate(early_food = factor(early_food, levels= c("low","high")),
          late_food = factor(late_food, levels= c("low","high"))) |>
   group_by(early_food, late_food) |>
