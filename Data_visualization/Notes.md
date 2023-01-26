@@ -49,6 +49,8 @@
 - Experience working inside and outside aes()
 - changing axis limits - when you get warning about dropping points
 
+- didnt make it - add later: gradient with challenging scale (pvals), coloring just a few pts
+
 ### Week 3
 
 - size plots in a quarto file

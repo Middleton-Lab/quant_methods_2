@@ -15,7 +15,9 @@ format:
 #| message: false
 #| warning: false
 
+#FIXME
 library(tidyverse)
+library(readxl)
 library(cowplot)
 library(colorblindr)
 theme_set(theme_cowplot())
@@ -29,6 +31,7 @@ Zeller and Koella studied the effects of low vs high food levels at different st
 
 
 ```{r}
+#FIXME
 
 DD <- read_delim("../Data/Aedes_food.txt",
                 show_col_types = FALSE) |> 
@@ -43,6 +46,7 @@ DD <- read_delim("../Data/Aedes_food.txt",
 Two traits the authors are interested in are survival time and fecundity. The columns beginning with `eggs` are the number of eggs laid by each individual at each age. The column `adult survival` is the number of days each individual lived following emergence. Make a plot of `adultsurvival` vs `eggs4` with color indicating early food and shape indicating late food. Adjust the size of the points, transparency, and axis labels as you'd like.
 
 ```{r}
+#FIXME
 
 DD %>% 
   ggplot(aes(eggs4, adultsurvival, color = early_food, shape = late_food)) +
@@ -55,6 +59,7 @@ DD %>%
 Notice any warning messages. Compare your axis limits to the minimum and maximum values for your variables as well as the points plotted. Resolve any issues.
 
 ```{r}
+#FIXME
 
 DD %>% 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
@@ -68,6 +73,7 @@ DD %>%
 Most egg number values are less than 50 and most survival is above 30. Change the x and y limits to limit the range to these values. 
 
 ```{r}
+#FIXME
 
 DD %>% 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
@@ -80,11 +86,12 @@ DD %>%
 
 ```
 
-Observe any warnings. Note that if you decided to restrict your axis limits to exclude points, you would always need to justify and explain that decision in the figure legend and/or paper. Paying attention to and finding the reason for these warnings from ggplot is always a good idea.
+Observe any warnings. Note that if you decided to restrict your axis limits to exclude points, you would always need to justify and explain that decision in the figure legend and/or paper. Paying attention to and finding the reason for these warnings from ggplot should never be ignored. You should always know why it is warning you about the exact number of points. 
 
 Try using the single column indicating the four food combinations as a color aesthetic instead of both color and shape. 
 
 ```{r}
+#FIXME
 
 DD %>% 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
@@ -103,6 +110,8 @@ Which plot - that with both shape and color aesthetics or just the color aesthet
 Let's use the single column with four levels plot to add regression lines for each food treatment using `geom_smooth` with `method = "lm"`. 
 
 ```{r}
+#FIXME
+
 DD %>% 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, color = EL_food)) +
@@ -115,19 +124,10 @@ DD %>%
 
 There are different point types in R you might want to use in some applications. For example, if you add `pch = 21` you can add an outline to points to make them more defined. Try this with the plot you just made and adjust aesthetics as needed to make colored points with a black outline. Make sure your regression lines maintain their different colors (hint: you can use aes within different geoms too). 
 
-```{r}
-DD %>% 
-  drop_na(any_of(c("eggs4","adultsurvival"))) |>
-  ggplot(aes(eggs4, adultsurvival, fill = EL_food)) +
-  geom_point(alpha=0.75, size=2, pch = 21) +
-  geom_smooth(method='lm',se = FALSE)+
-  ylab("Adult Survival") +
-  xlab("Age 4 Egg Number")
-
-```
-
 
 ```{r}
+#FIXME
+
 DD %>% 
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   ggplot(aes(eggs4, adultsurvival, fill = EL_food)) +
@@ -140,11 +140,14 @@ DD %>%
 
 
 In many cases, using color aesthetics is the best approach with customization of which colors to use with packages and or functions like scale_color_manual and this often helps avoid bugs. However, in some cases with complex multi-element plots, you might need to take full control of the color of your points or some other element. Let's make this same plot using this method. 
+
   1.Choose four colors from the [R color chart](https://rstudio-pubs-static.s3.amazonaws.com/3486_79191ad32cf74955b4502b8530aad627.html) or use a brewer to generate four colors.
   2. Use case_when to make a column in your tibble that specifies one of these colors for each of the four combinations.
   3. Now use this new column as your fill aesthetic and observe what happens
 
 ```{r}
+#FIXME
+
 DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
   mutate("col_plot" = case_when(EL_food == "low_low" ~ "pink",
@@ -153,21 +156,23 @@ DD |>
                                    EL_food == "high_high" ~ "blue")) |>
   ggplot(aes(eggs4, adultsurvival, fill = col_plot)) +
   geom_point(alpha=0.75, size=2, pch=21) +
-  geom_smooth(method='lm',se = FALSE)+
+  geom_smooth(method='lm',se = FALSE, aes(color=col_plot))+
   ylab("Adult Survival") +
   xlab("Age 4 Egg Number")
 
 ```
 
-You should have seen that your colors are just treated as categories and given an automatic color. Now tell R you want to use those exact colors by using `scale_fill_identity` and/or `scale_color_identity`. Note that you will not have a legend unless you specify `breaks` and `labels` to this function. You'll see more of this when we look at customizing colors in plots more.    
+You should have seen that your colors are just treated as categories and given an automatic color. Now tell R you want to use those exact colors by using `scale_fill_identity` and/or `scale_color_identity`. Note that you will not have a legend unless you specify `breaks` and `labels` to this function. You'll see more of this when we look at customizing colors in plots more later.    
 
 ```{r}
+#FIXME
+
 p1 <- DD |>
   drop_na(any_of(c("eggs4","adultsurvival"))) |>
-  mutate("col_plot" = case_when(EL_food == "low_low" ~ "pink",
-                                   EL_food == "low_high" ~ "red",
+  mutate("col_plot" = case_when(EL_food == "low_low" ~ "orange",
+                                   EL_food == "low_high" ~ "darkred",
                                    EL_food == "high_low" ~ "lightblue",
-                                   EL_food == "high_high" ~ "blue")) |>
+                                   EL_food == "high_high" ~ "steelblue")) |>
   ggplot(aes(eggs4, adultsurvival, fill = col_plot)) +
   geom_point(size=2, pch=21) +
   geom_smooth(method='lm',se = FALSE, aes(color=col_plot))+
@@ -183,6 +188,8 @@ p1
 Check your color choices using one of the packages we showed you in lecture to test the accessibility of your plot for color blindness. Change your colors if needed. 
 
 ```{r}
+#FIXME
+
 
 cvd_grid(p1)
 
@@ -190,10 +197,10 @@ cvd_grid(p1)
 
 
 
-
 Let's look at how the food treatments affected the size of the mosquitoes at age 4 (`size.day4`). Make a plot of age 4 size vs early food and color the points by late food. Try out the following jitter values (0.1, 0.2, 0.3, 0.4, 0.5) and pick one that works well. 
 
 ```{r}
+#FIXME
 
 DD %>% 
   drop_na(any_of("size.day4")) |>
@@ -208,6 +215,7 @@ DD %>%
 We can improve our plot by ordering the factors so low comes before high and dodging the points by late food as well. Again, play around with both the jitter and dodge widths (and alpha) to find values that work well for this plot. 
 
 ```{r}
+#FIXME
 
 DD %>% 
   mutate(early_food = factor(early_food, levels= c("low","high")),
@@ -222,9 +230,10 @@ DD %>%
 
 ```
 
-Let's add means to our plot. Make a tibble using group_by and summarise with the columns early_food, late_food, and size.day4 that holds the treatments and mean values, making sure the column names match what you've been plotting so far. Then add these means to your plot with another geom_point. 
+Let's add means to our plot. Make a tibble using group_by and summarise with the columns early_food, late_food, and size.day4 that holds the treatments and mean values, making sure the column names match what you've been plotting so far. Then add these means to your plot with another geom_point and make the points pretty big with `size = 5`. 
 
 ```{r}
+#FIXME
 
 s_means <- DD %>% 
   mutate(early_food = factor(early_food, levels= c("low","high")),
@@ -253,6 +262,7 @@ Which aspects of your plot were automatically applied to your mean data and whic
 It is hard to see the points when they are the same color so pick a distinguishing color and set that for the means. Also make sure the points are aligned with the correct data (hint: if you use color as your grouping variable, you might need to also use group_by so it is maintained when you change your colors for the mean points). 
 
 ```{r}
+#FIXME
 
 s_means <- DD %>% 
   mutate(early_food = factor(early_food, levels= c("low","high")),
@@ -275,12 +285,7 @@ DD |>
 ```
 
 
-
-
-
-
-## Bat calcars^[
-Stanchak, K. E., J. H. Arbour, and S. E. Santana. 2019. Anatomical diversification of a skeletal novelty in bat feet. *Evolution* 73:1591–1603.]
+## Bat calcars^[Stanchak, K. E., J. H. Arbour, and S. E. Santana. 2019. Anatomical diversification of a skeletal novelty in bat feet. *Evolution* 73:1591–1603.]
 
 Stanchak et al. measured several skeletal aspects of bat limbs for over 200 species of bats. The bat calcar is a small cartilaginous projection from the ankle that helps to support the wing membrane. They hypothesized that the size of the calcar might be related to feeding ecology.
 
@@ -288,6 +293,8 @@ Stanchak et al. measured several skeletal aspects of bat limbs for over 200 spec
 Read in the `Bat_calcar.csv` data. Make a new tibble that only includes bat families with at least 4 observations. 
 
 ```{r}
+#FIXME
+
 BB <- read_csv("../Data/Bat_calcar.csv",
               show_col_types = FALSE)
 
@@ -300,22 +307,10 @@ BB_filt <- BB |> filter(Family %in% Family_counts$Family)
 
 ```
 
-To explore the relationship between calcar length and leg length, plot , `Tib_mean` (average tibia length) versus `Cal_mean` (average calcar length). Try using color to differentiate different bat families.  
+To explore the relationship between calcar length and leg length, plot , `Tib_mean` (average tibia length) versus `Cal_mean` (average calcar length). Facet by bat family. 
 
 ```{r}
-
-BB_filt |> 
-  ggplot(aes(Tib_mean, Cal_mean, color = Family)) +
-  geom_point()
-
-
-```
-
-
-
-Facet by bat family. 
-
-```{r}
+#FIXME
 
 BB_filt |> 
   ggplot(aes(Tib_mean, Cal_mean)) +
@@ -326,6 +321,7 @@ BB_filt |>
 The different bat families have fairly different ranges. Make this plot again but allow the axes to vary in each. 
 
 ```{r}
+#FIXME
 
 BB_filt |> 
   ggplot(aes(Tib_mean, Cal_mean)) +
@@ -347,11 +343,14 @@ Ghani et al. performed a study looking at genetic differentiation in the timing 
 
 
 ```{r}
-library(readxl)
+#FIXME
+
 SS <- read_excel("../Data/Stickleback_maturation.xlsx")
 ```
 
 ```{r}
+#FIXME
+
 SS |>
   ggplot(aes(Sex, `Maturation day`, color= `Family across`)) +
   geom_point()
@@ -361,27 +360,48 @@ SS |>
 You probably noticed some issues with how the columns are coded (e.g. numeric vs factor). Alter these or create new columns to create the plot you want. Note that in this dataset, males are coded as 1 and females as 0. 
 
 ```{r}
+#FIXME
 SS |>
   mutate("Maturation_day" = as.numeric(`Maturation day`),
          "Family_fac" = as.factor(`Family across`),
-         "Sex" = case_when(Sex == 0 ~ "F",
-                           Sex == 1 ~ "M")) |>
+         "Sex" = case_when(Sex == 0 ~ "Female",
+                           Sex == 1 ~ "Male")) |>
   ggplot(aes(Sex, Maturation_day, color= Family_fac)) +
   geom_point()
 
 ```
 
-Because we just want to see different families but the numbers are not meaningful, let's drop the legend using `theme`.
+Notice any warnings and investigate their source and resolve any issues so you don't get a warning when you plot. 
+
 
 ```{r}
-SS |>
+#FIXME
+unique(SS$`Maturation day`)
+
+SS_clean <- SS |>
   mutate("Maturation_day" = as.numeric(`Maturation day`),
          "Family_fac" = as.factor(`Family across`),
-         "Sex" = case_when(Sex == 0 ~ "F",
-                           Sex == 1 ~ "M")) |>
+         "Sex" = case_when(Sex == 0 ~ "Female",
+                           Sex == 1 ~ "Male"))
+SS_clean$`Maturation day`[which(is.na(SS_clean$Maturation_day))]
+
+SS_clean |>
+  drop_na(any_of("Maturation_day")) |>
+  ggplot(aes(Sex, Maturation_day, color= Family_fac)) +
+  geom_point()
+
+```
+
+
+Because we just want to see different families but the numbers are not meaningful, let's drop the legend using `theme`. And with males and females labeled, we probably don't need the x axis label either so drop that too. 
+
+```{r}
+#FIXME
+SS_clean |>
+  drop_na(any_of("Maturation_day")) |>
   ggplot(aes(Sex, Maturation_day, color= Family_fac)) +
   geom_point() +
-  theme(legend.position = "none")
+  theme(legend.position = "none", axis.title.x=element_blank())
 
 ```
 
