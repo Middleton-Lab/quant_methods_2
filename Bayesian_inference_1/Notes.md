@@ -2,6 +2,7 @@
 
 ## Week 1
 
+Read Morey
 
 ## Week 2
 

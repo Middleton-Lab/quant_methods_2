@@ -1,0 +1,37 @@
+---
+title: "Problem Set 1"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+
+#Required files for this problem set:
+
+```
+
+1. Install packages they need 
+  - rethinking, rstan, Rtools, cmdstanr, bayesblot, posterior, tidybayes
+1. Bayesian vs frequentist philosophical simulation
+  - assumptions, which things are "given"
+1. likelhood & probability
+1. a "by hand" type example
+1. priors - how to pick what they mean - why
+  - sampling - try out some values and see what you get
+1. CIs
+1. simple model and/or ABC
+
+
+
+
+
+
+
+

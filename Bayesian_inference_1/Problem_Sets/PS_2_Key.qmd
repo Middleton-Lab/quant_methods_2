@@ -1,0 +1,35 @@
+---
+title: "Problem Set 1"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+
+#Required files for this problem set:
+
+```
+
+1. distributions
+  - identify
+  - outcome vs priors
+
+1. simulate data & understand priors
+  - sampling and visualization of samples
+
+1. silver fir -> bayes (week 5 in QM1)
+  - plot distributions
+  - choose one or two to focus on
+  - do all steps
+    - show a couple sampling steps by hand
+
+
+
+
