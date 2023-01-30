@@ -15,6 +15,20 @@ format:
 #| message: false
 #| warning: false
 
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+
+library(latex2exp)
+library(paletteer)
+library(ggrepel)
+library(lubridate)
+
+# Required data:
+#   - Floristic_composition_and_Diversity.csv
+#   - reef_sharks.csv
+#   - A_polyacanthus_respirometry.csv
+#   - GR_Snow.csv
 ```
 
 
@@ -31,13 +45,27 @@ The code chunk below makes a basic plot with some points. We don't care now abou
 - Resize the axis titles and labels so that the titles are larger and the labels smaller, such they they look proportionally correct in the rendered document. There is no one correct size. Choose something that looks good to you. Note that the plot in the RStudio plotting window might not look very good although the rendered document does.
 
 ```{r}
-
+# FIXME
+ggplot(data = tibble(x = 1:10, y = runif(10)),
+       aes(x, y)) +
+  geom_point() +
+  theme(axis.title = element_text(face = "bold", size = 12),
+        axis.text = element_text(face = "italic", size = 10))
 ```
 
 Now put the `theme()` elements into a list and assign it to an object that so you can reuse the theme. Verify that you generate the same plot as above when you add your plot theme.
 
 ```{r}
+# FIXME
+mytheme <- list(
+  theme(axis.title = element_text(face = "bold", size = 12),
+        axis.text = element_text(face = "italic", size = 10)
+  ))
 
+ggplot(data = tibble(x = 1:10, y = runif(10)),
+       aes(x, y)) +
+  geom_point() +
+  mytheme
 ```
 
 
@@ -49,7 +77,11 @@ The file `Floristic_composition_and_Diversity.csv` contains data on the sizes of
 - Create a factor from `Family` wherein the order of the factors is the relative abundance of trees within each family. The order should be Myrtaceae, Fabaceae, Santalaceae, etc.
 
 ```{r}
-
+# FIXME
+D <- read_csv("../Data/Floristic_composition_and_Diversity.csv",
+              show_col_types = FALSE) |> 
+  mutate(Diameter_m = Diameter_cm / 100,
+         Family = fct_infreq(Family))
 ```
 
 Create a plot of height predicted by diameter, and color the points by family. Additionally
@@ -58,19 +90,33 @@ Create a plot of height predicted by diameter, and color the points by family. A
 - Facet wrap the plots by family. You should have a 3 x 4 grid of plots. The top row should be Myrtaceae, Fabaceae, Santalaceae, and Bignoniaceae.
 
 ```{r}
-
+# FIXME
+ggplot(D, aes(x = Diameter_m, y = Height_m, color = Family)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap("Family")
 ```
 
 We'd like to add a regression line for all the points (as opposed to a Family-specific regression). Fit a linear model where log~10~(Height) is modeled by log~10~(Diameter). Extract the intercept and slope coefficients for this model. We will use them to add a line to the plot.
 
 ```{r}
-
+# FIXME
+fm <- lm(log10(Height_m) ~ log10(Diameter_m), data = D)
+coefs <- coef(fm)
+coefs
 ```
 
 Add a line to the plot as the first layer matching the slope and intercept for the fitted model above. Each facet should have the same line, which should be behind the points.
 
 ```{r}
-
+# FIXME
+ggplot(D, aes(x = Diameter_m, y = Height_m, color = Family)) +
+  geom_abline(slope = coefs[2], intercept = coefs[1]) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap("Family")
 ```
 
 Finally, we can fix up the appearance of the plot.
@@ -80,7 +126,16 @@ Finally, we can fix up the appearance of the plot.
 - Add your theme from above.
 
 ```{r}
-
+# FIXME
+ggplot(D, aes(x = Diameter_m, y = Height_m, color = Family)) +
+  geom_abline(slope = coefs[2], intercept = coefs[1]) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  facet_wrap("Family") +
+  theme(legend.position = "none") +
+  labs(x = "Diameter (m)", y = "Height (m)") +
+  mytheme
 ```
 
 
@@ -97,7 +152,11 @@ Read in the `reef_shark.csv` file. You will find that the units are included in 
     - Make sure that the `temp` column has 650 as the first level of the factor.
 
 ```{r}
-
+# FIXME
+Shark <- read_csv("../Data/reef_sharks.csv",
+                  show_col_types = FALSE) |> 
+  mutate(temp = str_remove(temp, "C") |> factor(),
+         pco2 = str_remove(pco2, "uatm") |> factor(levels = c(650, 1050)))
 ```
 
 Make an initial plot of activity predicted by CO~2~ level, with point color determined by temperature.
@@ -107,7 +166,9 @@ Make an initial plot of activity predicted by CO~2~ level, with point color dete
     - Make the jitter repeatable.
 
 ```{r}
-
+# FIXME
+ggplot(Shark, aes(y = activity, x = pco2, color = temp)) +
+  geom_point(size = 4, position = position_jitter(width = 0.05, seed = 48727))
 ```
 
 We would like to label the one extreme point in the 1050 uATM CO~2~ data. First we have to find that point in the data.
@@ -119,7 +180,16 @@ We would like to label the one extreme point in the 1050 uATM CO~2~ data. First 
     - Make the position reproducable
 
 ```{r}
+# FIXME
+library(ggrepel)
 
+Shark |> arrange(desc(activity)) |> slice(1)
+Shark <- Shark |> 
+  mutate(Label = if_else(shark == "Cm47", "Cm47", ""))
+
+ggplot(Shark, aes(y = activity, x = pco2, color = temp, label = Label)) +
+  geom_point(size = 4, position = position_jitter(width = 0.05, seed = 48727)) +
+  geom_text_repel(box.padding = 0.5, seed = 17346)
 ```
 
 Finally, add some finishing touches to the plot:
@@ -129,7 +199,13 @@ Finally, add some finishing touches to the plot:
 - Add your theme from above.
 
 ```{r}
-
+# FIXME
+ggplot(Shark, aes(y = activity, x = pco2, color = temp, label = Label)) +
+  geom_point(size = 4, position = position_jitter(width = 0.05, seed = 48727)) +
+  geom_text_repel(box.padding = 0.5, seed = 17346) +
+  labs(y = "Activity", x = expression(pCO[2])) +
+  scale_color_discrete(name = "Temperature (C)") +
+  mytheme
 ```
 
 You'll find that formatting math on axis titles doesn't often work well with text formatting. That's an unfortunate side effect.
@@ -154,7 +230,15 @@ We will start by organizing the data into a format that we can use.
 - Mutate `ID` to a factor
 
 ```{r}
+# FIXME
+D <- read_csv("../Data/A_polyacanthus_respirometry.csv",
+              show_col_types = FALSE)
 
+D_long <- D |> 
+  pivot_longer(cols = -Time_min, values_to = "O2_Consumption") |> 
+  separate(col = name, into = c("Treatment", "ID"), sep = "-") |> 
+  mutate(Treatment = factor(Treatment, levels = c("Static", "Recirculation")),
+         ID = factor(ID))
 ```
 
 The first few rows of the long data should look like:
@@ -180,7 +264,14 @@ Make a plot of oxygen consumption by time. Color the lines by ID and facet the p
 - Title the axes appropriately. The y-axis should read: Oxygen consumption (mg O~2~ kg^-1^ h^-1^
 
 ```{r}
-
+# FIXME
+ggplot(D_long,
+       aes(x = Time_min, y = O2_Consumption,
+           linetype = Treatment, color = ID)) +
+  geom_line() +
+  facet_grid(ID ~ .) +
+  labs(y = expression(Oxygen~consumption~(mg~O[2]~kg^-1~hr^-1)),
+       x = "Time (min)")
 ```
 
 Inspecting the plot, it appears that the values have stabilized by about 120 minutes. Plot the reaction norm at 120 min.
@@ -190,13 +281,30 @@ Inspecting the plot, it appears that the values have stabilized by about 120 min
 - Title the axes appropriately.
 
 ```{r}
+# FIXME
+D_120 <- D_long |>
+  filter(Time_min == 120)
 
+ggplot(D_120, aes(x = Treatment, y = O2_Consumption, group = ID)) +
+  geom_point() +
+  geom_line() +
+  labs(y = TeX("$Oxygen~Consumption~(\\frac{mg~O_2}{kg / hr})$"),
+       x = "Time (min)")
 ```
 
 Add a point and bars for the bootstrapped 95% confidence interval of the mean.
 
 ```{r}
-
+# FIXME
+ggplot(D_120, aes(x = Treatment, y = O2_Consumption, group = ID)) +
+  stat_summary(aes(group = -1),
+               fun.data = "mean_cl_boot",
+               color = "red",
+               size = 1) +
+  geom_point(size = 2) +
+  geom_line() +
+  labs(y = TeX("$Oxygen~Consumption~(\\frac{mg~O_2}{kg / hr})$"),
+       x = "Time (min)")
 ```
 
 Since these are paired data, we can calculate the per-fish difference between the treatments and test whether the difference is signifiacntly different from zero (paired *t*-test).
@@ -207,7 +315,13 @@ Since these are paired data, we can calculate the per-fish difference between th
 - Run a `t.test()` comparing the difference to a mean (`mu`) of 0.
 
 ```{r}
+# FIXME
+D_diff <- D_120 |> 
+  select(-Time_min) |> 
+  pivot_wider(names_from = "Treatment", values_from = "O2_Consumption") |> 
+  mutate(d = Static - Recirculation)
 
+t.test(D_diff$d, mu = 0)
 ```
 
 
@@ -218,7 +332,12 @@ Grand Rapids, Michigan can receive a large amount of snow in the winter (which c
 To start exploring patterns of snowfall, load the data and make a plot of `Total` by `SeasonStart`. This is total seasonal snowfall by year.
 
 ```{r}
+# FIXME
+GR <- read_csv("../Data/GR_Snow.csv",
+               show_col_types = FALSE)
 
+ggplot(GR, aes(x = SeasonStart, y = Total)) +
+  geom_line()
 ```
 
 You'll see lot of variation, from lows of ~10 inches to highs of almost 150 inches.
@@ -239,7 +358,12 @@ We will use the latter `ym()` to create Date objects for Year/Month combinations
 - Create a new "Date" variable that combines `SeasonStart` and `Month` by pasting them together with "-" and passing to `ym()`
 
 ```{r}
-
+# FIXME
+GR_long <- GR |> 
+  filter(SeasonStart >= 1960) |> 
+  select(-SeasonEnd, -Total) |> 
+  pivot_longer(cols = -SeasonStart, names_to = "Month", values_to = "Snow") |> 
+  mutate(Date = ym(paste(SeasonStart, Month, sep = "-")))
 ```
 
 The head of your data should look like:
@@ -258,7 +382,9 @@ The head of your data should look like:
 Make a plot of Snow by Date. This is the monthly total from 1960 to 2010.
 
 ```{r}
-
+# FIXME
+ggplot(GR_long, aes(x = Date, y = Snow)) +
+  geom_line()
 ```
 
 To make the data a little easier to follow, add alternating blocks of gray roughly by decade:
@@ -270,19 +396,54 @@ To make the data a little easier to follow, add alternating blocks of gray rough
 You will need to create a separate tibble containg the start and end dates for the rectangles and add the shading with `geom_rect()`.
 
 ```{r}
+# FIXME
+Decades <- tribble(
+  ~ Start, ~ End,
+  ymd("1960-07-01"), ymd("1970-06-30"),
+  ymd("1980-07-01"), ymd("1990-06-30"),
+  ymd("2000-07-01"), ymd("2010-06-30")
+)
 
+ggplot() +
+  geom_rect(data = Decades,
+            aes(xmin = Start, xmax = End,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_line(data = GR_long,
+            aes(x = Date, y = Snow))
 ```
 
 Finally, we want to add a text label at the maximum snowfall. Find the maximum.
 
 ```{r}
-
+# FIXME
+GR_long |> arrange(desc(Snow)) |> slice(1)
 ```
 
 - Add a red point at the maximum and a text annotation with the Month, Year and snowfall value.
 - Make the x-axis labels in 5-year increments (1960, 1965, 1970, etc.)
 
 ```{r}
-
+# FIXME
+ggplot() +
+  geom_rect(data = Decades,
+            aes(xmin = Start, xmax = End,
+                ymin = 0, ymax = Inf),
+            fill = "gray80") +
+  geom_line(data = GR_long,
+            aes(x = Date, y = Snow)) +
+  geom_point(data = GR_long |> arrange(desc(Snow)) |> slice(1),
+             aes(x = Date, y = Snow),
+             color = "red",
+             size = 3) +
+  annotate(geom = "text",
+           label = "December, 2000: 59.2 in",
+           x = ym("2000-Jul"),
+           y = 59.2,
+           hjust = 1,
+           size = 5) +
+  scale_x_date(breaks = seq(ym("1960-Jul"), ym("2010-Jun"), by = "5 years"),
+               date_labels = "%Y",
+               name = "Year")
 ```
 
