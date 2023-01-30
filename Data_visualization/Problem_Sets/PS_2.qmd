@@ -160,6 +160,8 @@ Ghani et al. performed a study looking at genetic differentiation in the timing 
 
 ```
 
+Make a plot of Maturation day versus Sex and color the points by family.
+
 ```{r}
 
 ```

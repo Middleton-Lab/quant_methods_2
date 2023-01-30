@@ -337,7 +337,7 @@ Which of these sets of plots do you think captures the pattern more accurately?
 
 ## Stickleback life history^[Ghani, N. I. A., G. Herczeg, T. Leinonen, and J. Merilä. 2013. Evidence for genetic differentiation in timing of maturation among nine-spined stickleback populations. *J. Evol. Biol.* 26:775–782.]
 
-Ghani et al. performed a study looking at genetic differentiation in the timing of maturity in two stickleback populations using a laboratory breeding experiment where they raised different families of sticklebacks and measuring the timing of their maturation. Read in the `Stickleback_maturation.xlsx` data and examine its structure. 
+Ghani et al. performed a study looking at genetic differentiation in the timing of maturity in two stickleback populations using a laboratory breeding experiment where they raised different families of sticklebacks measuring the timing of their maturation. Read in the `Stickleback_maturation.xlsx` data and examine its structure. 
 
 
 ```{r}
@@ -345,6 +345,8 @@ Ghani et al. performed a study looking at genetic differentiation in the timing 
 
 SS <- read_excel("../Data/Stickleback_maturation.xlsx")
 ```
+
+Make a plot of Maturation day versus Sex and color the points by family.
 
 ```{r}
 #FIXME
