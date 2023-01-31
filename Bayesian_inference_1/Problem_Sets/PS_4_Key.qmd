@@ -18,4 +18,18 @@ format:
 ```
 
 
+```{r}
+library(tidybayes)
+fm |> tidy_draws() |> summarise_draws()
+
+fm %>%
+  spread_rvars(b_Intercept, b_x, sigma) |> 
+  median_hdi(.width = 0.89)
+
+fm %>%
+  spread_rvars(b_Intercept, b_x, sigma) |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(y = name, dist = value)) +
+  stat_dist_dotsinterval()
+```
 
