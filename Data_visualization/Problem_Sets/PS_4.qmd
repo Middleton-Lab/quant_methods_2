@@ -20,6 +20,7 @@ library(patchwork)
 
 # Required files:
 #   - PS_4_Fig_1.png
+#   - PS_4_Fig_2.png
 #   - avian_mortality.csv
 ```
 
