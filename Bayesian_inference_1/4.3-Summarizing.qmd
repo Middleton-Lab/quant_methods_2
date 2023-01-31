@@ -39,34 +39,285 @@ library(bayesplot)
 - What to figure in results?
 
 
-## Community standards: TBD
+## Community standards: *In progress*
 
+- Much of this is new in the communities we are in
+- Standards are evolving
 - Error on the side of too much information
+    - Reviewers and editors can ask for less
 
 
 ## What do I want to learn from the posterior?
 
 - Estimates
-    - Means
-    - HDPIs
+    - Means / medians / modes
+    - HDPIs (how wide?)
 - Differences of estimates
-    - Means
-    - HDPIs
-- ROPEs
-    - Other hypothesis tests
+    - Means / medians / modes
+    - HDPIs (how wide?)
+- Hypothesis tests
+    - ROPEs (what is the ROPE?)
+    - Bayes factors
+
+
+## What are your question(s)?
+
+What you want to learn from the posterior is directly related to the questions you ask.
+
+. . .
+
+You planned these questions before designing the experiment and collecting the data.
+
+
+## What are your question(s)?
+
+```{r}
+#| echo: false
+
+D <- abdData::Zooplankton |> 
+  mutate(treatment = fct_inorder(treatment),
+         block = factor(block))
+ggplot(D, aes(x = treatment, y = zooplankton, color = block, group = block)) +
+  geom_line() +
+  geom_point(size = 3) +
+  scale_color_discrete(name = "Block") +
+  scale_y_continuous(limits = c(0, 4.5)) +
+  labs(x = "Treatment", y = "Zooplankton Level")
+
+```
+
+
+## What are your question(s)?
+
+While accounting for block-to-block variation:
+
+- Is low predation treatment different from control treatment?
+- Is high predation treatment different from control treatment?
+
+. . .
+
+- By some measure of central tendency (mean, median, mode)
+- By some measure of difference (quantile, HPDI, ROPE)
 
 
 ## How many samples is enough?
 
+- Means only: a few hundred
+- Middle 50% HDPI: ??one thousand??
+- Wide intervals (e.g., 89%, 95%, 99%): ??ten thousand???
+    - Sample for more iterations
+- stan reports warnings for poor coverage in the tails
+
+
+## Sampling a model
+
+- `brms` default 1000 warmup + 1000 samples per chain
+
+```{r}
+#| echo: true
+#| output: false
+
+priors <- prior(normal(0, 3), class = b, lb = 0)
+
+fm <- brm(zooplankton ~ treatment - 1 + (1 | block),
+          data = D,
+          prior = priors,
+          seed = 4547359,
+          chains = 4, cores = 4,
+          control = list(adapt_delta = 0.99))
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+summary(fm)
+```
+
+
+## Increasing iterations
+
+- Get the model working well before increasing iterations
+    - More samples is not the solution to divergences
+- Sampling time scales approximately linearly
+- Can set warmup and sampling iterations separately
+    - Shorter (but long enough) warmup, longer sampling
+- Don't worry about the details at the tails.
+
+
+## Increasing iterations
+
+```{r}
+#| echo: true
+#| output: false
+
+fm <- brm(zooplankton ~ treatment - 1 + (1 | block),
+          data = D,
+          prior = prior(normal(0, 3), class = b, lb = 0),
+          seed = 4547359,
+          iter = 10000,
+          chains = 4, cores = 4,
+          control = list(adapt_delta = 0.99))
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+summary(fm)
+```
+
+
+## Drawbacks to increasing iterations
+
+- Slower sampling
+    - Especially with lots of parameters and/or number of observations
+    - Refine model using a subset of data
+- Large output files
+    - All parameters sampled at every iteration
+
+How large a posterior do I need?
+
+
+## Extracting the posterior
+
+Note: several options here
+
+```{r}
+#| echo: true
+
+post <- as_draws_df(fm)
+str(post)
+```
+
+
+## Calculating contrasts
+
+```{r}
+#| echo: true
+#| warning: false
+
+post <- post |> 
+  select(starts_with("b_")) |> 
+  mutate(low_v_control = b_treatmentlow - b_treatmentcontrol,
+         high_v_control = b_treatmenthigh - b_treatmentcontrol)
+head(post)
+```
+
+
+## Visualizing contrasts
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+post |> 
+  pivot_longer(cols = ends_with("_control"),
+               names_to = "Contrast",
+               values_to = "Estimate") |> 
+  ggplot(aes(Estimate, fill = Contrast)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Zooplankton Level\n(difference vs. control)") +
+  theme(axis.title.y = element_blank())
+```
+
+## Intervals to report
+
+- "Raw" parameter estimates (control, low, high)
+    - Maybe / maybe not
+    - You may have already reported group means
+    - These are "block-aware" mean from regularizing priors
+- Contrasts (i.e., hypothesis tests)
+    - Other hypothesis tests and model comparisons (unit 5)
+
+
+## Parameter estimates
+
+```{r}
+#| echo: true
+
+D |> group_by(treatment) |> summarise(Mean = mean(zooplankton))
+brms::fixef(fm)
+```
+
+
+## Highest Density Intervals
+
+```{r}
+#| echo: true
+
+post |> 
+  summarize(across(.cols = everything(),
+                   .fns = HDInterval::hdi,
+                   credMass = 0.89))
+```
+
+- Rows are lower (5.5%) and upper (94.5%) bounds
+- Note: many options here
+    - `coda` package also has `HPDinterval()` function (needs an mcmc class object)
+
+
+## Writing about Bayesian models
+
+- Strive for reproducibility
+- Evolving standards
+- Software is part of the model fitting
+    - a *t*-test is a *t*-test is a *t*-test (mostly)
+    - Bayesian model fitting differs in important and not-so important ways
+
 
 ## Writing methods
 
+- Software, versions
+- Model community statements
+    - Describe, not just "Bayesian *t*-test"
+- Priors, prior predictive checks
+- Sampling (warmup, iterations)
+- Effective sample size, $\widehat{R}$
+- Handling of posteriors
+- Hypothesis tests
 
-## Critical information to include
+
+## Model statement and priors
+
+![](Images/DL_Model.png){width=100%}
 
 
-## Making figures
+## Writing methods
+
+> "Models were fit using the Stan programming language (Carpenter et al., 2017; Gelman, Lee, & Guo, 2015) via the rethinking package (McElreath, 2015; https:// github.com/rmcelreath/rethinking) in R (ver. 3.6.2; (R Development Core Team, 2013). Each model was run with four chains in parallel for 10,000 iterations, yielding at least 4,000 effective samples for the six parameters of interest. Adequate sampling was assessed visually via rank histograms and $\widehat{R}$ values ≤1.01 (Vehtari, Gelman, Simpson, Carpenter, & Burkner, 2019)."
 
 
-## Hypothesis testing?
+## Writing methods
 
+> "Models were estimated using Hamiltonian Monte Carlo via the stan statistical programming language (Stan Development Team 2019) with the `Rstan` package (Stan Development Team 2020) in R (R Core Team 2022). Models were sampled for 10,000 iterations with 50% warmup in four parallel chains. Starting values for parameters were drawn randomly from the priors separately for each chain. Model convergence was assessed by inspection of $\widehat{R}$ values and rank histograms (Vehtari et al. 2019). After sampling, model parameter estimates had ~2,000-30,000 effective samples."
+
+
+## Writing methods {.smaller}
+
+> "Models were estimated in R v. 4.2.0 (R Core Team, 2021) using the ‘brms’ package v. 2.17.1 (Bürkner, 2017, 2018), which is an interface for the Stan statistical programming language (Stan Development Team, 2019). Sampling was carried out using four chains in parallel with chains initialized by random draws from the priors. Chains were sampled for 10,000 iterations each with 50% warm-up using Hamiltonian Monte Carlo, which yielded effective sample sizes of ~8000-20,000 for main effects. Convergence was not problematic and was assessed by visual inspection of chains and $\widehat{R}$ values near 1 in the posterior samples. $\widehat{R}$ is a sampling diagnostic parameter that approaches 1 from above as the within- and between-chain estimates converge to the same distributions (Vehtari et al., 2019a)."
+
+
+## Writing results
+
+- Mirror the model(s)
+- Focus on parameter estimates and intervals
+
+> "Across all strains, mice with access to a running wheel were about 4 g lighter than the sedentary controls: MM = -3.9 g (95% HDI of Wheel vs Sedentary: -6.3 to -1.5 g), C3H/He = -4.0 g (95% HDI: -6.9 to -1.2 g), C57BL/6 = -4.5 g (95% HDI: -6.7 to -2.2 g)."
+
+
+## Figures 1: Prior predictive check
+
+![](Images/PPC.png){width=80%}
+
+
+## Figures 2: Comparison of model posteriors
+
+![](Images/Posterior.png){width=70%}
+
+## Figures 3: Difference of posteriors
+
+![](Images/Posterior_difference.png){width=70%}
+
+
+## Figures 4: Many differences of posteriors
+
+![](Images/Diffs.png){width=70%}

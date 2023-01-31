@@ -50,11 +50,11 @@ According to [Andrew Gelman (2008)](https://statmodeling.stat.columbia.edu/2008/
 
 . . .
 
-When sampling goes poorly, often there is a problem with the code:
+When sampling goes poorly, often there is a problem with the model:
 
 - Coding mistake or typo
 - Asking too much of the data
-- Poor prior specification
+- Poor prior specification (too wide or too narrow)
 
 
 ## "Good" sampling
@@ -317,7 +317,7 @@ Warning messages:
 
 ## Folk theorem of Bayesian modeling with stan
 
-> When stan models fail, they often fail badly and obviously.
+> When stan models fail, they often fail badly and with a lot of warning messages.
 
 
 ## Possible solutions

@@ -29,17 +29,19 @@ library(readxl)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 
-library(cmdstanr)
-library(brms)
-library(bayesplot)
-
-library(bayestestR)
 ```
 
 - `rethinking`
+    - Handles stan code creation
+    - You provide priors
 - `brms`
+    - Handles stan code creation
+    - You *can/should* provide priors
 - `rstanarm`
-
+    - Handles everything
+    - Very fast (pre-complied)
+    - You *can/should* provide priors
+    
 
 ## Inconvenience packages
 
@@ -48,12 +50,295 @@ library(bayestestR)
 
 Inconvenience in one context is convenience in another.
 
+- Faster
+- Precompile and reuse models
+- Pass updated data
+- HPC cluster processing
+
+
+## A few words about `cmdstanr`
+
+- Not available from CRAN (yet)
+    - [Getting started](https://mc-stan.org/cmdstanr/articles/cmdstanr.html)
+- Updates more frequently than `rstan`
+    - New features
+    - Faster compilation and sampling
+- `rethinking` and `brms` can use as the backend sampler
+- Portable stan output files (R, Python, etc.)
+
+
+## `rethinking`
+
+- Associated *Statistical Rethinking* book
+    - Many recipes for basic and advanced models
+- Automates writing stan code (`rethinking::stancode()`)
+    - Increasingly complicated model structures
+- Recommended for general use until you feel confident
+    - Manual post-processing
+
 
 ## `brms`
+
+- Uses R formula syntax
+- [Very flexible, many vignettes](https://paul-buerkner.github.io/brms/articles/index.html)
+    - Multilevel, nonlinear, phylogenetic, missing data
+- Works well with plotting and processing tools (this lecture)
+- Works well with model comparison tools (next week)
 
 
 ## `rstanarm`
 
+- Uses R formula syntax
+- Default uses centering, adjust priors based on data
+- Predefined range of models: prepend `stan_`
+    - `stan_lm()`, `stan_glm()`, `stan_lmer()`, `stan_aov()`, etc.
+- [Wide range of vignettes](https://mc-stan.org/rstanarm/articles/)
+- Some priors are more complex to define
 
-## Inconvenience tools: `rstan` and `cmdstanr`
 
+## Example model
+
+```{r}
+#| echo: true
+
+set.seed(746283)
+D <- tibble(x = runif(50, 0, 10),
+            y = 5 + x * -2 + rnorm(50, 0, 2))
+ggplot(D, aes(x, y)) + geom_point()
+```
+
+
+## What variables can have priors in `brms`?
+
+Provided a model and data, `brms::get_prior()` gives you the list of defaults:
+
+```{r}
+#| echo: true
+
+library(brms)
+get_prior(y ~ x + 1, data = D)
+```
+
+
+## Example model
+
+```{r}
+#| echo: true
+#| output: false
+priors <- 
+  prior(normal(0, 10), class = "Intercept") +
+  prior(normal(0, 5), class = "b", coef = "x")
+fm <- brm(y ~ x + 1,
+          data = D,
+          prior = priors,
+          seed = 987655,
+          iter = 5000,
+          backend = "cmdstanr")
+```
+
+
+## Priors
+
+```{r}
+#| echo: true
+
+prior_summary(fm)
+```
+
+
+## Summary
+
+```{r}
+#| echo: true
+
+summary(fm)
+```
+
+
+## `posterior`
+
+- Most plotting and summary actions need the samples ("draws") from the posterior
+- [`posterior` extracts these in useful formats](https://mc-stan.org/posterior/)
+- Retain the chains or not?
+    - Yes for chain diagnostic plots
+    - Not necessary for summaries
+
+
+## Extracting posteriors
+
+```{r}
+#| echo: true
+#| message: false
+
+library(posterior)
+
+# Combined
+post_combined_mat <- as_draws_matrix(fm)
+post_combined_df <- as_draws_df(fm)
+
+# With chains as 3rd dimension
+post_chains <- as_draws_array(fm)
+```
+
+
+## Posteriors
+
+```{r}
+#| echo: true
+
+str(post_combined_df)
+```
+
+
+## Drop unused columns
+
+- Or use `pars =` to select variables for plotting
+
+```{r}
+#| echo: true
+
+post <- post_combined_df |> 
+  select(-lprior, -`lp__`)
+str(post)
+```
+
+
+## `bayesplot`
+
+- [`bayesplot` automates many common plotting goals](https://mc-stan.org/bayesplot/)
+- Based on ggplot
+- Handles output from `posterior` seamlessly
+
+```{r}
+library(bayesplot)
+color_scheme_set("brightblue")
+```
+
+
+## Chain diagnostics
+
+- Trace plots: `mcmc_trace()`
+- Rank histograms: `mcmc_rank_overlay()`
+- Autocorrelation: `mcmc_acf()`
+- Combination plots: `mcmc_combo()`
+
+
+## `mcmc_trace()`
+
+```{r}
+#| echo: true
+
+mcmc_trace(post)
+```
+
+
+## `mcmc_rank_overlay()`
+
+```{r}
+#| echo: true
+
+mcmc_rank_overlay(post)
+```
+
+
+## `mcmc_combo()`
+
+```{r}
+#| echo: true
+
+mcmc_combo(post)
+```
+
+
+## Prior and posterior predictive distributions
+
+- Sample from the prior
+    - See if the range of values is plausible
+    - Helpful for multilevel models
+- Plot the posterior
+    - See if it makes sense given the data
+
+
+## Sampling from the prior
+
+- `sample_prior = "only"` ignores the data and samples the prior only.
+- Need to provide `data` nonetheless
+
+```{r}
+#| echo: true
+#| output: false
+#| code-line-numbers: "4"
+
+PP <- brm(y ~ x + 1,
+          data = D,
+          prior = priors,
+          sample_prior = "only",
+          seed = 4628346,
+          iter = 5000,
+          backend = "cmdstanr")
+```
+
+
+## Prior predictive distribution
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+y_pr <- posterior_predict(PP, ndraws = 100)
+ppc_dens_overlay(y = D$y, y_pr)
+
+```
+
+
+## Posterior predictive distribution
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+y_po <- posterior_predict(fm, ndraws = 100)
+ppc_dens_overlay(y = D$y, y_po)
+```
+
+
+## Visual posterior summaries
+
+- Density: `mcmc_dens()`, `mcmc_dens_overlay()`, `mcmc_areas()`
+- Intervals: `mcmc_intervals()`
+
+
+## `mcmc_dens()`
+
+```{r}
+#| echo: true
+
+mcmc_dens(post)
+```
+
+
+## `mcmc_dens_overlay()`
+
+```{r}
+#| echo: true
+
+mcmc_dens_overlay(post)
+```
+
+
+## `mcmc_areas()`
+
+```{r}
+#| echo: true
+
+mcmc_areas(post)
+```
+
+
+## `tidybayes`: [tidy data + ggplot](http://mjskay.github.io/tidybayes/)
+
+- Visualizing and summarizing posteriors
+- Adding predicted values
+- Challenging to learn but powerful when you do
+
+![](http://mjskay.github.io/tidybayes/articles/tidy-posterior_files/figure-html/unnamed-chunk-30-1.png){width=60%}
