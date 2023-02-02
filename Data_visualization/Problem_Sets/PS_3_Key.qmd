@@ -45,7 +45,6 @@ The code chunk below makes a basic plot with some points. We don't care now abou
 - Resize the axis titles and labels so that the titles are larger and the labels smaller, such they they look proportionally correct in the rendered document. There is no one correct size. Choose something that looks good to you. Note that the plot in the RStudio plotting window might not look very good although the rendered document does.
 
 ```{r}
-# FIXME
 ggplot(data = tibble(x = 1:10, y = runif(10)),
        aes(x, y)) +
   geom_point() +
