@@ -15,6 +15,9 @@ format:
 #| message: false
 #| warning: false
 
+library(tidyverse)
+library(patchwork)
+
 # Required files:
 #   - PS_4_Fig_1.png
 #   - PS_4_Fig_2.png
@@ -49,7 +52,8 @@ Now `source()` the file in a code chunk. `source()` simply executes the R code c
 
 ```{r}
 #| message: false
-
+# FIXME
+source("mytheme.R")
 ```
 
 From here on you can add `+ mytheme` to a plot to assign the theme.
@@ -86,7 +90,13 @@ Here is the plot that you want to make:
 Load the data and make any modifications that you need to. Note that this file is semicolon (`;`) delimited.
 
 ```{r}
-
+# FIXME
+AM <- read_delim("../Data/avian_mortality.csv",
+                 delim = ";",
+                 show_col_types = FALSE) |> 
+  mutate(cavity_nest = if_else(cavity_nest == 0,
+                               "Non-cavity", "Cavity") |> 
+           factor(levels = c("Non-cavity", "Cavity")))
 ```
 
 Create each subplot separately and assign (save) to an object. Use the saved theme loaded from above. Make note of:
@@ -97,8 +107,37 @@ Create each subplot separately and assign (save) to an object. Use the saved the
 - Point color, size, and alpha
 
 ```{r}
+# FIXME
+p1 <- ggplot(AM, aes(F_mass, M_mass)) +
+  geom_abline(slope = 1) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Male body mass (g)",
+       y = "Female body mass (g)") +
+  mytheme
 
+p2 <- ggplot(AM, aes(prehatch_bias, posthatch_bias)) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_vline(xintercept = 0, linetype = "dotted") +
+  geom_point(position = position_jitter(width = 0.03, height = 0.03,
+                                        seed = 32434),
+             size = 1,
+             alpha = 0.5) +
+  labs(x = "Pre-hatching Bias", y = "Post-hatching Bias") +
+  mytheme
 
+p3 <- ggplot(AM, aes(cavity_nest, prod_F)) +
+  geom_point(position = position_jitter(width = 0.05, seed = 457347),
+             alpha = 0.25) +
+  stat_summary(aes(group = -1),
+               fun.data = "mean_cl_boot",
+               color = "red",
+               size = 0.5,
+               linewidth = 1) +
+  labs(y = "Annual egg productivity\n(g egg / g mass / year)") +
+  theme(axis.title.x = element_blank()) +
+  mytheme
 ```
 
 Finally, create the final composite figure in two ways:
@@ -112,7 +151,15 @@ Both figures should be very similar, with only minor differences in plot element
 #| fig-width: 3
 #| fig-height: 8
 #| warning: false
+# FIXME
+plot_grid(p1, p2, p3, nrow = 3,
+          labels = c("a.", "b.", "c."),
+          label_size = 10)
+save_plot(filename = "PS_4_Fig_1.png", plot = last_plot(),
+          base_height = 8, base_width = 3)
 
+p1 / p2 / p3 +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
 ```
 
 
@@ -123,7 +170,11 @@ To give you some experience with a plotting in a function, generating a list of 
 Reload the avian mortality data from above. Drop the columns for species, mating system bias, and cavity nesting.
 
 ```{r}
-
+# FIXME
+AM <- read_delim("../Data/avian_mortality.csv",
+                 delim = ";",
+                 show_col_types = FALSE) |> 
+  select(-species, -mat_sys_bias, -cavity_nest)
 ```
 
 The very rudimentary function below has a single argument, `y` which is expected to be a numeric vector. The function plots the density of `y` and returns the plot.
@@ -145,14 +196,24 @@ In the code chunk below, create a list of plots output from `density_plot()`:
 
 ```{r}
 #| warning: false
+# FIXME
 
+plots <- map(.x = names(AM),
+             .f = function(.x) {
+               y <- AM |> select(all_of(.x)) |> pull()
+               # Alternately:
+               #    y <- AM[[.x]]
+               density_plot(y)
+             })
 ```
 
 The result should be a list of plots. Plots the list of plots in a 3 x 4 grid.
 
 ```{r}
 #| warning: false
-
+# FIXME
+wrap_plots(plots)
+save_plot(filename = "PS_4_Fig_2.png", plot = last_plot())
 ```
 
 Your figure should look like this:
@@ -166,6 +227,20 @@ Your figure should look like this:
 
 ```{r}
 #| warning: false
+# FIXME
 
+density_plot2 <- function(y, var_name) {
+  p <- ggplot(data = tibble(y), aes(y)) +
+    geom_density() +
+    labs(x = var_name)
+  return(p)
+}
+
+plots2 <- map(.x = names(AM),
+              .f = function(.x) {
+                y <- AM |> select(all_of(.x)) |> pull()
+                density_plot2(y, .x)
+              })
+wrap_plots(plots2)
 ```
 
