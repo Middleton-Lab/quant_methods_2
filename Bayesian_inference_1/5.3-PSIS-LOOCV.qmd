@@ -1,0 +1,182 @@
+---
+title: "Cross-Validation and PSIS"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## Information vs. Cross-validation
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(wesanderson)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+color_scheme_set(scheme = "red")
+
+options(brms.backend = "cmdstanr",
+        mc.cores = 4)
+```
+
+- Information == "Surprise"
+- Cross validation
+    - Divide the data (k-fold), refit models, out-of-sample prediction
+    - Leave-one-out is the extreme
+    - Review *Quantitative Methods* lecture 10-4
+
+
+## Why not Leave-one-out?
+
+- Resample model for every data point?
+
+
+## PSIS Approximation
+
+- Like AIC and WAIC are approximations
+
+
+## Naked Mole Rats
+
+```{r}
+#| echo: false
+
+M <- abdData::MoleRats |> 
+  rename(Caste = caste,
+         Mass = ln.mass,
+         Energy= ln.energy) |> 
+  mutate(Caste = if_else(Caste == "worker", "Worker", "NonWorker"),
+         Caste = factor(Caste))
+
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## Five models
+
+1. Mean: grand mean (no body mass)
+2. ANOVA: group means only (no body mass)
+3. OLS regression: body mass only, no grouping
+4. ANCOVA: intercepts varying
+5. ANCOVA: slopes varying and intercepts varying
+
+
+## 4: ANCOVA, intercepts varying
+
+```{r}
+#| echo: false
+
+fm4 <- lm(Energy ~ Mass + Caste, data = M)
+M <- M |> mutate(pred4 = predict(fm4))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## 5: ANCOVA, intercepts and slopes vary
+
+```{r}
+#| echo: false
+
+fm5 <- lm(Energy ~ Mass * Caste, data = M)
+M <- M |> mutate(pred5 = predict(fm5))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred5, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+```{r}
+#| echo: false
+
+fm1 <- brm(Energy ~ 1, data = M,
+           prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
+fm2 <- brm(Energy ~ Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm3 <- brm(Energy ~ Mass, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm4 <- brm(Energy ~ Mass + Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm5 <- brm(Energy ~ Mass * Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+```
+
+
+## PSIS
+
+- `loo()` has diagnostics for poor fits
+- `looic` is like a WAIC
+
+```{r}
+loo(fm1)
+loo(fm2)
+```
+
+
+## Adding PSIS-LOOCV to a model
+
+```{r}
+#| echo: true
+
+fm1 <- add_criterion(fm1, criterion = "loo")
+fm2 <- add_criterion(fm2, criterion = "loo")
+fm3 <- add_criterion(fm3, criterion = "loo")
+fm4 <- add_criterion(fm4, criterion = "loo")
+fm5 <- add_criterion(fm5, criterion = "loo")
+```
+
+
+## LOO compare
+
+```{r}
+#| echo: true
+
+loo_compare(fm1, fm2, fm3, fm4, fm5)
+```
+
+
+## LOO model weights
+
+```{r}
+#| echo: true
+
+model_weights(fm1, fm2, fm3, fm4, fm5, weights = "loo")|> 
+  knitr::kable(digits = 2)
+```
+

@@ -1,0 +1,72 @@
+---
+title: "Model averaging"
+subtitle: "Why choose just one model?"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## This week
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(wesanderson)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+color_scheme_set(scheme = "red")
+```
+
+## Naked Mole Rats
+
+```{r}
+#| echo: false
+
+M <- abdData::MoleRats |> 
+  rename(Caste = caste,
+         Mass = ln.mass,
+         Energy= ln.energy) |> 
+  mutate(Caste = if_else(Caste == "worker", "Worker", "NonWorker"),
+         Caste = factor(Caste))
+
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+
+fm1 <- brm(Energy ~ 1, data = M,
+           prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
+fm2 <- brm(Energy ~ Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm3 <- brm(Energy ~ Mass, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm4 <- brm(Energy ~ Mass + Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm5 <- brm(Energy ~ Mass * Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+
+pp_average(fm1, fm2, fm3, fm4, fm5)
+```

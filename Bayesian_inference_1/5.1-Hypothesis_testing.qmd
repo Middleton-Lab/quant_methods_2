@@ -1,0 +1,243 @@
+---
+title: "Model comparisons"
+subtitle: "Hypothesis testing and ROPEs"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## This week
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(wesanderson)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+color_scheme_set(scheme = "red")
+```
+
+1. Hypothesis testing and ROPEs
+2. Information and WAIC
+3. Importance Sampling and PSIS-LOOCV
+4. Model averaging
+
+## Caution
+
+
+## Hypothesis tests
+
+
+
+## Bayesian vs. Frequentists viewpoints
+
+
+## Energy expenditure in naked mole rats
+
+<center>
+<img src="https://i.imgur.com/FMMAjpa.jpg" width="80%" />
+</center>
+
+
+## Energy expenditure in naked mole rats
+
+```{r}
+#| echo: false
+
+M <- abdData::MoleRats |> 
+  rename(Caste = caste,
+         Mass = ln.mass,
+         Energy= ln.energy) |> 
+  mutate(Caste = if_else(Caste == "worker", "Worker", "NonWorker"),
+         Caste = factor(Caste))
+
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## ANCOVA: intercepts varying
+
+```{r}
+#| echo: true
+
+fm <- lm(Energy ~ Mass + Caste, data = M)
+```
+
+```{r}
+#| label: ANCOVA_model
+#| echo: false
+
+M <- M |> mutate(pred = predict(fm))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## Bayesian model
+
+- Return separate intercepts with `- 1`
+- Note *a lot* of samples
+
+```{r}
+#| echo: true
+#| output: false
+
+fm <- brm(Energy ~ Mass + Caste - 1, data = M,
+          prior = prior(normal(0, 3), class = b),
+          iter = 4e4, cores = 4,
+          seed = 45873495)
+```
+
+
+## Parameter estimates of interest
+
+1. Shared slope for Mass
+2. "Intercept" difference of Worker vs. Non-worker
+    - Overall intercepts probably not useful here
+
+
+## HPDI-based tests
+
+- Against 0
+- Against an *a priori* value
+    - e.g., Isometric slope
+- Choose an interval (preferably not 95%)
+
+
+## HDPI for slope
+
+```{r}
+#| echo: true
+summary(fm, prob = 0.89)
+```
+
+
+## HDPI for differences
+
+```{r}
+#| echo: true
+library(tidybayes)
+
+fm |> 
+  spread_rvars(b_Mass, b_CasteWorker, b_CasteNonWorker) |> 
+  rename(Mass = b_Mass) |> 
+  mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused") |> 
+  median_hdi(Mass, d_W_NW, .width = 0.89)
+```
+
+
+## Bayes factors
+
+- Closest Bayesian analogue for a *P*-value
+- Savage-Dickey ratio: Divide the density (height) of the posterior for $\theta$ by the density of the prior for $\theta$ at the point of interest (`null = 0`).
+
+Also:
+
+- Directional tests (one-sided tests)
+- Intervals (ROPE-like)
+- Models vs. models
+
+
+## Bayes factors
+
+```{r}
+#| echo: true
+
+library(bayestestR)
+(BF <- bayesfactor_parameters(fm, null = 0))
+```
+
+
+## Bayes factors
+
+```{r}
+#| echo: true
+
+library(see)
+plot(BF)
+```
+
+
+## Region of practical equivalence
+
+> "A difference of zero plus or minus some small amount is for practical purposes 'not different' from zero."
+
+[Easystats](https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html) has a good introduction.
+
+Additional reading:
+
+- Kruschke [-@Kruschke2010-wi; @Kruschke2015-rp; @Kruschke2018-mg]
+- Kruschke et al. [-@Kruschke2012-sb]
+
+
+## `rope()`
+
+- Use `rope_range()` to automatically find the most suitable range for comparison.
+    - Think about what interval you consider practically equivalent
+- Recommended to use the entire posterior to determine the percentage in the ROPE
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+fm |> 
+  spread_rvars(b_Mass, b_CasteWorker, b_CasteNonWorker) |> 
+  rename(Mass = b_Mass) |> 
+  mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused") |> 
+  rope(ci = 1, range = c(-0.25, 0.25))
+```
+
+
+## Rope range
+
+```{r}
+#| echo: false
+
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## References
+
+::: {#refs}
+:::
+

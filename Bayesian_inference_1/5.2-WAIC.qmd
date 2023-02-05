@@ -1,0 +1,284 @@
+---
+title: "Information and WAIC"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    embed-resources: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+    link-external-newwindow: true
+bibliography: Bayes.bib
+csl: evolution.csl
+---
+
+## Frequentist model comparisons
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(readxl)
+library(wesanderson)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+
+library(cmdstanr)
+library(brms)
+library(bayesplot)
+color_scheme_set(scheme = "red")
+```
+
+- Likelihood ratio tests
+- AIC or AICc
+    - Akaike model weights
+- Cross validation
+
+
+## Information criteria and WAIC
+
+- Review *Quantitative Methods* lecture 10-3
+
+
+## Kullback-Leibler Information
+
+**No model represents the true process that generated the outcomes.**
+
+**Information** is the distance between a proposed model and reality
+
+- Information lost when trying to approximate the true model
+- Amount of "surprise" when a model predicts new data
+
+K-L information doesn't aid directly in model evaluation (what is the true model?)
+
+
+## WAIC
+
+- "Widely Applicable Information Criterion" Sumio Watanabe [-@Watanabe2010-hf]
+- Parallels to information criteria and AIC
+    - Almost equal interpretation as long as the assumptions are met
+- Works well large data sets
+    - Fast
+    - PSIS-LOOCV preferred for smaller datasets
+
+
+## Energy expenditure in naked mole rats
+
+```{r}
+#| echo: false
+
+M <- abdData::MoleRats |> 
+  rename(Caste = caste,
+         Mass = ln.mass,
+         Energy= ln.energy) |> 
+  mutate(Caste = if_else(Caste == "worker", "Worker", "Non-worker"),
+         Caste = factor(Caste))
+
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## Fit different models to these data
+
+1. Mean: grand mean (no body mass)
+2. ANOVA: group means only (no body mass)
+3. OLS regression: body mass only, no grouping
+4. ANCOVA: intercepts varying
+5. ANCOVA: slopes varying and intercepts varying
+
+
+## 1: Mean
+
+```{r}
+#| echo: true
+
+fm1 <- lm(Energy ~ 1, data = M)
+```
+
+```{r}
+#| echo: false
+
+M <- M |> mutate(pred1 = predict(fm1))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred1), lwd = 2,
+            color = wes_palette("Cavalcanti1")[5]) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## 2: ANOVA
+
+```{r}
+#| echo: true
+
+fm2 <- lm(Energy ~ Caste, data = M)
+```
+
+```{r}
+#| echo: false
+
+M <- M |> mutate(pred2 = predict(fm2))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred2, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## 3: OLS regression
+
+```{r}
+#| echo: true
+
+fm3 <- lm(Energy ~ Mass, data = M)
+```
+
+```{r}
+#| echo: false
+
+M <- M |> mutate(pred3 = predict(fm3))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred3, group = 1), lwd = 2,
+            color = wes_palette("Cavalcanti1")[5]) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## 4: ANCOVA, intercepts varying
+
+```{r}
+#| echo: true
+
+fm4 <- lm(Energy ~ Mass + Caste, data = M)
+```
+
+```{r}
+#| echo: false
+
+M <- M |> mutate(pred4 = predict(fm4))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## 5: ANCOVA, intercepts and slopes vary
+
+```{r}
+#| echo: true
+
+fm5 <- lm(Energy ~ Mass * Caste, data = M)
+```
+
+```{r}
+#| echo: false
+
+M <- M |> mutate(pred5 = predict(fm5))
+ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred5, color = Caste), lwd = 2) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## A family of models
+
+```{r}
+#| echo: true
+#| output: false
+
+options(brms.backend = "cmdstanr",
+        mc.cores = 4)
+
+fm1 <- brm(Energy ~ 1, data = M,
+           prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
+fm2 <- brm(Energy ~ Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm3 <- brm(Energy ~ Mass, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm4 <- brm(Energy ~ Mass + Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+fm5 <- brm(Energy ~ Mass * Caste, data = M,
+           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+
+```
+
+
+## WAIC
+
+```{r}
+#| echo: true
+
+waic(fm1)
+waic(fm2)
+```
+
+
+## Comparing WAIC
+
+```{r}
+#| echo: true
+
+waic1 <- waic(fm1)
+waic2 <- waic(fm2)
+waic3 <- waic(fm3)
+waic4 <- waic(fm4)
+waic5 <- waic(fm5)
+
+loo_compare(waic1, waic2, waic3, waic4, waic5)
+```
+
+
+## Model weights
+
+- Model weights redistribute the relative strength of WAIC from 0 to 1
+- Sum of all model weights is 1
+
+```{r}
+#| echo: true
+
+model_weights(fm1, fm2, fm3, fm4, fm5, weights = "waic") |> 
+  knitr::kable()
+```
+
+
+## References
+
+::: {#refs}
+:::
