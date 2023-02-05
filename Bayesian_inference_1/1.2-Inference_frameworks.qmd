@@ -55,7 +55,7 @@ ggplot2::theme_set(theme_cowplot())
 
 In many cases, all will give similar answers.
 
-*Philosophically and in implementation aand interpretation, these are all different from one another.*
+*Philosophically and in implementation and interpretation, these are all different from one another.*
 
 
 ## Closed form solutions

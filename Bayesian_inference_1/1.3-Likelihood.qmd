@@ -112,7 +112,7 @@ Carp |>
 
 ## Likelihood for binomial data
 
-- 9 successes in 72 trials
+- 9 successes in 71 trials
 - Probability is 0.5, 0.25, or 0.1
 - The binomial probability is the model likelihood
   - Not true for anything more complex
@@ -120,9 +120,9 @@ Carp |>
 ```{r}
 #| echo: true
 
-dbinom(9, 72, prob = 0.5)
-dbinom(9, 72, prob = 0.25)
-dbinom(9, 72, prob = 0.1)
+dbinom(9, 71, prob = 0.5)
+dbinom(9, 71, prob = 0.25)
+dbinom(9, 71, prob = 0.1)
 ```
 
 
@@ -179,11 +179,7 @@ logistic(coef(fm))
 
 ## What does this likelihood represent?
 
-### FIXME
-
-Frequentist interpretation
-
-https://lakens.github.io/statistical_inferences/confint.html#singleCI
+Daniel Lakens: [Inference for a single confidence interval](https://lakens.github.io/statistical_inferences/confint.html#singleCI)
 
 
 

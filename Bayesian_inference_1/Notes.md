@@ -4,6 +4,8 @@
 
 Read Morey
 
+why can you just add 1 to a or b for the carp thing?
+
 ## Week 2
 
 

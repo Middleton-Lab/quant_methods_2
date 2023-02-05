@@ -487,13 +487,13 @@ plot_grid(P_little, P_a_lot)
 
 ## Frequentist confidence intervals [see @Morey2016-yh]
 
-- 95% confidence interval for a proportion of 9 / 72 is 0.07 - 0.22 (via Wilson's method)
+- 95% CI for a proportion of 9 / 72 is 0.07 - 0.22 (via Wilson's method)
 - "If we repeated this experiment over and over, 95% of those experiments would have a proportion between 0.07	and 0.22."
 
 *Not*:
 
-- We are 95% certain that the proportion is between 0.07 and 0.22
-- There is a 95% probability that the proportion is between 0.07 and 0.22
+- 95% certain that the proportion is between 0.07 and 0.22
+- 95% probability that the proportion is between 0.07 and 0.22
 
 
 ## Bayesian highest density interval
