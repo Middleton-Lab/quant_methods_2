@@ -335,11 +335,13 @@ Additional reading:
 
 ## ROPE
 
-Uses `rope_range()` to automatically find the most suitable range for comparison.
+- Uses `rope_range()` to automatically find the most suitable range for comparison.
+    - Think about what interval you consider practically equivalent
+- Recommended to use the entire posterior to determine the percentage in the ROPE
 
 ```{r}
 #| echo: true
-rope(post$d, ci = 0.89)
+rope(post$d, ci = 1)
 ```
 
 
