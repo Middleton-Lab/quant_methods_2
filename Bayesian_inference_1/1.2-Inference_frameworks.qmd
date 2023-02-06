@@ -87,7 +87,7 @@ For a given set of model parameter estimates, how likely is my data?
 
 ## Resampling
 
-How does my observed test statistic compare to a null distrubution of the same test statistic generated via resampling of the data?
+How does my observed test statistic compare to a null distribution of the same test statistic generated via resampling of the data?
 
 
 ## Bayesian
