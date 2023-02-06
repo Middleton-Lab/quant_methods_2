@@ -13,16 +13,114 @@ format:
 ```{r}
 #| echo: false
 
-#Required files for this problem set:
+# Required files for this problem set:
 
 ```
 
-1. Install packages they need 
-  - rethinking, rstan, Rtools, cmdstanr, bayesblot, posterior, tidybayes
-1. Bayesian vs frequentist philosophical simulation
+## Setup
+
+Throughout this module, we will use an array of packages. Some of these are on CRAN and some are not (yet). We will also need some helper software tools. Before you begin, make sure that both R and RStudio are updated to their latest versions.
+
+
+### Command lines tools
+
+Because the packages that do Bayesian sampling have to compile their code for the models you specify, we have to start with the tools for compiling. On both types of machines these steps are somewhat time consuming. You only have to do them once, though.
+
+*For Windows*: Install [RTools for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
+
+- You will want RTools version 4.2, because that matches the latest ".1" version of R.
+- By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that let us know).
+
+*For MacOS*: Install the Xcode Command Line Tools
+
+- Open a terminal (Applications -> Utilities -> Terminal.app)
+- Paste the following code: `xcode-select --install`
+- Follow the prompts. You will probably have to enter your password.
+- If you are on a University-controlled machine and have trouble, let us know and we can help.
+
+
+### Install packages
+
+These are definitely ones we will use. There may be others, but we can install those later.
+
+*Packages from CRAN*:
+
+Use `install.packages()` to install these packages:
+
+- `rstan`
+- `brms`
+- `bayesplot`
+- `posterior`
+- `tidybayes`
+
+*Packages not available from CRAN*:
+
+First install the `remotes` package, which allows you to install packages from GitHub directly.
+
+Second, install `cmdstanr`
+
+- You can follow along with [Getting started with cmdstanr](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or just run the following lines of code.
+- `install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))`
+- The first time you load `cmdstanr` with `library()`, it will prompt you to install the cmdstan backend (which does the actual comoilation and sampling of models)
+    - Check that the toolchain is working `check_cmdstan_toolchain()`
+    - If everything looks good, install cmdstan: `install_cmdstan()`
+- This takes a few minutes. Again, you only do this once.
+
+Third, install `rethinking`
+
+- `rethinking` is an R package that accompanies the book *Statistical Rethinking* by Richard McElreath.
+- Install with `remotes::install_github("rmcelreath/rethinking")`
+
+
+### Test it out
+
+If everything worked, you should be able to run a simple model. You can either execute this block or copy and paste the code to the console. `#| eval: false` means that it will not run every time you render the document.
+
+```{r}
+#| eval: false
+library(rethinking)
+
+# Remember that the order of the data
+# does not matter.
+d <- list(pass = c(rep(0, times = 62),
+                   rep(1, times = 9)))
+
+fm <- ulam(
+  alist(
+    pass ~ bernoulli(theta),
+    logit(theta) <- a,
+    a ~ normal(0, 3)
+  ),
+  data = d,
+  chains = 4,
+  iter = 5e3
+)
+
+summary(fm)
+a <- extract.samples(fm)$a
+median(logistic(a))
+```
+
+As stan starts compiling, you will get a warning about `Declaration of arrays by placing brackets after a variable name...`. You can ignore this warning. There is a code fix needed in `ulam()` that hasn't been made yet in the main branch. It doesn't impact the sampling.
+
+We will learn what all these lines mean (`ulam`, `alist`, etc.) soon. Don't worry about those for now. You will hopefully recognize that the last line outputs the median of the logistic transformation of `a`, a value which is very close to the proportion of carp that "passed" from our Unit 1 lectures (0.127). 
+
+Congratulations, you have just run a Bayesian model (a logistic regression to be more precise). Although we are perhaps getting a bit ahead of ourselves, it's nice to know that the machinery works.
+
+If your machinery does not work, let us know right away.
+
+
+## Bayesian vs. Frequentist Frameworks
+
+
   - assumptions, which things are "given"
-1. likelhood & probability
-1. a "by hand" type example
+
+
+## Likelihood and probability
+
+a "by hand" type example
+
+
 1. priors - how to pick what they mean - why
   - sampling - try out some values and see what you get
 1. CIs
