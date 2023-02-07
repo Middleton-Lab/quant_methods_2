@@ -19,7 +19,7 @@ format:
 
 ## Setup
 
-Throughout this module, we will use an array of packages. Some of these are on CRAN and some are not (yet). We will also need some helper software tools. Before you begin, make sure that both R and RStudio are updated to their latest versions.
+Throughout this module, we will use an array of packages. Some of these are on CRAN and some are not. We will also need some helper software tools. Before you begin, make sure that both R and RStudio are updated to their latest versions.
 
 
 ### Command lines tools
@@ -28,7 +28,7 @@ Because the packages that do Bayesian sampling have to compile their code for th
 
 *For Windows*: Install [RTools for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
 
-- You will want RTools version 4.2, because that matches the latest ".1" version of R.
+- You will want RTools version 4.2, because that matches the latest "point" version of R.
 - By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that let us know).
 
 *For MacOS*: Install the Xcode Command Line Tools
@@ -47,12 +47,18 @@ These are definitely ones we will use. There may be others, but we can install t
 
 Use `install.packages()` to install these packages:
 
+- `coda`
 - `rstan`
 - `brms`
 - `bayesplot`
 - `posterior`
 - `tidybayes`
 - `HDInterval`
+
+```
+install.packages(c("coda", "rstan", "brms", "bayesplot",
+                   "posterior", "tidybayes", "HDinterval"))
+```
 
 *Packages not available from CRAN*:
 
@@ -167,6 +173,8 @@ quantile(exp2, probs = c(0.025, 0.5, 0.975))
 
 Beta(0.5, 0.5) Prior
 
+What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
+
 ```{r}
 exp1 <- rbeta(1e4, 14.5, 4.5)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
@@ -175,3 +183,5 @@ exp2 <- rbeta(1e4, 26.5, 10.5)
 median(exp2)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
+
+About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people (e.g., athletes).
