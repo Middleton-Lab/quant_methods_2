@@ -52,6 +52,7 @@ Use `install.packages()` to install these packages:
 - `bayesplot`
 - `posterior`
 - `tidybayes`
+- `HDInterval`
 
 *Packages not available from CRAN*:
 
@@ -103,7 +104,7 @@ median(logistic(a))
 
 As stan starts compiling, you will get a warning about `Declaration of arrays by placing brackets after a variable name...`. You can ignore this warning. There is a code fix needed in `ulam()` that hasn't been made yet in the main branch. It doesn't impact the sampling.
 
-We will learn what all these lines mean (`ulam`, `alist`, etc.) soon. Don't worry about those for now. You will hopefully recognize that the last line outputs the median of the logistic transformation of `a`, a value which is very close to the proportion of carp that "passed" from our Unit 1 lectures (0.127). 
+We will learn what all this code (`ulam`, `alist`, etc.) means soon. Don't worry about those for now. You will hopefully recognize that the last line outputs the median of the logistic transformation of `a`, a value which is very close to the proportion of carp that "passed" from our Unit 1 lectures (0.127). 
 
 Congratulations, you have just run a Bayesian model (a logistic regression to be more precise). Although we are perhaps getting a bit ahead of ourselves, it's nice to know that the machinery works.
 
@@ -128,8 +129,49 @@ a "by hand" type example
 
 
 
+Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.
 
+*Bufo bufo*
 
+> Toads were placed in the middle of a circular tank (60 em diameter) with a small plastic balloon wrapped around their head (expt 1), or a small wet piece of paper stuck on their mouth and  nose (expt 2). They were given 10 successive trials; in each trial the first forepaw used in attempts to remove the annoyance was recorded.
 
+Exp 1: 14 Right 4 left
+Exp 2: 26 Right 10 left
 
+```{r}
+chisq.test(c(14, 4))
+chisq.test(c(26, 10))
+```
 
+Beta(1, 1) Prior
+
+```{r}
+exp1 <- rbeta(1e4, 15, 5)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+exp2 <- rbeta(1e4, 15, 5)
+median(exp2)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
+
+Beta(5, 5) Prior
+
+```{r}
+exp1 <- rbeta(1e4, 19, 9)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+exp2 <- rbeta(1e4, 31, 15)
+median(exp2)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
+
+Beta(0.5, 0.5) Prior
+
+```{r}
+exp1 <- rbeta(1e4, 14.5, 4.5)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+exp2 <- rbeta(1e4, 26.5, 10.5)
+median(exp2)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
