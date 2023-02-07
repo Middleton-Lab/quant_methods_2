@@ -13,6 +13,7 @@ format:
     show-slide-number: all
     link-external-newwindow: true
 bibliography: Bayes.bib
+csl: evolution.csl
 ---
 
 ## This week
@@ -105,8 +106,8 @@ $f(y)$ the probability of observing the data across all possible $\beta$, which 
 
 ::: {.incremental}
 - Historically, only outcomes with a few distributions were feasible (Gaussian, Binomial) for hand-calculations.
-- With "fast computing machines" [@Metropolis1953-lm], we can just sample (Monte Carlo) from the posterior directly
-  - Metropolis algorithm [@Metropolis1953-lm]
+- With "fast computing machines" [@Metropolis1953-tc], we can just sample (Monte Carlo) from the posterior directly
+  - Metropolis algorithm [@Metropolis1953-tc]
   - Metropolis-Hastings algorithm [@Hastings1970-gr]
   - Gibbs sampling [@Geman1984-bc]
   - Hamiltonian Monte Carlo [@Duane1987-cd; @Neal1994-gb; @Hoffman2014-vv]
