@@ -34,6 +34,14 @@ csl: evolution.csl
 6. Summarizing the posterior
 
 
+## Modeling Tree Size
+
+- Age
+- Height
+
+![](https://openoregon.pressbooks.pub/app/uploads/sites/9/2016/09/dbh-definition.jpg)
+
+
 ## Model specification
 
 How will we model the relationship between the outcome and predictor(s)?
@@ -44,16 +52,20 @@ $$DBH \sim \beta_0 + \beta_1 age$$
 
 $$\log DBH \sim \beta_0 + \beta_1 \log height$$
 
+. . .
+
+These look much like R formula statements.
+
 
 ## Distribution of the *outcome* variable
 
 How will we model the distribution of the outcome variable?
 
-- Normal (Gaussian)
-- Binomial / Bernoulli
-- Poisson
-- Log Normal
-- Exponential
+- Normal (Gaussian): Majority of biological processes
+- Log-normal: Many biological processes (few large measures)
+- Binomial (Bernoulli): Counts
+- Poisson: Counts per time or area
+- Exponential: Time-to-event processes
 
 
 ## Relationships between distributions
@@ -73,6 +85,8 @@ $\mu$ is the sum of $\beta_0$ and $\beta_1$ times $age$:
 
 $$\mu  = \beta_0 + \beta_1 age$$
 
+. . .
+
 or combined:
 
 $$DBH \sim Normal(\beta_0 + \beta_1 age, \sigma)$$
@@ -84,9 +98,11 @@ What are the distributions and ranges of plausible values for the predictors ($\
 
 . . .
 
-- $\beta_0$: probably positive (DBH at age = 0), use domain knowledge
-- $\beta_1$: probably positive (DBH increases with age), use domain knowledge
-- $\sigma$: *must* be positive, probably a small number unless there is a lot of variation in the samples
+- $\beta_0$: probably $\geq$ 0 (DBH at age = 0), use domain knowledge
+- $\beta_1$: certainly $\geq$ 0 (DBH increases with age), use domain knowledge
+- $\sigma$: *must* be $\geq$ 0, probably a small number unless there is a lot of variation in the samples
+
+. . .
 
 Later we will test these with prior predictive checks.
 
@@ -105,8 +121,18 @@ $f(y)$ the probability of observing the data across all possible $\beta$, which 
 ## Sampling to avoid intractable math
 
 ::: {.incremental}
-- Historically, only outcomes with a few distributions were feasible (Gaussian, Binomial) for hand-calculations.
-- With "fast computing machines" [@Metropolis1953-tc], we can just sample (Monte Carlo) from the posterior directly
+- Historically, only outcomes with a few distributions were feasible (Gaussian, Binomial, Poisson) for hand-calculations.
+    - Conjugate priors
+- Beta prior for a Binomial model has a Beta posterior
+    - Similar for other distributions in the "binomial family"
+- Normal (Gaussian) prior $\rightarrow$ Normal posterior
+:::
+
+
+## Sampling to avoid intractable math
+
+::: {.incremental}
+- With "fast computing machines" [@Metropolis1953-tc], we can sample (Monte Carlo) from the posterior directly
   - Metropolis algorithm [@Metropolis1953-tc]
   - Metropolis-Hastings algorithm [@Hastings1970-gr]
   - Gibbs sampling [@Geman1984-bc]

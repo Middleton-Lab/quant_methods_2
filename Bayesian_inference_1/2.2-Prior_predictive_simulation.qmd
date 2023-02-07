@@ -30,6 +30,7 @@ ggplot2::theme_set(theme_cowplot())
 
 library(truncnorm)
 
+library(rethinking)
 library(cmdstanr)
 library(posterior)
 library(bayesplot)
@@ -53,8 +54,8 @@ Useful for working through new techniques
 ## Simulate DBH for 100 trees
 
 - Log Normal distribution
-  - log mean = 2.5
-  - log sd = 0.5
+  - log mean = 2.5 (12.2 cm mean)
+  - log sd = 0.5 (1.6 cm standard deviation)
 
 ```{r}
 #| echo: true
@@ -193,7 +194,7 @@ ggplot(tibble(DBH), aes(DBH)) +
 
 ## Simulate with LogNormal #1
 
-- Start with very small values for prior standard deviations
+- Start with small values for prior standard deviations
 
 ```{r}
 #| echo: true
@@ -203,8 +204,8 @@ Sim_data <- purrr::map(
   .f = function(ii) {
     tibble(ID = ii,
            DBH = rlnorm(100,
-                        mean = rnorm(1, 2, 0.01),
-                        sd = rtruncnorm(1, mean = 1, sd = 0.01, a = 0)))
+                        mean = rnorm(1, 1, 0.01),
+                        sd = rtruncnorm(1, mean = 1, sd = 0.1, a = 0)))
   }) |> 
   list_rbind()
 ```
@@ -221,7 +222,7 @@ ggplot(tibble(DBH), aes(DBH)) +
 
 ## Simulate with LogNormal #2
 
-- Shift the mean right and relax the spread
+- Shift the mean right
 - Spread the standard deviation
 
 ```{r}
@@ -256,39 +257,25 @@ $$\mu \sim Normal(3, 0.2)$$
 $$\sigma \sim HalfNormal(1, 0.25)$$
 
 
-## Stan model
+## Define and sample the model
 
-```{{stan}}
-data {
-  int<lower=0> N;  // Number of observations
-  vector[N] DBH;   // Vector of DBH values
-}
-
-parameters {
-  real mu;             // logmean
-  real<lower=0> sigma; // logsd
-}
-
-model {
-  DBH ~ lognormal(mu, sigma);
-
-  mu ~ normal(3, 0.2);     // Prior for mu
-  sigma ~ normal(1, 0.25); // Prior for sigma
-}
-```
-
-
-## Sampling the model
+`rethinking::ulam()` converts model statements to stan code and samples the model.
 
 ```{r}
 #| echo: true
-mod <- cmdstan_model("DBH.stan")
-fm <- mod$sample(data = list(DBH = DBH, N = length(DBH)),
-                 chains = 4,
-                 iter_sampling = 5000,
-                 iter_warmup = 5000,
-                 refresh = 0,
-                 seed = 3437492)
+#| output-location: slide
+
+fm <- ulam(
+  alist(
+    DBH ~ lognormal(mu, sigma),
+    mu ~ normal(3, 0.2),
+    sigma ~ normal(1, 0.25)
+  ),
+  data = list(DBH = DBH),
+  chains = 4, cores = 4,
+  iter = 5e3,
+  seed = 4353479
+)
 ```
 
 
@@ -296,24 +283,60 @@ fm <- mod$sample(data = list(DBH = DBH, N = length(DBH)),
 
 ```{r}
 #| echo: true
-fm$summary()
+summary(fm)
 ```
 
-- Median of the LogNormal is 2.55
-- Median standard deviation is 0.578
+- Median of the LogNormal is ~2.5
+- Median standard deviation is ~0.5
 
 
-## Median posterior distribution
+## Posterior predictive check
 
-We actually have 20,000 posterior distributions.
+We have 10,000 posterior distributions.
 
 ```{r}
+set.seed(3462384)
+post <- extract.samples(fm)
+
+Sim_post <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = seq(1, 50, length.out = 100),
+           d = dlnorm(x = DBH, 
+                      mean = post$mu[ii],
+                      sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+
+
 ggplot(tibble(DBH), aes(DBH)) +
   geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "#2D5DA1") +
-  geom_line(data = tibble(x = seq(0, 50, length.out = 200),
-                          Density = dlnorm(x, 2.55, 0.578)),
-            aes(x, Density),
-            linewidth = 1)
+  geom_line(data = Sim_post, aes(DBH, d, group = ID),
+            linewidth = 1,
+            alpha = 0.5)
+```
+
+
+## Prior distributions
+
+```{r}
+set.seed(623469)
+Sim_data <- purrr::map(
+  .x = 1:40,
+  .f = function(ii) {
+    tibble(ID = ii,
+           DBH = rlnorm(100,
+                        mean = rnorm(1, 3, 0.2),
+                        sd = rtruncnorm(1, mean = 1, sd = 0.25, a = 0)))
+  }) |> 
+  list_rbind()
+
+ggplot(tibble(DBH), aes(DBH)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "#2D5DA1") +
+  geom_line(data = Sim_data, aes(DBH, group = ID),
+            stat = "density", alpha = 0.5, linewidth = 1)
+
 ```
 
 

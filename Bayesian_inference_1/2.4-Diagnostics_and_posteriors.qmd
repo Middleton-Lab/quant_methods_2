@@ -53,6 +53,7 @@ library(rethinking)
 - Prior prediction
 - Sampling
 - Check that sampling was "good"
+- Posterior prediction
 
 
 ## Use our simulated data
@@ -133,7 +134,9 @@ traceplot_ulam(fm)
 ```
 
 
-## Rank histogram plot [@Vehtari2021-yi]
+## Rank histogram plot 
+
+Shown by Vehtari et al. [-@Vehtari2021-yi] to be better than trace plots.
 
 ```{r}
 #| echo: true
@@ -166,11 +169,12 @@ precis(fm)
   - We have ~8000
 - Standard deviations are often lower than other parameters
 - Be worried if you have 10,000 samples but `n_eff` is small
-  - Usually accompanied by lots of warnings and high $\hat{R}$
+  - Usually accompanied by lots of warnings and high $\widehat{R}$
 
 
-## `Rhat4` [@Vehtari2021-yi]
+## `Rhat4`
 
+- Improved version of the Gelman-Rubin $\widehat{R}$ described by Vehtari et al. [-@Vehtari2021-yi]
 - Approaches 1 from above as the chains converge to the same distribution
 - Be concerned if this is more than \~1.01
   - High values (>1.5) are usually accompanied by lots of warnings and low effective sample size.
@@ -199,8 +203,8 @@ post <- extract.samples(fm) |>
 head(post)
 ```
 
-- Samples are simultaneous at each iteration
-  - Important later when doing math on samples
+- Samples are simultaneous at each iteration for each model parameter
+  - Important when doing math on samples
 
 
 ## Prior vs. Posterior: $\mu$
@@ -245,7 +249,7 @@ ggplot() +
 
 - Divide the samples into percentiles
 
-89% credible interval:
+89% percentile interval:
 
 ```{r}
 #| echo: true
@@ -268,7 +272,7 @@ HPDI(post$mu)
 
 ## Quantiles vs. HPDIs
 
-(Usually) identical for symmetrical distributions:
+(Usually nearly) identical for symmetrical distributions:
 
 ```{r}
 q <- quantile(post$mu, probs = c(0.055, 0.945)) |> as.numeric()
@@ -281,7 +285,8 @@ ggplot(post, aes(mu)) +
     annotate(geom = "text", label = "89% quantile", color = "#FA7A00",
            x = 45, y = 1000, size = 8, hjust = 0) +
   annotate(geom = "text", label = "89% HDPI", color = "#56418C",
-           x = 45, y = 800, size = 8, hjust = 0)
+           x = 45, y = 800, size = 8, hjust = 0) +
+  labs(y = "Count", x = expression(mu))
 
 ```
 
@@ -301,7 +306,8 @@ ggplot(post, aes(sigma)) +
   annotate(geom = "text", label = "89% quantile", color = "#FA7A00",
            x = 4, y = 1000, size = 8, hjust = 0) +
   annotate(geom = "text", label = "89% HDPI", color = "#56418C",
-           x = 4, y = 800, size = 8, hjust = 0)
+           x = 4, y = 800, size = 8, hjust = 0) +
+  labs(y = "Count", x = expression(sigma))
 ```
 
 
@@ -310,6 +316,7 @@ ggplot(post, aes(sigma)) +
 - Use HPDIs if you can.
   - `rethinking::HPDI()`
   - `HDInterval::hdi()`
+  - `coda::HPDinterval()`
 - Equivalent for symmetrical (e.g., Gaussian) distributions
 - Better represent the posterior for asymmetrical distributions
 
