@@ -54,10 +54,12 @@ Use `install.packages()` to install these packages:
 - `posterior`
 - `tidybayes`
 - `HDInterval`
+- `truncnorm`
 
 ```
 install.packages(c("coda", "rstan", "brms", "bayesplot",
-                   "posterior", "tidybayes", "HDinterval"))
+                   "posterior", "tidybayes", "HDinterval",
+                   "truncnorm"))
 ```
 
 *Packages not available from CRAN*:
