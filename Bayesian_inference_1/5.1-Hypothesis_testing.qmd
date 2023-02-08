@@ -42,7 +42,8 @@ color_scheme_set(scheme = "red")
 3. Importance Sampling and PSIS-LOOCV
 4. Model averaging
 
-## Caution
+
+## Decisions
 
 
 ## Hypothesis tests
@@ -108,7 +109,7 @@ ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
 ## Bayesian model
 
 - Return separate intercepts with `- 1`
-- Note *a lot* of samples
+- Note *a lot* of samples are necessary for stable Bayes factors [@Schad2022-dc]
 
 ```{r}
 #| echo: true
@@ -171,6 +172,10 @@ Also:
 
 
 ## Bayes factors
+
+Schad, D. J., B. Nicenboim, P.-C. Bürkner, M. Betancourt, and S. Vasishth. 2022. Workflow techniques for the robust use of Bayes factors. Psychol. Methods, doi: 10.1037/met0000472.
+
+> "While Bayes factors provide an immediate approach to hypothesis testing, they are highly sensitiveto details of the data/model assumptions."
 
 ```{r}
 #| echo: true
