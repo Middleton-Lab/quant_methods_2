@@ -1,5 +1,5 @@
 ---
-title: "Problem Set 1"
+title: "Problem Set 2"
 author:
   - Your Name Here
 format: 
@@ -12,8 +12,17 @@ format:
 
 ```{r}
 #| echo: false
+#| message: false
 
-#Required files for this problem set:
+library(tidyverse)
+library(readxl)
+library(rethinking)
+library(cowplot)
+
+theme_set(theme_cowplot())
+
+# Required files for this problem set:
+#   - Silver_fir.xlsx
 
 ```
 
@@ -31,5 +40,428 @@ format:
     - show a couple sampling steps by hand
 
 
+## Adaptation to drought stress in Silver Fir
+
+The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*. We used this dataset in *Quantitative Methods 1* to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
+
+![](https://i.imgur.com/0KwbeIe.jpg)
+
+- Load the data in the file `Silver_fir.xlsx`.
+    - NA values are coded with "NA"
+- Subset only populations "CHE" and "LAC"
+- Select only the columns `population` and `ht99mm`
+- Drop any rows with NA
+
+```{r}
+# FIXME
+M <- read_excel("../data/Silver_fir.xlsx", na = "NA") |> 
+  filter(population %in% c("LAC", "CHE")) |> 
+  select(population, ht99mm) |> 
+  drop_na()
+dim(M)
+```
+
+You should have 512 rows remaining in two columns. Each row represents one tree measured in 1999.
+
+Split the data in two: one for CHE and one for LAC (for simplicity, call these opbjects `CHE` and `LAC`).
+
+We will model these separately.
+
+```{r}
+# FIXME
+CHE <- M |> filter(population == "CHE")
+LAC <- M |> filter(population == "LAC")
+```
+
+Starting with the CHE population:
+
+- Calculate the mean and median of `ht99mm`
+- Plot a histogram of `ht99mm`
+- Add the mean and median as vertical lines on the density plot.
+
+```{r}
+# FIXME
+
+ss <- tibble(
+  Mean = mean(CHE$ht99mm),
+  Median = median(CHE$ht99mm)) |> 
+  pivot_longer(cols = everything(),
+               values_to = "Measure",
+               names_to = "Mean_Median")
+
+ss
+
+ggplot() +
+  geom_histogram(data = CHE, aes(ht99mm), bins = 30, fill = "goldenrod") +
+  geom_vline(data = ss, aes(xintercept = Measure, color = Mean_Median),
+             linewidth = 1) +
+  scale_color_manual(values = c("darkblue", "darkred"), name = NULL)
+```
+
+Based on the values of the mean and median, do these data seem acceptable to model the mean height as normally distributed?
+
+> Yes, seems fine. The mean and median are very close to one another (202 vs. 200).
+
+Note that there are formal tests of normality, but they are all pretty flawed, not working very well for either large or small datasets. We can use prior predictive simulation to determine if a normal distribution seems good enough.
 
 
+### Setting up an `ulam()` model
+
+The basic template of an `ulam()`^[So named after [Stanisław Ulam](https://en.wikipedia.org/wiki/Stanislaw_Ulam), inventor of Monte Carlo sampling and namesake of the Stan language.] model is:
+
+```
+ulam(
+  alist(
+    Distribution for outcome variable,
+    Model statement (if necessary),
+    Prior 1,
+    Prior 2,
+    etc.
+  ),
+  data = Data,
+  chains = 4,
+  iter = 5e3
+)
+```
+
+`ulam()` is the call to the `rethinking` function of the same name. This function converts the code contained within `alist()` into stan code. An `alist()` is a spacial kind of un-evaluated list in R. You don't need to know anything more about it than it's the way that models are specified in `ulam()`. It's elements are separated by commas.
+
+The first line in the call to `alist()` the is distribution for the outcome variable. The second is the model statement. And the remaining lines are the priors. It's is not required that things go in this order or that everything fits on one line.
+
+The other parameter options control data and sampling. We will If you have a multicore computer (most are these days), you can set `cores = 4` to sample all the chains in parallel. Here we are sampling 4 chains for 5,000 total iterations. By default, half of the iterations are used for warmup. So we have 10,000 post-warmup samples.
+
+Here is a basic model to estimate a mean for height. When it compiles, you will see the message `Removing one or more character or factor variables`. Stan doesn't want any non-numeric variables, so `ulam()` drops those when preparing data for stan. This does not impact sampling.
+
+```{r}
+ulam(
+  alist(
+    ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(100, 10),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = CHE
+)
+```
+
+Inside `alist()`, the lines are:
+
+1. Distributional definition for `ht99mm`: a normal distribution with a mean `mu` and standard deviation `sigma`. Using `normal()` would also work here.
+    - `mu` and `sigma` are estimated from the data.
+2. Prior for `mu`: normal distribution with a mean of 100 and standard deviation of 10
+3. Prior for `sigma`: half-normal distribution with a mean of 0 and standard deviation of 5
+
+Note that there is no model statement in this case. Because we are only estimating a single mean, we can just put in a prior for `mu` directly. Alternately, we could make an explicit intercept like this:
+
+```{r}
+ulam(
+  alist(
+    ht99mm ~ dnorm(mu, sigma),
+    mu <- a,
+    a ~ dnorm(100, 10),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = CHE
+)
+```
+
+Here the second line says that `mu` from the line `ht99mm ~ dnorm(mu, sigma)` is a function of `a`. You use `<-` to define a functional relationship rather than `~` which defines distributions. In line 3, a prior for `a` is specified instead of `mu`. 
+
+If there were other predictors, we could add them: `mu <- a + bx`. 
+
+### Prior prediction with `ulam()`
+
+In the lectures we showed you how to carry out prior prediction manually. This is a good approach for learning and works very well for uncomplicated models. Although modeling a mean is straightforward, we can use it to learn another way to do prior predictive simulation using `ulam()`.
+
+There is an `ulam()` option `sample_prior`, which, when set to `TRUE`, will ignore the data and sample from the prior only. This makes prior prediction very easy: you can set up the model and prospective priors, and then sample directly. When you are doing more complicated linear models or multilevel models, this is especially helpful.
+
+Let's add sample the prior and save the output to `PP`. This model object is not especially interesting, but the samples it contains for `mu` and `sigma` will let us plot the prior predictive distributions.
+
+```{r}
+PP <- ulam(
+  alist(
+    ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(100, 10),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = CHE,
+  sample_prior = TRUE
+)
+```
+
+Next we extract the samples from the posterior. This returns a list with `mu` and `sigma` that we convert into a `data.frame()`.
+
+```{r}
+post <- extract.samples(PP) |> as.data.frame()
+str(post)
+```
+
+We can use these samples to simulate datasets from the specified distributions. The code below generates 20 sets of normal density plots in the range of 0 to 500 drawn from the first 20 prior prediction:
+
+```{r}
+set.seed(4468623)
+PP_sim <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           ht99mm_sim = seq(0, 500, length.out = 200),
+           density = dnorm(ht99mm_sim,
+                           mean = post$mu[ii],
+                           sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+head(PP_sim)
+```
+
+We can plot these along with our observed data to see if we get reasonable values for `ht99mm`. What we are looking for is that the centers and spreads of the simulated values are in the right range. We don't need them to be exact (actually you don't want this at all).
+
+We fix the x-axis for the observed data in the range 0 to 500 to match the simulated data. This will result in warnings from ggplot that points are dropped. This is okay, because we want to have matching axes.
+
+```{r}
+p_obs <- ggplot(CHE, aes(ht99mm)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 fill = "#2D5DA1", bins = 30) +
+  xlim(c(0, 500))
+p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
+  geom_line()
+cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
+```
+
+Looking at the plot, it looks like the means are probably way too low and the spreads are too narrow. The height of the `density` on the y-axis is not very useful as a metric. Occasionally you will get a distribution that has high density on one region and flattens out all the others. You could pick a different set of prior distributions or a different seed if you want.
+
+In the chunk below, first change the value for the priors to something completely unrealistic (mean of 10) to see the effect on prior prediction. Then try some other combinations of values until you get a set of priors that you think will work.
+
+There is no one correct answer. Generally with Bayesian inference, the priors are helpful in guiding the sampler to parameter estimates. You don't want the prior to determine the posterior. Later, we'll do some sensitivity tests to make sure that the prior does not have undue influence on the posterior.
+
+```{r}
+# FIXME
+PP <- ulam(
+  alist(
+    ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(200, 75),
+    sigma ~ dhalfnorm(0, 25)
+  ),
+  data = CHE,
+  sample_prior = TRUE
+)
+
+post <- extract.samples(PP) |> as.data.frame()
+
+set.seed(313123)
+PP_sim <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           ht99mm_sim = seq(0, 500, length.out = 200),
+           density = dnorm(ht99mm_sim,
+                           mean = post$mu[ii],
+                           sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+
+p_obs <- ggplot(CHE, aes(ht99mm)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 fill = "#2D5DA1", bins = 30) +
+  xlim(c(0, 500))
+p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
+  geom_line()
+cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
+```
+
+
+### Sampling and posterior prediction
+
+Once you have the priors where you want, it's time to turn on sampling with the data. Copy the whole chunk above into the one below.
+
+Either delete the `sample_prior` option or set it to `FALSE`. Then add the following options:
+
+- `iter = 5000` to sample 5000 iterations
+- `refresh = 1000` to reduce the verbosity of the stan sampling output
+- `chains = 4` to use 4 parallel chains
+
+If you have a multicore machine, you can also use `cores = 4`. But this model should sample really fast, so it's not necessary.
+
+```{r}
+#| warning: false
+# FIXME
+fm <- ulam(
+  alist(
+    ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(200, 75),
+    sigma ~ dhalfnorm(0, 25)
+  ),
+  data = CHE,
+  iter = 5000,
+  refresh = 1000,
+  chains = 4, cores = 4
+)
+
+post <- extract.samples(fm) |> as.data.frame()
+
+set.seed(313123)
+PP_sim <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           ht99mm_sim = seq(0, 500, length.out = 200),
+           density = dnorm(ht99mm_sim,
+                           mean = post$mu[ii],
+                           sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+
+p_obs <- ggplot(CHE, aes(ht99mm)) +
+  geom_histogram(aes(y = after_stat(density)),
+                 fill = "#2D5DA1", bins = 30) +
+  xlim(c(0, 500))
+p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
+  geom_line()
+cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
+```
+
+Use `summary()` to summarize the fit model.
+
+```{r}
+summary(fm)
+```
+
+Does everything look okay from a diagnostics standpoint (`n_eff` and `Rhat`)?
+
+> Yes, it seems fine. There are a lot of samples. Rhat is 1 for all variables. There are no warnings
+
+What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` function from rethinking.
+
+```{r}
+# FIXME
+
+HPDI(post$mu)
+HPDI(post$sigma)
+```
+
+
+## Lather, rinse, repeat
+
+Repeat the steps above with the `LAC` dataset for only the "LAC" population. You can/should copy the code from above and modify rather than starting from scratch.
+
+We will do some things the same and some different.
+
+- Calculate mean and median. Make the histogram with vertical lines.
+- Instead of using a normal distribution to model `ht99mm`, use a log-normal. This will require you to modify the priors and histogram code.
+    - Use a normal distribution for the standard deviation of the log-normal distribution (see lecture 2.2) with a mean of 0.5 to start.
+- Priors for log-normal distributions can be really difficult to figure out. As long as you get close, there is enough data here to get the posterior right. Your posterior predictive check will tell you.
+
+Make the initial plots here: 
+
+```{r}
+# FIXME
+
+ss <- tibble(
+  Mean = mean(LAC$ht99mm),
+  Median = median(LAC$ht99mm)) |> 
+  pivot_longer(cols = everything(),
+               values_to = "Measure",
+               names_to = "Mean_Median")
+
+ss
+
+ggplot() +
+  geom_histogram(data = LAC, aes(ht99mm), bins = 30, fill = "goldenrod") +
+  geom_vline(data = ss, aes(xintercept = Measure, color = Mean_Median),
+             linewidth = 1) +
+  scale_color_manual(values = c("darkblue", "darkred"), name = NULL)
+```
+
+Do the prior prediction here:
+
+```{r}
+# FIXME
+PP <- ulam(
+  alist(
+    ht99mm ~ dlnorm(mu, sigma),
+    mu ~ dnorm(5, 0.1),
+    sigma ~ dnorm(0.5, 0.1)
+  ),
+  data = LAC,
+  sample_prior = TRUE
+)
+
+post <- extract.samples(PP) |> as.data.frame()
+
+set.seed(313123)
+PP_sim <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           ht99mm_sim = seq(3, 7, length.out = 200),
+           density = dlnorm(ht99mm_sim,
+                           mean = post$mu[ii],
+                           sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+
+p_obs <- ggplot(LAC, aes(log(ht99mm))) +
+  geom_histogram(aes(y = after_stat(density)),
+                 fill = "#2D5DA1", bins = 30) +
+  xlim(c(3, 7))
+p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
+  geom_line()
+cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
+```
+
+Do the sampling and posterior predictive check here:
+
+```{r}
+#| warning: false
+# FIXME
+fm <- ulam(
+  alist(
+    ht99mm ~ dlnorm(mu, sigma),
+    mu ~ dnorm(5, 0.1),
+    sigma ~ dnorm(0.5, 0.1)
+  ),
+  data = LAC,
+  iter = 5000,
+  refresh = 1000,
+  chains = 4, cores = 4
+)
+
+post <- extract.samples(fm)
+
+set.seed(313123)
+PP_sim <- purrr::map(
+  .x = 1:20,
+  .f = function(ii) {
+    tibble(ID = ii,
+           ht99mm_sim = seq(3, 7, length.out = 200),
+           density = dnorm(ht99mm_sim,
+                           mean = post$mu[ii],
+                           sd = post$sigma[ii]))
+  }) |> 
+  list_rbind()
+
+p_obs <- ggplot(LAC, aes(log(ht99mm))) +
+  geom_histogram(aes(y = after_stat(density)),
+                 fill = "#2D5DA1", bins = 30) +
+  xlim(c(3, 7))
+p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
+  geom_line()
+cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
+```
+
+Use `summary()` to summarize the fit model.
+
+```{r}
+summary(fm)
+```
+
+Does everything look okay from a diagnostics standpoint (`n_eff` and `Rhat`)?
+
+> Yes, it seems fine. There are a lot of samples. Rhat is 1 for all variables. There are no warnings
+
+What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` function from rethinking.
+
+```{r}
+# FIXME
+
+HPDI(post$mu)
+HPDI(post$sigma)
+```
