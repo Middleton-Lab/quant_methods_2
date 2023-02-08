@@ -147,7 +147,7 @@ The results of the experiments were:
 1. Experiment 1: 14 toads showed right preference and 4 left
 2. Experiment 2: 26 toads showed right and 10 left
 
-These authors used a $\chi^2$ test of equal proportions to tests whether these observations deviated from random (i.e., equal probability of right or left).
+These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness).
 
 ```{r}
 # Experiment 1
