@@ -29,9 +29,10 @@ csl: evolution.csl
 1. Model specification
 2. Prior specification
 3. Prior predictive simulation / check
-4. Sampling for the posterior
+4. Sampling
 5. Diagnostics
-6. Summarizing the posterior
+6. Posterior predictive simulation
+7. Summarizing the posterior
 
 
 ## Modeling Tree Size
@@ -52,10 +53,6 @@ $$DBH \sim \beta_0 + \beta_1 age$$
 
 $$\log DBH \sim \beta_0 + \beta_1 \log height$$
 
-. . .
-
-These look much like R formula statements.
-
 
 ## Distribution of the *outcome* variable
 
@@ -73,6 +70,16 @@ How will we model the distribution of the outcome variable?
 <center>
 ![](https://i.stack.imgur.com/sau6I.png)
 </center>
+
+
+## Choosing distributions
+
+Outcome variable distributions *do not* have to match predictor distributions (priors).
+
+- Outcome variables are usually linear models of predictors
+    - Even transformed outcome variables (link functions)
+- Predictors are often normally distributed (but they don't have to be)
+- Review PS 1
 
 
 ## Model statements
@@ -98,8 +105,8 @@ What are the distributions and ranges of plausible values for the predictors ($\
 
 . . .
 
-- $\beta_0$: probably $\geq$ 0 (DBH at age = 0), use domain knowledge
-- $\beta_1$: certainly $\geq$ 0 (DBH increases with age), use domain knowledge
+- $\beta_0$: $\geq$ 0 (DBH at age = 0), use domain knowledge
+- $\beta_1$: $\geq$ 0 (DBH increases with age), use domain knowledge
 - $\sigma$: *must* be $\geq$ 0, probably a small number unless there is a lot of variation in the samples
 
 . . .
