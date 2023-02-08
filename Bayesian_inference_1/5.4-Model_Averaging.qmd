@@ -1,6 +1,6 @@
 ---
 title: "Model averaging"
-subtitle: "Why choose just one model?"
+subtitle: "Why choose just one model for prediction?"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -17,7 +17,7 @@ bibliography: Bayes.bib
 csl: evolution.csl
 ---
 
-## This week
+## Model averaging
 
 ```{r}
 #| label: setup
@@ -37,6 +37,23 @@ library(bayesplot)
 color_scheme_set(scheme = "red")
 ```
 
+- Also called "ensemble prediction"
+- Fit several potential models
+- Don't choose the "best"
+    - Make predictions by weighting on their relative support
+
+
+## Model weights
+
+- WAIC (lecture 5.2)
+- PSIS-LOOCV (lecture 5.3)
+- Stacking of means [@Yao2018-zi]
+- Bayesian model averaging (BMA)
+- Pseudo-BMA (with ot without Bayesian bootstrap)
+
+[Description in the loo package](https://mc-stan.org/loo/articles/loo2-weights.html)
+
+
 ## Naked Mole Rats
 
 ```{r}
@@ -49,14 +66,6 @@ M <- abdData::MoleRats |>
   mutate(Caste = if_else(Caste == "worker", "Worker", "NonWorker"),
          Caste = factor(Caste))
 
-ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
-  geom_point(size = 4) +
-  scale_color_manual(values = wes_palette("Cavalcanti1")) +
-  theme(legend.justification = c(0, 1),
-        legend.position = c(0.05, 1)) +
-  labs(x = "ln Body Mass (g)",
-       y = "ln Daily Energy Expenditure (kJ)")
-
 fm1 <- brm(Energy ~ 1, data = M,
            prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
 fm2 <- brm(Energy ~ Caste, data = M,
@@ -68,5 +77,85 @@ fm4 <- brm(Energy ~ Mass + Caste, data = M,
 fm5 <- brm(Energy ~ Mass * Caste, data = M,
            prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
 
-pp_average(fm1, fm2, fm3, fm4, fm5)
+M <- bind_cols(M, pp_average(fm1, fm2, fm3, fm4, fm5,
+                             weights = "loo"))
 ```
+
+
+## Comparison of model weights
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+mw1 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "waic")
+mw2 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "loo")
+mw3 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "stacking")
+mw4 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "pseudobma",  BB = FALSE)
+mw5 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "pseudobma")
+
+tibble(Model = 1:5,
+       WAIC = mw1,
+       LOO = mw2,
+       Stacking = mw3,
+       PseudoBMA = mw4,
+       `PseudoBMA + BB` = mw5) |> 
+  knitr::kable(digits = 2)
+```
+
+
+## Predicted for observed data
+
+```{r}
+ggplot(M) +
+  geom_segment(aes(x = Mass, xend = Mass,
+                   y = Energy, yend = Estimate,
+                   color = Caste), alpha = 0.5) +
+  geom_point(aes(x = Mass, y = Energy, color = Caste),
+             size = 3, alpha = 0.5) +
+  geom_point(aes(x = Mass, y = Estimate, color = Caste), size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## Predict for new data
+
+```{r}
+newdata <- crossing(Mass = seq(3.8, 5.4, length.out = 200),
+                    Caste = levels(M$Caste))
+
+newdata <- bind_cols(newdata,
+                     pp_average(fm1, fm2, fm3, fm4, fm5,
+                                newdata = newdata,
+                                weights = "loo",
+                                probs = c(0.055, 0.945)))
+
+ggplot() +
+  geom_line(data = newdata, aes(x = Mass, y = Estimate, color = Caste)) +
+  geom_ribbon(data = newdata, aes(x = Mass, ymin = Q5.5, ymax = Q94.5,
+                                  fill = Caste), alpha = 0.25) +
+  geom_point(data = M, aes(x = Mass, y = Energy, color = Caste),
+             size = 4) +
+  scale_color_manual(values = wes_palette("Cavalcanti1")) +
+  scale_fill_manual(values = wes_palette("Cavalcanti1")) +
+  theme(legend.justification = c(0, 1),
+        legend.position = c(0.05, 1)) +
+  labs(x = "ln Body Mass (g)",
+       y = "ln Daily Energy Expenditure (kJ)")
+```
+
+
+## Finally: a Bayesian workflow
+
+Gelman, A., A. Vehtari, D. Simpson, C. C. Margossian, B. Carpenter, Y. Yao, L. Kennedy, J. Gabry, P.-C. Bürkner, and M. Modrák. 2020. Bayesian Workflow.
+
+Gabry, J., D. Simpson, A. Vehtari, M. Betancourt, and A. Gelman. 2019. Visualization in Bayesian workflow. J. R. Stat. Soc. Ser. A Stat. Soc. 182:389–402. Wiley.
+
+## References
+
+::: {#refs}
+:::
