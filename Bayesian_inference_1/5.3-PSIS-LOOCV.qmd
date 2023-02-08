@@ -180,3 +180,8 @@ model_weights(fm1, fm2, fm3, fm4, fm5, weights = "loo")|>
   knitr::kable(digits = 2)
 ```
 
+
+## References
+
+::: {#refs}
+:::
