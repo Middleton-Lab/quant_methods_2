@@ -124,11 +124,11 @@ ulam(
 )
 ```
 
-`ulam()` is the call to the `rethinking` function of the same name. This function converts the code contained within `alist()` into stan code. An `alist()` is a spacial kind of un-evaluated list in R. You don't need to know anything more about it than it's the way that models are specified in `ulam()`. It's elements are separated by commas.
+`ulam()` is the call to the `rethinking` function of the same name. This function converts the code contained within `alist()` into stan code. An `alist()` is a special kind of un-evaluated list in R. You don't need to know anything more about it than it's the way that models are specified in `ulam()`. It's elements are separated by commas.
 
-The first line in the call to `alist()` the is distribution for the outcome variable. The second is the model statement. And the remaining lines are the priors. It's is not required that things go in this order or that everything fits on one line.
+The first line in the call to `alist()` the is distribution for the outcome variable. The second is the model statement. And the remaining lines are the priors. It's is not required that things go in this order or that everything fits on one line. It does help to keep the lines in this order just for clarity.
 
-The other parameter options control data and sampling. We will If you have a multicore computer (most are these days), you can set `cores = 4` to sample all the chains in parallel. Here we are sampling 4 chains for 5,000 total iterations. By default, half of the iterations are used for warmup. So we have 10,000 post-warmup samples.
+The other parameter options control data and sampling. We will cover these later. If you have a multicore computer (most are these days), you can set `cores = 4` to sample all the chains in parallel. Here we are sampling 4 chains for 5,000 total iterations. By default, half of the iterations are used for warmup. So we end up with 10,000 post-warmup samples.
 
 Here is a basic model to estimate a mean for height. When it compiles, you will see the message `Removing one or more character or factor variables`. Stan doesn't want any non-numeric variables, so `ulam()` drops those when preparing data for stan. This does not impact sampling.
 
@@ -174,7 +174,7 @@ In the lectures we showed you how to carry out prior prediction manually. This i
 
 There is an `ulam()` option `sample_prior`, which, when set to `TRUE`, will ignore the data and sample from the prior only. This makes prior prediction very easy: you can set up the model and prospective priors, and then sample directly. When you are doing more complicated linear models or multilevel models, this is especially helpful.
 
-Let's add sample the prior and save the output to `PP`. This model object is not especially interesting, but the samples it contains for `mu` and `sigma` will let us plot the prior predictive distributions.
+Let's add `sample_prior` to sample the prior and save the output to `PP`. This model object is not especially interesting, but the samples it contains for `mu` and `sigma` will let us plot the prior predictive distributions.
 
 ```{r}
 PP <- ulam(
@@ -188,6 +188,8 @@ PP <- ulam(
 )
 ```
 
+You will again get the warning `Declaration of arrays by placing brackets...`. You can ignore this warning.
+
 Next we extract the samples from the posterior. This returns a list with `mu` and `sigma` that we convert into a `data.frame()`.
 
 ```{r}
@@ -195,7 +197,7 @@ post <- extract.samples(PP) |> as.data.frame()
 str(post)
 ```
 
-We can use these samples to simulate datasets from the specified distributions. The code below generates 20 sets of normal density plots in the range of 0 to 500 drawn from the first 20 prior prediction:
+We can use these samples to simulate datasets from the specified distributions. The code below generates 20 sets of normal density plots (`dnorm()`) in the range of 0 to 500 drawn from the first 20 prior prediction:
 
 ```{r}
 set.seed(4468623)
@@ -212,9 +214,9 @@ PP_sim <- purrr::map(
 head(PP_sim)
 ```
 
-We can plot these along with our observed data to see if we get reasonable values for `ht99mm`. What we are looking for is that the centers and spreads of the simulated values are in the right range. We don't need them to be exact (actually you don't want this at all).
+We can plot these along with our observed data to see if we get reasonable values for `ht99mm`. What we are looking for is that the centers and spreads of the simulated values are in the right range. We don't need them to be exact (actually you don't want this at all). You want ballpark closeness, not off by orders of magnitude.
 
-We fix the x-axis for the observed data in the range 0 to 500 to match the simulated data. This will result in warnings from ggplot that points are dropped. This is okay, because we want to have matching axes.
+We fix the x-axis for the observed data in the range 0 to 500 to match the simulated data. This will result in warnings from `ggplot()` that points are dropped. This is okay, because we want to have matching x-axes between the two plots.
 
 ```{r}
 p_obs <- ggplot(CHE, aes(ht99mm)) +
@@ -238,7 +240,7 @@ PP <- ulam(
   alist(
     ht99mm ~ dnorm(mu, sigma),
     mu ~ dnorm(200, 75),
-    sigma ~ dhalfnorm(0, 25)
+    sigma ~ dhalfnorm(0, 50)
   ),
   data = CHE,
   sample_prior = TRUE
@@ -275,8 +277,9 @@ Once you have the priors where you want, it's time to turn on sampling with the 
 Either delete the `sample_prior` option or set it to `FALSE`. Then add the following options:
 
 - `iter = 5000` to sample 5000 iterations
-- `refresh = 1000` to reduce the verbosity of the stan sampling output
-- `chains = 4` to use 4 parallel chains
+- `refresh = 2500` to reduce the verbosity of the stan sampling output
+    - You can set `refresh = 0` to not show the sampling iterations at all
+- `chains = 4` to sample 4 independent chains
 
 If you have a multicore machine, you can also use `cores = 4`. But this model should sample really fast, so it's not necessary.
 
@@ -287,11 +290,11 @@ fm <- ulam(
   alist(
     ht99mm ~ dnorm(mu, sigma),
     mu ~ dnorm(200, 75),
-    sigma ~ dhalfnorm(0, 25)
+    sigma ~ dhalfnorm(0, 50)
   ),
   data = CHE,
   iter = 5000,
-  refresh = 1000,
+  refresh = 2500,
   chains = 4, cores = 4
 )
 
@@ -333,23 +336,23 @@ What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` f
 ```{r}
 # FIXME
 
-HPDI(post$mu)
-HPDI(post$sigma)
+HPDI(post$mu, prob = 0.89)
+HPDI(post$sigma, prob = 0.89)
 ```
 
 
-## Lather, rinse, repeat
+## Lather, rinse, repeat for `LAC`
 
 Repeat the steps above with the `LAC` dataset for only the "LAC" population. You can/should copy the code from above and modify rather than starting from scratch.
 
-We will do some things the same and some different.
+We will do some things the same and some differently.
 
 - Calculate mean and median. Make the histogram with vertical lines.
-- Instead of using a normal distribution to model `ht99mm`, use a log-normal. This will require you to modify the priors and histogram code.
-    - Use a normal distribution for the standard deviation of the log-normal distribution (see lecture 2.2) with a mean of 0.5 to start.
-- Priors for log-normal distributions can be really difficult to figure out. As long as you get close, there is enough data here to get the posterior right. Your posterior predictive check will tell you.
+- Instead of modeling `ht99mm` directly, use the natural log transformation.
+    - Another way to do this would be to use a log-normal distribution. However, priors for log-normal distributions can be really difficult to figure out. 
+- The code will look very similar, but the scale of `mu` and `sigma` will be very different from above. You will have to figure out the range in which to simulate data.
 
-Make the initial plots here: 
+Make the initial histogram + mean and median plot here (pre-transformation): 
 
 ```{r}
 # FIXME
@@ -370,15 +373,22 @@ ggplot() +
   scale_color_manual(values = c("darkblue", "darkred"), name = NULL)
 ```
 
-Do the prior prediction here:
+Do the log-transformation here:
+
+```{r}
+LAC <- LAC |> 
+  mutate(log_ht99mm = log(ht99mm))
+```
+
+From here on, use the log-transformed height. Carry out the prior predictive check here:
 
 ```{r}
 # FIXME
 PP <- ulam(
   alist(
-    ht99mm ~ dlnorm(mu, sigma),
-    mu ~ dnorm(5, 0.1),
-    sigma ~ dnorm(0.5, 0.1)
+    log_ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(5, 0.5),
+    sigma ~ dhalfnorm(0.4, 0.1)
   ),
   data = LAC,
   sample_prior = TRUE
@@ -392,18 +402,19 @@ PP_sim <- purrr::map(
   .f = function(ii) {
     tibble(ID = ii,
            ht99mm_sim = seq(3, 7, length.out = 200),
-           density = dlnorm(ht99mm_sim,
+           density = dnorm(ht99mm_sim,
                            mean = post$mu[ii],
                            sd = post$sigma[ii]))
   }) |> 
   list_rbind()
 
-p_obs <- ggplot(LAC, aes(log(ht99mm))) +
+p_obs <- ggplot(LAC, aes(log_ht99mm)) +
   geom_histogram(aes(y = after_stat(density)),
                  fill = "#2D5DA1", bins = 30) +
   xlim(c(3, 7))
 p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
-  geom_line()
+  geom_line() +
+  xlim(c(3, 7))
 cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
 ```
 
@@ -414,13 +425,13 @@ Do the sampling and posterior predictive check here:
 # FIXME
 fm <- ulam(
   alist(
-    ht99mm ~ dlnorm(mu, sigma),
-    mu ~ dnorm(5, 0.1),
-    sigma ~ dnorm(0.5, 0.1)
+    log_ht99mm ~ dnorm(mu, sigma),
+    mu ~ dnorm(5, 0.5),
+    sigma ~ dhalfnorm(0.4, 0.1)
   ),
   data = LAC,
   iter = 5000,
-  refresh = 1000,
+  refresh = 2500,
   chains = 4, cores = 4
 )
 
@@ -438,7 +449,7 @@ PP_sim <- purrr::map(
   }) |> 
   list_rbind()
 
-p_obs <- ggplot(LAC, aes(log(ht99mm))) +
+p_obs <- ggplot(LAC, aes(log_ht99mm)) +
   geom_histogram(aes(y = after_stat(density)),
                  fill = "#2D5DA1", bins = 30) +
   xlim(c(3, 7))
@@ -462,6 +473,6 @@ What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` f
 ```{r}
 # FIXME
 
-HPDI(post$mu)
-HPDI(post$sigma)
+HPDI(post$mu, prob = 0.89)
+HPDI(post$sigma, prob = 0.89)
 ```
