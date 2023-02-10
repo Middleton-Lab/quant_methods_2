@@ -157,25 +157,47 @@ chisq.test(c(14, 4))
 chisq.test(c(26, 10))
 ```
 
+```{r}
+prior_post_beta <- function (a1, b1, a2, b2) {
+  ggplot() +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a1, shape2 = b1)),
+            aes(P, Density), linewidth = 2) +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a2, shape2 = b2)),
+            aes(P, Density), color = "blue", linewidth = 2)
+}
+
+```
+
+
 Beta(1, 1) Prior
 
 ```{r}
+prior_post_beta(1, 1, 16, 6)
+
 exp1 <- rbeta(1e4, 15, 5)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
 
-exp2 <- rbeta(1e4, 15, 5)
-median(exp2)
+
+prior_post_beta(1, 1, 27, 11)
+
+exp2 <- rbeta(1e4, 27, 11)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
 Beta(5, 5) Prior
 
 ```{r}
+prior_post_beta(5, 5, 19, 9)
+
 exp1 <- rbeta(1e4, 19, 9)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
 
+
+prior_post_beta(5, 5, 31, 15)
+
 exp2 <- rbeta(1e4, 31, 15)
-median(exp2)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
@@ -184,11 +206,15 @@ Beta(0.5, 0.5) Prior
 What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
 
 ```{r}
+prior_post_beta(0.5, 0.5, 14.5, 4.5)
+
 exp1 <- rbeta(1e4, 14.5, 4.5)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
 
+
+prior_post_beta(0.5, 0.5, 26.5, 10.5)
+
 exp2 <- rbeta(1e4, 26.5, 10.5)
-median(exp2)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
