@@ -12,6 +12,9 @@ format:
 
 ```{r}
 #| echo: false
+#| message: false
+
+library(tidyverse)
 
 # Required files for this problem set:
 
@@ -218,5 +221,17 @@ exp2 <- rbeta(1e4, 26.5, 10.5)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
-About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people (e.g., a sample of athletes).
+About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people in a sample (e.g., a sample of professional athletes)?
+
+> There is no one correct answer. Beta(3, 15) puts the mean at a little above 0.1. (10%). There is still a lot of mass above 20%, but little beyond 50%.
+
+```{r}
+# FIXME
+ggplot() +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = 3, shape2 = 15)),
+            aes(P, Density), linewidth = 2) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  theme_bw()
+```
 
