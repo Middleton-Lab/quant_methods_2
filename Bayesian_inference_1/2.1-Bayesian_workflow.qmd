@@ -79,8 +79,8 @@ Outcome variable distributions *do not* have to match predictor distributions (p
 - Outcome variables are usually linear models of predictors
     - Even transformed outcome variables (link functions)
 - Predictors are often normally distributed (but they don't have to be)
-- Review PS 1
-
+    - Many biological processes result in normal distributions
+  
 
 ## Model statements
 
