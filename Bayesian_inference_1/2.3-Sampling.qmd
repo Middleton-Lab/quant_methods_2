@@ -363,6 +363,32 @@ ggplot(Post |> filter(Sample <= 20),
 ```
 
 
+## Samples to a distribution
+
+```{r}
+#| echo: false
+p1 <- Post |> 
+  filter(Parameter == "mu") |> 
+  ggplot(aes(Estimate, color = Parameter)) +
+  geom_density() +
+  facet_grid(Parameter ~ .) +
+  scale_color_manual(guide = "none", values = c("#4570E6")) +
+  facet_grid(Parameter ~ ., scales = "free") +
+  labs(y = "Density")
+
+p2 <- Post |> 
+  filter(Parameter == "sigma") |> 
+  ggplot(aes(Estimate, color = Parameter)) +
+  geom_density() +
+  facet_grid(Parameter ~ .) +
+  scale_color_manual(guide = "none", values = c("#C32148")) +
+  facet_grid(Parameter ~ ., scales = "free") +
+  labs(y = "Density")
+
+cowplot::plot_grid(p1, p2, nrow = 2)
+```
+
+
 ## Summarizing
 
 ```{r}

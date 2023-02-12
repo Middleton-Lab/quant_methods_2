@@ -39,7 +39,7 @@ library(rethinking)
 - Teaches careful practices, diagnosis, summaries
 - Lacks integration with other tools
 
-"High level" packages: `rstanarm` and `brms`
+"Automated" packages: `rstanarm` and `brms`
 
 - Work well with other tools (`posterior`, `tidybayes`, `bayesplot`)
 - Graduate to these packages once you are comfortable
