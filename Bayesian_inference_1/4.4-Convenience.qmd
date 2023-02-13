@@ -32,14 +32,13 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 ```
 
 - `rethinking`
-    - Handles stan code creation
+    - Translates to stan code
     - You provide priors
 - `brms`
-    - Handles stan code creation
+    - Translates to stan code
     - You *can/should* provide priors
 - `rstanarm`
-    - Handles everything
-    - Very fast (pre-complied)
+    - Handles everything, very fast
     - You *can/should* provide priors
     
 
@@ -50,10 +49,10 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 
 Inconvenience in one context is convenience in another.
 
-- Faster
+- Custom models, calculated values, etc.
 - Precompile and reuse models
-- Pass updated data
-- HPC cluster processing
+    - Pass updated data
+    - HPC cluster processing
 
 
 ## A few words about `cmdstanr`
@@ -62,7 +61,7 @@ Inconvenience in one context is convenience in another.
     - [Getting started](https://mc-stan.org/cmdstanr/articles/cmdstanr.html)
 - Updates more frequently than `rstan`
     - New features
-    - Faster compilation and sampling
+    - (Often) faster compilation and sampling
 - `rethinking` and `brms` can use as the backend sampler
 - Portable stan output files (R, Python, etc.)
 
@@ -89,11 +88,11 @@ Inconvenience in one context is convenience in another.
 ## `rstanarm`
 
 - Uses R formula syntax
-- Default uses centering, adjust priors based on data
-- Predefined range of models: prepend `stan_`
+- Default uses centering, adjusts priors based on data
+- Predefined range of models:
     - `stan_lm()`, `stan_glm()`, `stan_lmer()`, `stan_aov()`, etc.
 - [Wide range of vignettes](https://mc-stan.org/rstanarm/articles/)
-- Some priors are more complex to define
+- Some priors are complex to define
 
 
 ## Example model
