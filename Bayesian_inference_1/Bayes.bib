@@ -2753,35 +2753,35 @@
 }
 
 @ARTICLE{Vehtari2021-yi,
-  title     = "{Rank-Normalization}, Folding, and Localization: An Improved
-               {$\widehat{R}$} for Assessing Convergence of {MCMC}",
-  author    = "Vehtari, Aki and Gelman, Andrew and Simpson, Daniel and
-               Carpenter, Bob and Bürkner, Paul-Christian",
-  abstract  = "Markov chain Monte Carlo is a key computational tool in Bayesian
-               statistics, but it can be challenging to monitor the convergence
-               of an iterative stochastic algorithm. In this paper we show that
-               the convergence diagnostic Rˆ of Gelman and Rubin (1992) has
-               serious flaws. Traditional Rˆ will fail to correctly diagnose
-               convergence failures when the chain has a heavy tail or when the
-               variance varies across the chains. In this paper we propose an
-               alternative rank-based diagnostic that fixes these problems. We
-               also introduce a collection of quantile-based local efficiency
-               measures, along with a practical approach for computing Monte
-               Carlo error estimates for quantiles. We suggest that common
-               trace plots should be replaced with rank plots from multiple
-               chains. Finally, we give recommendations for how these methods
-               should be used in practice.",
-  journal   = "Bayesian Analysis",
-  volume    =  16,
-  number    =  2,
-  pages     = "667--718",
-  month     =  jan,
-  year      =  2021,
-  url       = "http://dx.doi.org/10.1214/20-BA1221",
-  keywords  = "Reading list;Alligator\_Morphology;Bayes Readings;Module - Bayes",
-  language  = "en",
-  issn      = "1936-0975, 1931-6690",
-  doi       = "10.1214/20-BA1221"
+  title    = "{Rank-Normalization}, Folding, and Localization: An Improved
+              {$\widehat{R}$} for Assessing Convergence of {MCMC}",
+  author   = "Vehtari, Aki and Gelman, Andrew and Simpson, Daniel and
+              Carpenter, Bob and Bürkner, Paul-Christian",
+  abstract = "Markov chain Monte Carlo is a key computational tool in Bayesian
+              statistics, but it can be challenging to monitor the convergence
+              of an iterative stochastic algorithm. In this paper we show that
+              the convergence diagnostic Rˆ of Gelman and Rubin (1992) has
+              serious flaws. Traditional Rˆ will fail to correctly diagnose
+              convergence failures when the chain has a heavy tail or when the
+              variance varies across the chains. In this paper we propose an
+              alternative rank-based diagnostic that fixes these problems. We
+              also introduce a collection of quantile-based local efficiency
+              measures, along with a practical approach for computing Monte
+              Carlo error estimates for quantiles. We suggest that common trace
+              plots should be replaced with rank plots from multiple chains.
+              Finally, we give recommendations for how these methods should be
+              used in practice.",
+  journal  = "Bayesian Analysis",
+  volume   =  16,
+  number   =  2,
+  pages    = "667--718",
+  month    =  jan,
+  year     =  2021,
+  url      = "http://dx.doi.org/10.1214/20-BA1221",
+  keywords = "Reading list;Alligator\_Morphology;Bayes Readings;Module - Bayes",
+  language = "en",
+  issn     = "1936-0975, 1931-6690",
+  doi      = "10.1214/20-BA1221"
 }
 
 @ARTICLE{Paananen2019-jo,
@@ -3322,6 +3322,36 @@
   issn        = "0021-9606",
   doi         = "10.1063/1.1699114",
   original_id = "d302fa8f-94c1-0dde-9189-c91923529ca0"
+}
+
+@ARTICLE{Kallioinen2021-hz,
+  title         = "Detecting and diagnosing prior and likelihood sensitivity
+                   with power-scaling",
+  author        = "Kallioinen, Noa and Paananen, Topi and Bürkner,
+                   Paul-Christian and Vehtari, Aki",
+  abstract      = "Determining the sensitivity of the posterior to
+                   perturbations of the prior and likelihood is an important
+                   part of the Bayesian workflow. We introduce a practical and
+                   computationally efficient sensitivity analysis approach
+                   using importance sampling to estimate properties of
+                   posteriors resulting from power-scaling the prior or
+                   likelihood. On this basis, we suggest a diagnostic that can
+                   indicate the presence of prior-data conflict or likelihood
+                   noninformativity and discuss limitations to this
+                   power-scaling approach. The approach can be easily included
+                   in Bayesian workflows with minimal effort by the model
+                   builder and we present an implementation in our new R
+                   package priorsense. We further demonstrate the workflow on
+                   case studies of real data using models varying in complexity
+                   from simple linear models to Gaussian process models.",
+  month         =  jul,
+  year          =  2021,
+  url           = "http://arxiv.org/abs/2107.14054",
+  keywords      = "Module - Bayes",
+  archivePrefix = "arXiv",
+  eprint        = "2107.14054",
+  primaryClass  = "stat.ME",
+  arxivid       = "2107.14054"
 }
 
 @ARTICLE{Yao2022-ti,
