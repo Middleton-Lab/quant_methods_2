@@ -13,7 +13,83 @@ format:
 ```{r}
 #| echo: false
 
-#Required files for this problem set:
+library(tidyverse)
+library(brms)
+library(priorsense)
+
+options(brms.backend = "cmdstan")
+
+# Required files for this problem set:
+# remotes::install_github("n-kall/priorsense")
+```
+
+## `priorsense` Package
+
+Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling.
+
+
+```{r}
+HL <- abdData::HornedLizards |> 
+  rename(Horn_Length = horn.length,
+         Group = group) |> 
+  mutate(Group = if_else(Group == "living", "Alive", "Dead")) |> 
+  drop_na()
+
+ggplot(HL, aes(Horn_Length, color = Group)) +
+  geom_density()
+```
+
+Models
+
+```{r}
+get_prior(Horn_Length ~ 0 + Group,
+           data = HL)
+
+fm1 <- brm(Horn_Length ~ 0 + Group,
+           data = HL,
+           prior = prior(normal(0, 2), class = b))
+
+powerscale_sensitivity(fm1)
+pss1 <- powerscale_sequence(fm1)
+
+powerscale_plot_quantities(
+  pss1,
+  quantities = c("mean", "sd"),
+  div_measure = "cjs_dist",
+  variables = c("b_GroupAlive", "b_GroupDead")
+)
+
+###
+
+fm2 <- brm(Horn_Length ~ 0 + Group,
+           data = HL,
+           prior = prior(normal(20, 10), class = b))
+
+powerscale_sensitivity(fm2)
+pss2 <- powerscale_sequence(fm2)
+
+powerscale_plot_quantities(
+  pss2,
+  quantities = c("mean", "sd"),
+  div_measure = "cjs_dist",
+  variables = c("b_GroupAlive", "b_GroupDead")
+)
+
+###
+
+fm3 <- brm(Horn_Length ~ 0 + Group,
+           data = HL,
+           prior = prior(normal(22, 20), class = b))
+
+powerscale_sensitivity(fm3)
+pss3 <- powerscale_sequence(fm3)
+
+powerscale_plot_quantities(
+  pss3,
+  quantities = c("mean", "sd"),
+  div_measure = "cjs_dist",
+  variables = c("b_GroupAlive", "b_GroupDead")
+)
 
 ```
 
