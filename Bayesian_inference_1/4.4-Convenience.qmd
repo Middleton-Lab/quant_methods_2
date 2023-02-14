@@ -290,6 +290,17 @@ ppc_dens_overlay(y = D$y, y_pr)
 ```
 
 
+## Prior predictive distribution
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+pp_check(PP, type = "stat", stat = "median")
+
+```
+
+
 ## Posterior predictive distribution
 
 ```{r}
