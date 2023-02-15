@@ -125,8 +125,47 @@ If your machinery does not work, let us know right away.
 
 ## Bayesian vs. Frequentist Frameworks
 
+Crickets omniscent - know proportion is exactly 30%
+
+```{r}
+
+set.seed(38277983)
+
+propLW <- 0.3
+Nsamp <- 100
+WP <- rbinom(Nsamp,1,propLW)
+
+muP <- mean(WP)
+
+#mod <- summary(glm(WP ~ 1, family=binomial))
+#estL <- exp(mod$coefficients[1])/(1 + exp(mod$coefficients[1]))
+
+SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
+
+
+
+
+
+consider one case - can you calculate the probability the parameter is true? no - you can just calculate how likely you observe your prop given some parameter estimate.
+
+
+chisq.test()
+
+
+
+
+```
+
+Assuming there is a true value - we know how it behaves for the unknown true value. 
+
+You do an experiment once. Don't know that value
+
 
   - assumptions, which things are "given"
+
+
+go through probablity for parameter?
+what info would you need to figure this out from a single dataset?
 
 
 ## Likelihood and probability
@@ -249,3 +288,4 @@ ggplot() +
   theme_bw()
 ```
 
+why can you just add 1 to a or b for the carp thing?
