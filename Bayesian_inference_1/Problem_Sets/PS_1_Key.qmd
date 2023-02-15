@@ -31,15 +31,15 @@ Because the packages that do Bayesian sampling have to compile their code for th
 
 *For Windows*: Install [RTools for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
 
-- You will want RTools version 4.2, because that matches the latest "point" version of R. You will need to update to RTools 4.3 when R 4.3 is released.
-- By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that let us know).
+- You will want RTools version 4.2, because that matches the latest "point" version of R. You will need to update to RTools 4.3 when R 4.3 is released (and you update your R installation, which you should do).
+- By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that, let us know).
 
 *For MacOS*: Install the Xcode Command Line Tools
 
 - Open a terminal (Applications -> Utilities -> Terminal.app)
 - Paste the following code: `xcode-select --install`
 - Follow the prompts. You will probably have to enter your password.
-- If you are on a University-controlled machine and have trouble, let us know and we can help.
+- If you are on a University-controlled machine and have trouble, let us know and we can try to help.
 
 
 ### Install packages
@@ -67,7 +67,7 @@ install.packages(c("coda", "rstan", "brms", "bayesplot",
 
 *Packages not available from CRAN*:
 
-First install the `remotes` package, which allows you to install packages from GitHub directly.
+First install the `remotes` package (if you do not already have it installed), which allows you to install packages from GitHub directly.
 
 Second, install `cmdstanr`
 
@@ -82,6 +82,7 @@ Third, install `rethinking`
 
 - `rethinking` is an R package that accompanies the book *Statistical Rethinking* by Richard McElreath.
 - Install with `remotes::install_github("rmcelreath/rethinking")`
+- It might have some dependencies that it installs also, but usually it goes well if this is the last package you install.
 
 
 ### Test it out
@@ -141,7 +142,9 @@ a "by hand" type example
 
 ## Handedness in Common Toads
 
-Preference for one forelimb over the other ("handedness" or "pawedness") is common among vertebrates. Humans, dogs, birds, and other amniotes all have been shown to have some degree of handedness. Bisazza et al. (1996)^[Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.] tested whether common toads (*Bufo bufo*) showed a similar pattern of handedness. Here is the description of their methods:
+Preference for one forelimb over the other ("handedness" or "pawedness") is common among vertebrates. Humans, dogs, birds, and other amniotes all have been shown to have some degree of handedness. Bisazza et al. (1996)^[Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.] tested whether common toads (*Bufo bufo*) showed a similar pattern of handedness. There were some additional experiments with other species described in the paper, but we will focus on these two.
+
+Here is the description of their methods:
 
 > Toads were placed in the middle of a circular tank (60 cm diameter) with a small plastic balloon wrapped around their head (expt 1), or a small wet piece of paper stuck on their mouth and  nose (expt 2). They were given 10 successive trials; in each trial the first forepaw used in attempts to remove the annoyance was recorded.
 
@@ -150,7 +153,7 @@ The results of the experiments were:
 1. Experiment 1: 14 toads showed right preference and 4 left
 2. Experiment 2: 26 toads showed right and 10 left
 
-These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness).
+These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness). A $\chi^2$ test is a perfectly reasonable way to analyze these data. One downside is that you get a yes/no answer to the question "do these counts differ from equality?" -- a *P*-value without any additional information about the uncertainty. You can test different proportions (i.e., not just 50-50), but the basic fact remains.
 
 ```{r}
 # Experiment 1
@@ -159,6 +162,10 @@ chisq.test(c(14, 4))
 # Experiment 2
 chisq.test(c(26, 10))
 ```
+
+Here's a function to plot two Beta distributions together. You provide a and b for each distribution, and the plot is made. These could, for example, be the prior and posterior distributions.
+
+Examine the code and make sure you understand what it does.
 
 ```{r}
 prior_post_beta <- function (a1, b1, a2, b2) {
@@ -171,6 +178,13 @@ prior_post_beta <- function (a1, b1, a2, b2) {
             aes(P, Density), color = "blue", linewidth = 2)
 }
 
+```
+
+In the chunk below, try out the function for some different Beta distributions.
+
+```{r}
+# FIXME
+prior_post_beta(1, 1, 2, 2)
 ```
 
 
