@@ -23,6 +23,10 @@ options(brms.backend = "cmdstan")
 # remotes::install_github("n-kall/priorsense")
 ```
 
+- brms with factors
+- Use pp_check with grouped data
+
+
 ## `priorsense` Package
 
 Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling.
