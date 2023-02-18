@@ -49,7 +49,6 @@ color_scheme_set(scheme = "red")
 ## Hypothesis tests
 
 
-
 ## Bayesian vs. Frequentists viewpoints
 
 
@@ -163,8 +162,12 @@ fm |>
 
 - Closest Bayesian analogue for a *P*-value
 - Savage-Dickey ratio: Divide the density (height) of the posterior for $\theta$ by the density of the prior for $\theta$ at the point of interest (`null = 0`).
+- Popular in psychology
 
-Also:
+
+## Bayes factors
+
+Can also be used for:
 
 - Directional tests (one-sided tests)
 - Intervals (ROPE-like)
@@ -173,9 +176,7 @@ Also:
 
 ## Bayes factors
 
-Schad, D. J., B. Nicenboim, P.-C. Bürkner, M. Betancourt, and S. Vasishth. 2022. Workflow techniques for the robust use of Bayes factors. Psychol. Methods, doi: 10.1037/met0000472.
-
-> "While Bayes factors provide an immediate approach to hypothesis testing, they are highly sensitiveto details of the data/model assumptions."
+> "While Bayes factors provide an immediate approach to hypothesis testing, they are highly sensitiveto details of the data/model assumptions." [@Schad2022-dc]
 
 ```{r}
 #| echo: true
@@ -223,6 +224,10 @@ fm |>
   mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused") |> 
   rope(ci = 1, range = c(-0.25, 0.25))
 ```
+
+
+## ROPE plot
+
 
 
 ## Rope range
