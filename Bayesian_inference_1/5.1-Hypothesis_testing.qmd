@@ -128,7 +128,7 @@ fm <- brm(Energy ~ Mass + Caste - 1, data = M,
     - Overall intercepts probably not useful here
 
 
-## HPDI-based tests
+## HDI-based tests
 
 - Against 0
 - Against an *a priori* value
@@ -136,7 +136,7 @@ fm <- brm(Energy ~ Mass + Caste - 1, data = M,
 - Choose an interval (preferably not 95%)
 
 
-## HDPI for slope
+## HDI for slope
 
 ```{r}
 #| echo: true
@@ -144,7 +144,7 @@ summary(fm, prob = 0.89)
 ```
 
 
-## HDPI for differences
+## HDI for differences
 
 ```{r}
 #| echo: true
@@ -155,6 +155,49 @@ fm |>
   rename(Mass = b_Mass) |> 
   mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused") |> 
   median_hdi(Mass, d_W_NW, .width = 0.89)
+```
+
+
+## HDI Plot
+
+Many visualizations in the [`see` package](https://easystats.github.io/see/articles/bayestestR.html)
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+library(bayestestR)
+library(see)
+
+HD_interval <-  bayestestR::hdi(fm, ci = c(0.89))
+plot(HD_interval)
+```
+
+
+## Hypothesis tests with `hypothesis()`
+
+- Analogous to generalized linear hypothesis tests (`glht()` in `multcomp`)
+
+```{r}
+#| echo: true
+
+hypothesis(fm, "CasteWorker - CasteNonWorker = 0", alpha = 0.89)
+```
+
+
+## Estimate difference while sampling?
+
+- Switch to low-level `stan` code, and use `rstan` or `cmdstanr`
+- `generated quantities` block lets you access the samples at each iteration
+    - Calculations, predictions, etc., which all go into the output
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+make_stancode(Energy ~ Mass + Caste - 1,
+              data = M,
+              prior = prior(normal(0, 3), class = b))
 ```
 
 
@@ -181,7 +224,6 @@ Can also be used for:
 ```{r}
 #| echo: true
 
-library(bayestestR)
 (BF <- bayesfactor_parameters(fm, null = 0))
 ```
 
@@ -191,7 +233,6 @@ library(bayestestR)
 ```{r}
 #| echo: true
 
-library(see)
 plot(BF)
 ```
 
@@ -212,7 +253,7 @@ Additional reading:
 
 - Use `rope_range()` to automatically find the most suitable range for comparison.
     - Think about what interval you consider practically equivalent
-- Recommended to use the entire posterior to determine the percentage in the ROPE
+- Recommended to use the entire posterior to determine the percentage in the ROPE (`ci = 1`)
 
 ```{r}
 #| echo: true
@@ -228,21 +269,12 @@ fm |>
 
 ## ROPE plot
 
-
-
-## Rope range
-
 ```{r}
-#| echo: false
+#| echo: true
+#| output-location: slide
 
-ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
-  geom_point(size = 4) +
-  geom_line(aes(x = Mass, y = pred, color = Caste), lwd = 2) +
-  scale_color_manual(values = wes_palette("Cavalcanti1")) +
-  theme(legend.justification = c(0, 1),
-        legend.position = c(0.05, 1)) +
-  labs(x = "ln Body Mass (g)",
-       y = "ln Daily Energy Expenditure (kJ)")
+rope(fm, ci = 1, range = c(-0.25, 0.25)) |> 
+  plot()
 ```
 
 
