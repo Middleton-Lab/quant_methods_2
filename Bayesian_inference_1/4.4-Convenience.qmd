@@ -206,7 +206,7 @@ str(post)
 
 - [`bayesplot` automates many common plotting goals](https://mc-stan.org/bayesplot/)
 - Based on ggplot
-- Handles output from `posterior` seamlessly
+- Work with output from `posterior`
 
 ```{r}
 library(bayesplot)
@@ -278,37 +278,83 @@ PP <- brm(y ~ x + 1,
 ```
 
 
+## Prior/posterior predictive distributions
+
+- Same approach except for using the `data`
+- `pp_check()`: access many different checks for `brm()` models from `bayesplot`
+    - Density
+    - Histogram
+    - Mean/median/min/max
+    - Ribbon
+    - "Residuals"
+
+
 ## Prior predictive distribution
+
+Density overlay of 50 draws from the prior (`PP`)
 
 ```{r}
 #| echo: true
 #| output-location: slide
 
-y_pr <- posterior_predict(PP, ndraws = 100)
-ppc_dens_overlay(y = D$y, y_pr)
-
+pp_check(PP, type = "dens_overlay", ndraws = 50)
 ```
 
 
 ## Prior predictive distribution
+
+Median of $y$ plotted over a histogram of prior predicted values for $y$
+
+- Is the prior preduction range reasonable for $y$?
 
 ```{r}
 #| echo: true
 #| output-location: slide
 
 pp_check(PP, type = "stat", stat = "median")
-
 ```
 
 
-## Posterior predictive distribution
+## Posterior predictive check
+
+Density overlay of 50 draws from the posterior (`fm`)
+
+- Does the posterior adequately model the data?
 
 ```{r}
 #| echo: true
 #| output-location: slide
 
-y_po <- posterior_predict(fm, ndraws = 100)
-ppc_dens_overlay(y = D$y, y_po)
+pp_check(fm, type = "dens_overlay", ndraws = 50)
+```
+
+
+## Posterior predictive check
+
+Posterior predicted intervals and observed vs. $x$
+
+- Most points should fall within in the bounds
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+pp_check(fm, type = "ribbon", x = "x")
+```
+
+
+## Posterior predictive check
+
+"Residual" mean predicted error vs. $x$
+
+- Normally distributed residuals around the mean line
+- Looking for no structure in the residuals
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+pp_check(fm, type = "error_scatter_avg_vs_x", x = "x", size = 2)
 ```
 
 
