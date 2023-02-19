@@ -152,39 +152,43 @@ mcmc_combo(fm_add, regex_pars = "b",
 
 ## Posterior predictive checks
 
-Plot the distribution of `RPM` ($y$) and a sample of 100 draws from the posterior
+Plot the distribution of `RPM` ($y$) and a sample of 100 draws from the posterior ($y_{rep}$)
 
 ```{r}
 #| echo: true
 #| output-location: slide
-yrep <- posterior_predict(fm_add, ndraws = 100)
-ppc_dens_overlay(y = Snakes$RPM, yrep)
+
+pp_check(fm_add, ndraws = 100)
 ```
 
 
 ## Posterior predictive checks
 
-Plot samples from the posteriors separately for `ForagingMode` with the mean of `RPM` for each.
+Plot histograms of samples from the posteriors separately for `ForagingMode` with the mean of `RPM` for each.
 
 ```{r}
 #| echo: true
 #| output-location: slide
 #| warning: false
-ppc_stat_grouped(y = Snakes$RPM, yrep, group = Snakes$ForagingMode)
+#| message: false
+
+pp_check(fm_add, type = "stat_grouped", group = "ForagingMode",
+         stat = "mean",
+         ndraws = 500)
 ```
 
 
 ## Do foraging modes differ in mean RPM?
 
-Approaches
+Three approaches
 
-- Compare credible intervals of posteriors for Active and Ambush
-- Compare the *difference* in the posteriors to 0
-- Compare the *difference* in the posteriors to 0 $\pm$ some small value
+1. Compare credible intervals of posteriors for Active and Ambush
+2. Compare the *difference* in the posteriors to 0
+3. Compare the *difference* in the posteriors to 0 $\pm$ some small value
 
 . . .
 
-More in Week 5
+More context and practice in Unit 5
 
 
 ## HPDI bands
@@ -202,25 +206,32 @@ pred_values
 ```
 
 
+## Two kinds of posterior intervals
+
+1. HDIs for the parameter estimates
+    - Credible ranges for expected values
+    - `posterior_epred()`
+2. HDIs for new or observed values ("posterior predictive distribution")
+    - Include the uncertainty ($\sigma$)
+    - Wider than expected values intervals
+    - `posterior_predict()`
+
+
 ## Predicting with brms
 
-Draw from the posterior predictive distribution
-
-- What is the envelope in which I expect to see values?
-- Higher variance than draws for the expected value of the posterior
-- Includes residual error
-
 ```{r}
-p_pred <- posterior_predict(fm_add, newdata = pred_values)
+#| echo: true
+#| output-location: slide
+p_pred <- posterior_epred(fm_add, newdata = pred_values)
 str(p_pred)
 ```
 
-10,000 draws for each of 200 combinations of `log10SVL` and `ForagingMode`. Each column is 1 row.
+10,000 draws for each of 200 combinations of `log10SVL` and `ForagingMode`. Each column is 1 *row* of `pred_values`.
 
 
 ## Computing credible intervals
 
-- Calculate median and 89% quantile ($\sim$ HDI)
+- Calculate median and 89% quantile interval ($\sim$ HDI)
 - `apply()` across the columns (`MARGIN = 2`)
 
 ```{r}
@@ -254,32 +265,14 @@ ggplot() +
 ```
 
 
-## Plotting credible intervals
-
-```{r}
-ggplot() +
-  geom_point(data = Snakes, aes(log10SVL, RPM, color = ForagingMode),
-             size = 3) +
-  geom_ribbon(data = pred_values,
-              aes(x = log10SVL, ymin = lower, ymax = upper,
-                  fill = ForagingMode), alpha = 0.25) +
-  geom_line(data = pred_values,
-            aes(x = log10SVL, y = median_pred, color = ForagingMode)) +
-  scale_color_manual(values = c("red", "blue")) +
-  scale_fill_manual(values = c("red", "blue")) +
-  facet_grid(ForagingMode ~ .)
-```
-
-
-## Compare credible intervals
-
-Several ways to calculate (highest density vs. equal tails)
+## Compare HDIs
 
 ```{r}
 #| echo: true
 post <- as_draws_df(post) |> as_tibble()
 
 library(bayestestR)
+
 hdi(post$b_ForagingModeActive, ci = 0.89)
 hdi(post$b_ForagingModeAmbush, ci = 0.89)
 ```
@@ -287,36 +280,46 @@ hdi(post$b_ForagingModeAmbush, ci = 0.89)
 
 ## Compare credible intervals
 
+- Several ways to calculate (highest density vs. equal tails)
+- Will be similar for symmetrical distributions
+
 ```{r}
 #| echo: true
+
 ci(post[, 1:4], method = "HDI", ci = 0.89)
 ci(post[, 1:4], method = "ETI", ci = 0.89)
 ```
 
 
-## HDI of the difference between Ambush and Active
+## HDI of the *difference* between Ambush and Active
+
+Use `mutate()` to calculate the difference for each sample
 
 ```{r}
 #| echo: true
+
 post <- post |> 
   mutate(d = b_ForagingModeAmbush - b_ForagingModeActive)
-post
+post |> select(1:3, 10)
 ```
 
 
-## HDI of the difference between Ambush and Active
+## HDI of Ambush - Active
 
 ```{r}
 #| echo: true
+
 ggplot(post, aes(d)) +
-  geom_density()
+  geom_density(linewidth = 2) +
+  labs(x = "Ambush - Active", y = "Density")
 ```
 
 
-## HDI of the difference between Ambush and Active
+## HDI of Ambush - Active
 
 ```{r}
 #| echo: true
+
 hdi(post$d, ci = 0.89)
 ```
 
@@ -337,11 +340,16 @@ Additional reading:
 
 - Uses `rope_range()` to automatically find the most suitable range for comparison.
     - Think about what interval you consider practically equivalent
+    - Kruschke also recommends $\pm 0.1 \times sd_y$ 
 - Recommended to use the entire posterior to determine the percentage in the ROPE
 
 ```{r}
 #| echo: true
-rope(post$d, ci = 1)
+#| output-location: slide
+
+rr <- c(-0.1 * sd(Snakes$RPM), 0.1 * sd(Snakes$RPM))
+rr
+rope(post$d, ci = 1, range = rr)
 ```
 
 
@@ -349,18 +357,20 @@ rope(post$d, ci = 1)
 
 ```{r}
 #| echo: true
+
 ggplot(post, aes(d)) +
-  geom_density() +
-  geom_vline(xintercept = c(-0.1, 0.1), color = "red") +
-  geom_vline(xintercept = as.numeric(hdi(post$d))[2:3], color = "blue")
+  geom_density(linewidth = 1.5) +
+  geom_vline(xintercept = rr,
+             color = "red", linewidth = 1.5) +
+  geom_vline(xintercept = as.numeric(hdi(post$d))[2:3],
+             color = "blue", linewidth = 1.5) +
+  labs(x = "Ambush - Active", y = "Density")
 ```
 
 
-## Leave-one-out Cross Validation (LOO)
+## Leave-one-out Cross Validation (LOO-CV)
 
-Stan uses an approximation of the LOO-CV: expected log probability density (elpd) [@Vehtari2017-we; @Gelman2014-jh; @Burkner2021-mp]
-
-- Interpret like AIC
+Stan uses an approximation of the LOO-CV [@Vehtari2017-we; @Gelman2014-jh; @Burkner2021-mp]
 
 ```{r}
 #| echo: true
@@ -374,17 +384,16 @@ loo_compare(fm_add, fm_inter)
 
 ## Model weights
 
-Distribute the expected out-of-sample predictive ability across 100%.
+Distribute the expected predictive ability across 100%.
 
 ```{r}
 #| echo: true
 
-model_weights(fm_add, fm_inter)
+model_weights(fm_add, fm_inter, weights = "loo")
 ```
 
-The interaction model has >80% of the model weight.
-
-- We should probably go back and look more closely at that model.
+- Interaction model has most of the model weight.
+- Not 100% though (model averaging in Unit 5)
 
 
 ## No decision is completely objective
@@ -394,6 +403,8 @@ The interaction model has >80% of the model weight.
 - Credible intervals, HDIs
 - ROPEs
 - LOO-CV values
+
+More discussion, detail, examples in Unit 5.
 
 
 ## References
