@@ -426,7 +426,7 @@ post |>
 ```
 
 
-## HDPIs
+## HPDIs
 
 89% highest posterior density intervals
 

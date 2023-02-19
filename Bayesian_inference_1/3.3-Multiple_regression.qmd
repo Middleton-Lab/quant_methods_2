@@ -260,14 +260,14 @@ ggplot() +
                         labels = c("Active", "Ambush")) +
   geom_abline(data = post_sub, aes(slope = b, intercept = `a[1]`),
               color = "red", alpha = 0.25) +
-  geom_abline(data = post_sub, aes(slope = b, intercept = `a[1]`),
+  geom_abline(data = post_sub, aes(slope = b, intercept = `a[2]`),
               color = "blue", alpha = 0.25)
 ```
 
 
 ## Interactions
 
-Interactions are multiploications of predictors
+Interactions are multiplications of predictors
 
 - $x_1$ and $x_2$ are continuous: $\beta_1 \cdot x_1 \cdot x_2$
 - One $x$ is categorical: 0 and 1 coding turn predictors "off" and "on"

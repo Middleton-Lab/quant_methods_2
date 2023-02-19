@@ -187,7 +187,7 @@ Approaches
 More in Week 5
 
 
-## HDPI bands
+## HPDI bands
 
 Predict across a range of `log10SVL` for each level of `ForagingMode`.
 

@@ -1,5 +1,5 @@
 ---
-title: "Modular modules"
+title: "Modular models"
 subtitle: "Types of response and predictor variables"
 author:
   - Elizabeth King
