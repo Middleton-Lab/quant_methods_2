@@ -217,7 +217,7 @@ Use `ggdist::stat_halfeye()` to plot density + intervals
 #| output-location: slide
 
 post |> 
-  dplyr::select(a.1, a.2, b) |>
+  dplyr::select(`a[1]`, `a[2]`, b) |>
   pivot_longer(cols = everything(),
                names_to = "Parameter",
                values_to = "Estimate") |> 
@@ -237,7 +237,7 @@ Sample from the posterior
 
 post_sub <- post |> 
   slice_sample(n = 100) |> 
-  dplyr::select(a.1, a.2, b)
+  dplyr::select(`a[1]`, `a[2]`, b)
 
 post_sub
 ```
@@ -258,9 +258,9 @@ ggplot() +
     scale_colour_manual(values = c("red", "blue"),
                         name = "Foraging Mode",
                         labels = c("Active", "Ambush")) +
-  geom_abline(data = post_sub, aes(slope = b, intercept = a.1),
+  geom_abline(data = post_sub, aes(slope = b, intercept = `a[1]`),
               color = "red", alpha = 0.25) +
-  geom_abline(data = post_sub, aes(slope = b, intercept = a.2),
+  geom_abline(data = post_sub, aes(slope = b, intercept = `a[1]`),
               color = "blue", alpha = 0.25)
 ```
 
@@ -349,7 +349,7 @@ precis(fm, depth = 2)
 
 post <- tidy_draws(fm)
 post |> 
-  dplyr::select(a.1, a.2, b.1, b.2) |>
+  dplyr::select(`a[1]`, `a[2]`, `b[1]`, `b[2]`) |>
   pivot_longer(cols = everything(),
                names_to = "Parameter",
                values_to = "Estimate") |> 
@@ -370,7 +370,7 @@ Sample from the posterior
 
 post_sub <- post |> 
   slice_sample(n = 100) |> 
-  dplyr::select(a.1, a.2, b.1, b.2)
+  dplyr::select(`a[1]`, `a[2]`, `b[1]`, `b[2]`)
 
 ggplot() +
   geom_point(data = Snakes,
@@ -379,9 +379,9 @@ ggplot() +
     scale_colour_manual(values = c("red", "blue"),
                         name = "Foraging Mode",
                         labels = c("Active", "Ambush")) +
-  geom_abline(data = post_sub, aes(slope = b.1, intercept = a.1),
+  geom_abline(data = post_sub, aes(slope = `b[1]`, intercept = `a[1]`),
               color = "red", alpha = 0.25) +
-  geom_abline(data = post_sub, aes(slope = b.2, intercept = a.2),
+  geom_abline(data = post_sub, aes(slope = `b[2]`, intercept = `a[2]`),
               color = "blue", alpha = 0.25)
 ```
 
@@ -395,3 +395,8 @@ ggplot() +
 - Which model is "better"?
   - Model comparison
 
+
+## References
+
+::: {#refs}
+:::
