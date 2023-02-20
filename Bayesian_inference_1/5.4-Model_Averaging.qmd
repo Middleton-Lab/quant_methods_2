@@ -133,15 +133,20 @@ plot_grid(p1, p2, p3, p4, p5, ncol = 3)
 #| warning: false
 
 fm1 <- brm(Energy ~ 1, data = M,
-           prior = prior(normal(0, 3), class = Intercept), iter = 2e4, refresh = 0)
+           prior = prior(normal(0, 3), class = Intercept), iter = 2e4,
+           refresh = 0, seed = 3476283)
 fm2 <- brm(Energy ~ Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4,
+           refresh = 0, seed = 312379)
 fm3 <- brm(Energy ~ Mass, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4,
+           refresh = 0, seed = 12365864)
 fm4 <- brm(Energy ~ Mass + Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4,
+           refresh = 0, seed = 8873542)
 fm5 <- brm(Energy ~ Mass * Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4,
+           refresh = 0, seed = 75638547)
 ```
 
 
