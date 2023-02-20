@@ -47,26 +47,45 @@ color_scheme_set(scheme = "red")
 - Review *Quantitative Methods* lecture 10-3
 
 
-## Kullback-Leibler Information
+## Kullback-Leibler Divergence
 
 **No model represents the true process that generated the outcomes.**
 
-**Information** is the distance between a proposed model and reality
+**Information** is the "distance" between a prospective models and the true model
+
+- Not strictly speaking the distance
+
+$$D_{KL}(M_{true} | M_1) \neq D_{KL}(M_1 | M_{true})$$
+
+
+## Kullback-Leibler Divergence
 
 - Information lost when trying to approximate the true model
 - Amount of "surprise" when a model predicts new data
 
-K-L information doesn't aid directly in model evaluation (what is the true model?)
+KL information doesn't aid directly in model evaluation (what is the true model?)
+
+- i.e., a likelihood without anything to compare to
+
+
+## KL Divergence to elpd
+
+- In the real world we don't know $M_{true}$
+- For each model estimate the *expected log-predictive density* (elpd)
+
+$$E = \log[p_{M_1}(y)]$$
+
+elpd is estimated by information criteria or leave-one-out cross-validation (next lecture)
 
 
 ## WAIC
 
 - "Widely Applicable Information Criterion" Sumio Watanabe [-@Watanabe2010-hf]
 - Parallels to information criteria and AIC
-    - Almost equal interpretation as long as the assumptions are met
+    - Almost equivalent interpretation as long as the assumptions are met
 - Works well large data sets
     - Fast
-    - PSIS-LOOCV preferred for smaller datasets
+    - PSIS-LOO-CV preferred for smaller datasets
 
 
 ## Energy expenditure in naked mole rats
@@ -227,15 +246,15 @@ options(brms.backend = "cmdstanr",
         mc.cores = 4)
 
 fm1 <- brm(Energy ~ 1, data = M,
-           prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = Intercept), iter = 2e4, refresh = 0)
 fm2 <- brm(Energy ~ Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm3 <- brm(Energy ~ Mass, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm4 <- brm(Energy ~ Mass + Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm5 <- brm(Energy ~ Mass * Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 
 ```
 
@@ -265,16 +284,18 @@ loo_compare(waic1, waic2, waic3, waic4, waic5)
 ```
 
 
-## Model weights
+## WAIC Model weights
 
 - Model weights redistribute the relative strength of WAIC from 0 to 1
 - Sum of all model weights is 1
 
 ```{r}
 #| echo: true
+#| output-location: slide
 
 model_weights(fm1, fm2, fm3, fm4, fm5, weights = "waic") |> 
-  knitr::kable()
+  as.data.frame() |> 
+  knitr::kable(col.names = "Weight", digits = 4)
 ```
 
 
