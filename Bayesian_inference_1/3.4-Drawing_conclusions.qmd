@@ -225,20 +225,21 @@ p_pred <- posterior_epred(fm_add, newdata = pred_values)
 str(p_pred)
 ```
 
-10,000 draws for each of 200 combinations of `log10SVL` and `ForagingMode`. Each column is 1 *row* of `pred_values`.
+- 10,000 draws for each of 200 combinations of `log10SVL` and `ForagingMode`.
+- Each column is 1 *row* of `pred_values`.
 
 
 ## Computing credible intervals
 
 - Calculate median and 89% quantile interval ($\sim$ HDI)
-- `apply()` across the columns (`MARGIN = 2`)
+- `apply()` `quantile()` across the columns (`MARGIN = 2`) of `p_pred`
 
 ```{r}
 #| echo: true
 #| output-location: slide
 
 pred_values <- pred_values |> 
-  mutate(Q50 = apply(p_pred, MARGIN = 2, FUN = median),
+  mutate(Q50 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.5),
          Q5.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.055),
          Q94.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945))
 pred_values
@@ -279,8 +280,7 @@ hdi(post$b_ForagingModeAmbush, ci = 0.89)
 
 ## Compare credible intervals
 
-- Several ways to calculate (highest density vs. equal tails)
-- Will be similar for symmetrical distributions
+- Highest density vs. equal tails
 
 ```{r}
 #| echo: true
@@ -319,7 +319,8 @@ ggplot(post, aes(d)) +
 ```{r}
 #| echo: true
 
-hdi(post$d, ci = 0.89)
+hdi(post$d, method = "HDI", ci = 0.89)
+hdi(post$d, method = "ETI", ci = 0.89)
 ```
 
 
@@ -327,9 +328,7 @@ hdi(post$d, ci = 0.89)
 
 > "A difference of zero plus or minus some small amount is for practical purposes 'not different' from zero."
 
-[Easystats](https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html) has a good introduction.
-
-Additional reading:
+[Easystats](https://easystats.github.io/bayestestR/articles/region_of_practical_equivalence.html) has a good introduction. Additional reading:
 
 - Kruschke [-@Kruschke2010-wi; @Kruschke2015-rp; @Kruschke2018-mg]
 - Kruschke et al. [-@Kruschke2012-sb]
@@ -339,12 +338,14 @@ Additional reading:
 
 - Uses `rope_range()` to automatically find the most suitable range for comparison.
     - Think about what interval you consider practically equivalent
-    - Kruschke also recommends $\pm 0.1 \times sd_y$ 
+    - Kruschke also recommends $\pm 0.1 \cdot sd_y$ 
 - Recommended to use the entire posterior to determine the percentage in the ROPE
+
+
+## ROPE
 
 ```{r}
 #| echo: true
-#| output-location: slide
 
 rr <- c(-0.1 * sd(Snakes$RPM), 0.1 * sd(Snakes$RPM))
 rr
