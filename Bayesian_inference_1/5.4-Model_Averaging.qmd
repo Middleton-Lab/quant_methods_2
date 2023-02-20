@@ -296,8 +296,9 @@ Combine all models by their relative support
 pp_mod_avg <- crossing(Mass = seq(3.8, 5.3, length.out = 200),
                        Caste = levels(M$Caste))
 
-pp <- pp_average(fm1, fm2, fm3, fm4, fm5, weights = "stacking",
+pp <- pp_average(fm1, fm2, fm3, fm4, fm5,
                  newdata = pp_mod_avg,
+                 weights = "stacking",
                  method = "posterior_predict",
                  probs = c(0.055, 0.5, 0.945))
 attr(pp, "weights") |> round(3)
