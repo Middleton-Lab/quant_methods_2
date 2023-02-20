@@ -42,7 +42,8 @@ options(brms.backend = "cmdstanr",
 
 - Fit several candidate models
 - Don't choose the "best" and pretend it was the only model you fit
-    - Combine models for analysis or prediction
+    - Combine posterior distribution from models
+    - Analysis of parameter estimates or prediction for out-of-sample data
     - Weight each by their relative support
 
 
@@ -146,7 +147,7 @@ fm4 <- brm(Energy ~ Mass + Caste, data = M,
            refresh = 0, seed = 8873542)
 fm5 <- brm(Energy ~ Mass * Caste, data = M,
            prior = prior(normal(0, 3), class = b), iter = 2e4,
-           refresh = 0, seed = 75638547)
+           refresh = 0, seed = 612356)
 ```
 
 
