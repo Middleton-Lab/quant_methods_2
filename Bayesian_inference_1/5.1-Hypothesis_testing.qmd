@@ -109,6 +109,7 @@ ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
 
 - Return separate intercepts with `- 1`
 - Note *a lot* of samples are necessary for stable Bayes factors [@Schad2022-dc]
+    - 80,000 total post warm-up here
 
 ```{r}
 #| echo: true
@@ -116,16 +117,18 @@ ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
 
 fm <- brm(Energy ~ Mass + Caste - 1, data = M,
           prior = prior(normal(0, 3), class = b),
-          iter = 4e4, cores = 4,
+          iter = 4e4,
+          cores = 4,
           seed = 45873495)
 ```
 
 
 ## Parameter estimates of interest
 
-1. Shared slope for Mass
-2. "Intercept" difference of Worker vs. Non-worker
-    - Overall intercepts probably not useful here
+1. Shared slope for `Mass`
+2. "Intercept" difference of Worker vs. Non-worker castes
+    - Overall intercepts for `Caste` probably not interesting in this example
+    - What does `Mass` = 0 mean for a naked mole rate?
 
 
 ## HDI-based tests
@@ -150,17 +153,18 @@ summary(fm, prob = 0.89)
 #| echo: true
 library(tidybayes)
 
-fm |> 
+post <- fm |> 
   spread_rvars(b_Mass, b_CasteWorker, b_CasteNonWorker) |> 
-  rename(Mass = b_Mass) |> 
-  mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused") |> 
-  median_hdi(Mass, d_W_NW, .width = 0.89)
+  mutate(d_W_NW = b_CasteWorker - b_CasteNonWorker, .keep = "unused")
+head(post)
+post |> 
+  median_hdi(b_Mass, d_W_NW, .width = 0.89)
 ```
 
 
 ## HDI Plot
 
-Many visualizations in the [`see` package](https://easystats.github.io/see/articles/bayestestR.html)
+Many interesting visualizations in the [`see` package](https://easystats.github.io/see/articles/bayestestR.html)
 
 ```{r}
 #| echo: true
@@ -176,7 +180,7 @@ plot(HD_interval)
 
 ## Hypothesis tests with `hypothesis()`
 
-- Analogous to generalized linear hypothesis tests (`glht()` in `multcomp`)
+Similar to generalized linear hypothesis tests (`glht()` in `multcomp`)
 
 ```{r}
 #| echo: true
@@ -219,7 +223,7 @@ Can also be used for:
 
 ## Bayes factors
 
-> "While Bayes factors provide an immediate approach to hypothesis testing, they are highly sensitiveto details of the data/model assumptions." [@Schad2022-dc]
+> "While Bayes factors provide an immediate approach to hypothesis testing, they are highly sensitive to details of the data/model assumptions." [@Schad2022-dc]
 
 ```{r}
 #| echo: true
