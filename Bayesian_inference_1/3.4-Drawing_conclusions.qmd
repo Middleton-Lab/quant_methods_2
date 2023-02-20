@@ -152,7 +152,7 @@ mcmc_combo(fm_add, regex_pars = "b",
 
 ## Posterior predictive checks
 
-Plot the distribution of `RPM` ($y$) and a sample of 100 draws from the posterior ($y_{rep}$)
+Plot the distribution of `RPM` and a sample of 100 draws from the posterior ($y_{rep}$})
 
 ```{r}
 #| echo: true
@@ -221,7 +221,6 @@ pred_values
 
 ```{r}
 #| echo: true
-#| output-location: slide
 p_pred <- posterior_epred(fm_add, newdata = pred_values)
 str(p_pred)
 ```
@@ -239,9 +238,9 @@ str(p_pred)
 #| output-location: slide
 
 pred_values <- pred_values |> 
-  mutate(median_pred = apply(p_pred, MARGIN = 2, FUN = median),
-         lower = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.055),
-         upper = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945))
+  mutate(Q50 = apply(p_pred, MARGIN = 2, FUN = median),
+         Q5.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.055),
+         Q94.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945))
 pred_values
 ```
 
@@ -256,10 +255,10 @@ ggplot() +
   geom_point(data = Snakes, aes(log10SVL, RPM, color = ForagingMode),
              size = 3) +
   geom_ribbon(data = pred_values,
-              aes(x = log10SVL, ymin = lower, ymax = upper,
+              aes(x = log10SVL, ymin = Q5.5, ymax = Q94.5,
                   fill = ForagingMode), alpha = 0.25) +
   geom_line(data = pred_values,
-            aes(x = log10SVL, y = median_pred, color = ForagingMode)) +
+            aes(x = log10SVL, y = Q50, color = ForagingMode)) +
   scale_color_manual(values = c("red", "blue")) +
   scale_fill_manual(values = c("red", "blue"))
 ```
