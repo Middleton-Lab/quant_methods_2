@@ -16,7 +16,7 @@ bibliography: Bayes.bib
 csl: evolution.csl
 ---
 
-## Information vs. Cross-validation
+## Information criteria vs. Cross-validation
 
 ```{r}
 #| label: setup
@@ -39,21 +39,31 @@ options(brms.backend = "cmdstanr",
         mc.cores = 4)
 ```
 
-- Information == "Surprise"
+- Information equals "Surprise"
 - Cross validation
-    - Divide the data (k-fold), refit models, out-of-sample prediction
-    - Leave-one-out is the extreme
+    - Divide the data (*k* folds), refit models, out-of-sample prediction
+    - Leave-one-out is the logical extreme
     - Review *Quantitative Methods* lecture 10-4
 
 
-## Why not Leave-one-out?
+## Why not leave-one-out for Bayesian models?
 
-- Resample model for every data point?
+- Resample the model for every data point?
+    - Hundreds or thousands of distributions
+    - Time-intensive
+- We need a LOO-CV approximation [@Burkner2021-mp]
+    - Which is also an approximation of expected log-predictive density (elpd)
+    - Like AIC and WAIC are approximations
 
 
-## PSIS Approximation
+## PSIS-LOO-CV
 
-- Like AIC and WAIC are approximations
+Pareto-smoothed importance sampling [@Vehtari2017-we; @Vehtari2015-kl]
+
+- Determine the "importance" of each observation to the posterior
+- "Unlikely" observations are more important than expected ones (more weight)
+- Pareto-smoothing makes these estimates more reliable
+- Math not critical to understand
 
 
 ## Naked Mole Rats
@@ -124,32 +134,45 @@ ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
 
 ```{r}
 #| echo: false
+#| output: false
 
 fm1 <- brm(Energy ~ 1, data = M,
-           prior = prior(normal(0, 3), class = Intercept), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = Intercept), iter = 2e4, refresh = 0)
 fm2 <- brm(Energy ~ Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm3 <- brm(Energy ~ Mass, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm4 <- brm(Energy ~ Mass + Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 fm5 <- brm(Energy ~ Mass * Caste, data = M,
-           prior = prior(normal(0, 3), class = b), iter = 1e4, refresh = 0)
+           prior = prior(normal(0, 3), class = b), iter = 2e4, refresh = 0)
 ```
 
 
-## PSIS
+## PSIS-LOO-CV with `loo()`
 
-- `loo()` has diagnostics for poor fits
-- `looic` is like a WAIC
+Built-in diagnostics
+
+  - Very high weights can make PSIS-LOO-CV unreliable (Pareto $k$ estimates)
+  - These influential values are flagged by `loo()`
+  - Inspect with `loo::pareto_k_ids()`
+  - `reloo()` to refit problem obervations
+
+
+## PSIS-LOO-CV with `loo()`
+
+- `looic` functions like a WAIC or AIC
 
 ```{r}
-loo(fm1)
-loo(fm2)
+#| echo: true
+
+loo(fm5)
 ```
 
 
-## Adding PSIS-LOOCV to a model
+## Adding PSIS-LOO-CV to a model
+
+`add_criterion()` adds different criteria to models (WAIC, PSIS-LOO-CV)
 
 ```{r}
 #| echo: true
@@ -161,13 +184,14 @@ fm4 <- add_criterion(fm4, criterion = "loo")
 fm5 <- add_criterion(fm5, criterion = "loo")
 ```
 
+Also do this if you want to save the model to an object for later use
 
 ## LOO compare
 
 ```{r}
 #| echo: true
 
-loo_compare(fm1, fm2, fm3, fm4, fm5)
+loo_compare(fm1, fm2, fm3, fm4, fm5, criterion = "loo")
 ```
 
 
@@ -175,9 +199,11 @@ loo_compare(fm1, fm2, fm3, fm4, fm5)
 
 ```{r}
 #| echo: true
+#| output-location: slide
 
-model_weights(fm1, fm2, fm3, fm4, fm5, weights = "loo")|> 
-  knitr::kable(digits = 2)
+model_weights(fm1, fm2, fm3, fm4, fm5, weights = "loo") |> 
+  as.data.frame() |> 
+  knitr::kable(col.names = "Weight", digits = 4)
 ```
 
 
