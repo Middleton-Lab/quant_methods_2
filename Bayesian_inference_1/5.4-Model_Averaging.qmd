@@ -29,32 +29,36 @@ library(tidyverse)
 library(readxl)
 library(wesanderson)
 library(cowplot)
-ggplot2::theme_set(theme_cowplot(font_size = 18))
+ggplot2::theme_set(theme_cowplot(font_size = 16))
 
 library(cmdstanr)
 library(brms)
 library(bayesplot)
 color_scheme_set(scheme = "red")
+
+options(brms.backend = "cmdstanr",
+        mc.cores = 4)
 ```
 
-- Also called "ensemble prediction"
-- Fit several potential models
-- Don't choose the "best"
-    - Make *predictions* by weighting by their relative support
+- Fit several candidate models
+- Don't choose the "best" and pretend it was the only model you fit
+    - Combine models for analysis or prediction
+    - Weight each by their relative support
 
 
 ## Model weights
 
 - WAIC (lecture 5.2)
-- PSIS-LOOCV (lecture 5.3)
-- Stacking of means [@Yao2018-zi] (*Preferred*)
+- PSIS-LOO-CV (lecture 5.3)
+- Stacking of means [@Yao2018-zi] (*preferred*)
 - Bayesian model averaging (BMA)
-- Pseudo-BMA (with or without Bayesian bootstrap)
+- Pseudo-BMA with Bayesian bootstrap (*2nd* preferred)
+- Pseudo-BMA without Bayesian bootstrap
 
-[Description in the loo package](https://mc-stan.org/loo/articles/loo2-weights.html)
+[Description in the `loo` package](https://mc-stan.org/loo/articles/loo2-weights.html)
 
 
-## Naked Mole Rats
+## Five models for energy expenditure
 
 ```{r}
 #| echo: false
@@ -65,10 +69,66 @@ M <- abdData::MoleRats |>
          Energy= ln.energy) |> 
   mutate(Caste = if_else(Caste == "worker", "Worker", "NonWorker"),
          Caste = factor(Caste))
+
+mytheme <- list(
+  theme_cowplot(font_size = 10),
+  theme(legend.position = "none"),
+  labs(x = "Body Mass",
+       y = "Energy Expenditure"),
+  scale_color_manual(values = wes_palette("Cavalcanti1"))
+)
+
+fm1 <- lm(Energy ~ 1, data = M)
+M <- M |> mutate(pred1 = predict(fm1))
+p1 <- ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 3) +
+  geom_line(aes(x = Mass, y = pred1), linewidth = 1.5,
+            color = wes_palette("Cavalcanti1")[5]) +
+  labs(title = "fm1") +
+  mytheme
+
+fm2 <- lm(Energy ~ Caste, data = M)
+M <- M |> mutate(pred2 = predict(fm2))
+p2 <- ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 3) +
+  geom_line(aes(x = Mass, y = pred2, color = Caste), linewidth = 1.5) +
+  labs(title = "fm2") +
+  mytheme
+
+fm3 <- lm(Energy ~ Mass, data = M)
+M <- M |> mutate(pred3 = predict(fm3))
+p3 <- ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 3) +
+  geom_line(aes(x = Mass, y = pred3, group = 1), linewidth = 1.5,
+            color = wes_palette("Cavalcanti1")[5]) +
+  labs(title = "fm3") +
+  mytheme
+
+fm4 <- lm(Energy ~ Mass + Caste, data = M)
+M <- M |> mutate(pred4 = predict(fm4))
+p4 <- ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 3) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), linewidth = 1.5) +
+  labs(title = "fm4") +
+  mytheme
+
+fm5 <- lm(Energy ~ Mass * Caste, data = M)
+M <- M |> mutate(pred5 = predict(fm5))
+p5 <- ggplot(M, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 3) +
+  geom_line(aes(x = Mass, y = pred5, color = Caste), linewidth = 1.5) +
+  labs(title = "fm5") +
+  mytheme
+
+plot_grid(p1, p2, p3, p4, p5, ncol = 3)
 ```
+
+
+## Five models for energy expenditure
 
 ```{r}
 #| echo: true
+#| output: false
 #| message: false
 #| warning: false
 
@@ -98,13 +158,25 @@ mw4 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "pseudobma",
                      BB = FALSE)
 mw5 <- model_weights(fm1, fm2, fm3, fm4, fm5, weights = "pseudobma")
 
-tibble(Model = 1:5,
+tibble(Model = paste0("fm", 1:5),
        WAIC = mw1,
        LOO = mw2,
        Stacking = mw3,
        PseudoBMA = mw4,
        `PseudoBMA + BB` = mw5) |> 
   knitr::kable(digits = 2)
+```
+
+
+## Model weights by stacking
+
+```{r}
+plot_grid(p1 + labs(title = paste0("fm1: ", round(mw3[1], 3))),
+          p2 + labs(title = paste0("fm1: ", round(mw3[2], 3))),
+          p3 + labs(title = paste0("fm1: ", round(mw3[3], 3))),
+          p4 + labs(title = paste0("fm1: ", round(mw3[4], 3))),
+          p5 + labs(title = paste0("fm1: ", round(mw3[5], 3))),
+          ncol = 3)
 ```
 
 
@@ -209,9 +281,9 @@ p5
 ```
 
 
-## Model averaging
+## Model averaging by stacking
 
-Posterior prediction with models 1-5 by stacking
+Combine all models by their relative support
 
 ```{r}
 #| echo: true
@@ -221,15 +293,14 @@ pp_mod_avg <- crossing(Mass = seq(3.8, 5.3, length.out = 200),
 
 pp <- pp_average(fm1, fm2, fm3, fm4, fm5, weights = "stacking",
                  newdata = pp_mod_avg,
+                 method = "posterior_predict",
                  probs = c(0.055, 0.5, 0.945))
 attr(pp, "weights") |> round(3)
 attr(pp, "ndraws")
 ```
 
 
-## Model averaging
-
-Join posterior predictions to the new data.
+## Join posterior predictions to new data
 
 ```{r}
 #| echo: true
@@ -239,7 +310,7 @@ head(pp_mod_avg)
 ```
 
 
-## Model averaging
+## Plotting model average
 
 ```{r}
 p_mod_avg <- ggplot() +
@@ -271,7 +342,9 @@ plot_grid(p4, p5, p_mod_avg, ncol = 3)
 ```
 
 
-## Bayesian workflow [@Gelman2020-fv; @Gabry2019-tw]
+## Bayesian workflow 
+
+Also Gelman et al. [-@Gelman2020-fv] and Gabry et al. [@Gabry2019-tw]
 
 1. Model specification
 2. Prior specification
@@ -280,6 +353,7 @@ plot_grid(p4, p5, p_mod_avg, ncol = 3)
 5. Diagnostics
 6. Posterior predictive simulation
 7. Summarizing the posterior
+8. Model comparison and averaging
 
 
 ## References
