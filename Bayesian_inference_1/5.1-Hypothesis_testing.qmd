@@ -35,6 +35,9 @@ library(cmdstanr)
 library(brms)
 library(bayesplot)
 color_scheme_set(scheme = "red")
+
+options(brms.backend = "cmdstanr",
+        mc.cores = 4)
 ```
 
 1. Hypothesis testing and ROPEs
