@@ -1,0 +1,349 @@
+---
+title: "Problem Set 1"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+
+# Required files for this problem set:
+
+```
+
+## Setup
+
+Throughout this module, we will use an array of packages. Some of these are on CRAN and some are not. We will also need some helper software tools. Before you begin, make sure that both R and RStudio are updated to their latest versions.
+
+
+### Command lines tools
+
+Because the packages that do Bayesian sampling have to compile their code for the models you specify, we have to start with the tools for compiling. On both types of machines these steps are somewhat time consuming. You only have to do them once, though.
+
+*For Windows*: Install [RTools for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
+
+- You will want RTools version 4.2, because that matches the latest "point" version of R. You will need to update to RTools 4.3 when R 4.3 is released (and you update your R installation, which you should do).
+- By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that, let us know).
+
+*For MacOS*: Install the Xcode Command Line Tools
+
+- Open a terminal (Applications -> Utilities -> Terminal.app)
+- Paste the following code: `xcode-select --install`
+- Follow the prompts. You will probably have to enter your password.
+- If you are on a University-controlled machine and have trouble, let us know and we can try to help.
+
+
+### Install packages
+
+These are definitely ones we will use. There may be others, but we can install those later.
+
+*Packages from CRAN*:
+
+Use `install.packages()` to install these packages:
+
+- `coda`
+- `rstan`
+- `brms`
+- `bayesplot`
+- `posterior`
+- `tidybayes`
+- `HDInterval`
+- `truncnorm`
+
+```
+install.packages(c("coda", "rstan", "brms", "bayesplot",
+                   "posterior", "tidybayes", "HDinterval",
+                   "truncnorm"))
+```
+
+*Packages not available from CRAN*:
+
+First install the `remotes` package (if you do not already have it installed), which allows you to install packages from GitHub directly.
+
+Second, install `cmdstanr`
+
+- You can follow along with [Getting started with cmdstanr](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or just run the following lines of code.
+- `install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))`
+- The first time you load `cmdstanr` with `library()`, it will prompt you to install the cmdstan backend (which does the actual comoilation and sampling of models)
+    - Check that the toolchain is working `check_cmdstan_toolchain()`
+    - If everything looks good, install cmdstan: `install_cmdstan()`
+- This takes a few minutes. Again, you only do this once.
+
+Third, install `rethinking`
+
+- `rethinking` is an R package that accompanies the book *Statistical Rethinking* by Richard McElreath.
+- Install with `remotes::install_github("rmcelreath/rethinking")`
+- It might have some dependencies that it installs also, but usually it goes well if this is the last package you install.
+
+
+### Test it out
+
+If everything worked, you should be able to run a simple model. You can either execute this block or copy and paste the code to the console. `#| eval: false` means that it will not run every time you render the document.
+
+```{r}
+#| eval: false
+library(rethinking)
+
+# Remember that the order of the data
+# does not matter.
+d <- list(pass = c(rep(0, times = 62),
+                   rep(1, times = 9)))
+
+fm <- ulam(
+  alist(
+    pass ~ bernoulli(theta),
+    logit(theta) <- a,
+    a ~ normal(0, 3)
+  ),
+  data = d,
+  chains = 4,
+  iter = 5e3
+)
+
+summary(fm)
+a <- extract.samples(fm)$a
+median(logistic(a))
+```
+
+As stan starts compiling, you will get a warning about `Declaration of arrays by placing brackets after a variable name...`. You can ignore this warning. There is a code fix needed in `ulam()` that hasn't been made yet in the main branch. It doesn't impact the sampling.
+
+We will learn what all this code (`ulam`, `alist`, etc.) means soon. Don't worry about those for now. You will hopefully recognize that the last line outputs the median of the logistic transformation of `a`, a value which is very close to the proportion of carp that "passed" from our Unit 1 lectures (0.127). 
+
+Congratulations, you have just run a Bayesian model (a logistic regression to be more precise). Although we are perhaps getting a bit ahead of ourselves, it's nice to know that the machinery works.
+
+If your machinery does not work, let us know right away.
+
+
+## Bayesian vs. Frequentist Frameworks
+
+Crickets omniscent - know proportion is exactly 30%
+
+```{r}
+
+set.seed(38277983)
+
+propLW <- 0.3
+Nsamp <- 100
+WP <- rbinom(Nsamp,1,propLW)
+
+muP <- mean(WP)
+
+mod <- summary(glm(WP ~ 1, family=binomial))
+estL <- exp(mod$coefficients[1])/(1 + exp(mod$coefficients[1]))
+
+SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
+
+CI_dat <- tibble(index = 1, mu = muP, lower = muP-SEp, upper = muP+SEp)
+
+CI_dat |>
+  ggplot() +
+  geom_point(aes(mu, index)) +
+  geom_segment(aes(y=index, yend=index, x=lower, xend=upper)) +
+  geom_vline(xintercept = propLW, color = "steelblue") +
+  xlim(c(0,1))
+
+niter <- 100
+CI_dat <- tibble(index = seq(1,niter), mu = numeric(length=niter), lower = numeric(length=niter), upper = numeric(length=niter))
+
+for(ii in 1:niter)
+{
+WP <- rbinom(Nsamp,1,propLW)
+
+muP <- mean(WP)
+
+SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
+
+CI_dat[ii,] <- tibble(index = ii, mu = muP, lower = muP-SEp, upper = muP+SEp)
+
+}  
+
+CI_dat |>
+  ggplot() +
+  geom_point(aes(mu, index)) +
+  geom_segment(aes(y=index, yend=index, x=lower, xend=upper)) +
+  geom_vline(xintercept = propLW, color = "steelblue") +
+  xlim(c(0,1))
+
+#consider one case - can you calculate the probability the parameter is true? no - you can just calculate how likely you observe your prop given some parameter estimate.
+
+#point about probability - only comes from a long run with a known true value - for particular dataset, no prob for parameter
+
+#cross
+#particluar set, based on allele frequencies at all of the loci contributing, expect 0.18
+propLW <- 0.18
+Nsamp <- 20
+WP <- rbinom(Nsamp,1,propLW)
+
+LWSW <- c(sum(WP),Nsamp - sum(WP))
+chiT <- chisq.test(LWSW)
+
+niter <- 1000
+for(ii in 1:niter)
+{
+  propLW <- 0.5
+Nsamp <- 20
+WP <- rbinom(Nsamp,1,propLW)
+
+LWSW <- c(sum(WP),Nsamp - sum(WP))
+chiT <- chisq.test(LWSW)
+
+}
+
+```
+
+Assuming there is a true value - we know how it behaves for the unknown true value. 
+
+You do an experiment once. Don't know that value
+
+
+  - assumptions, which things are "given"
+
+
+go through probablity for parameter?
+what info would you need to figure this out from a single dataset?
+
+```{r}
+
+propLW <- 0.3
+Nsamp <- 100
+WP <- rbinom(Nsamp,1,propLW)
+
+
+
+
+```
+
+
+
+## Likelihood and probability
+
+a "by hand" type example
+
+
+1. priors - how to pick what they mean - why
+  - sampling - try out some values and see what you get
+1. CIs
+1. simple model and/or ABC
+
+
+## Handedness in Common Toads
+
+Preference for one forelimb over the other ("handedness" or "pawedness") is common among vertebrates. Humans, dogs, birds, and other amniotes all have been shown to have some degree of handedness. Bisazza et al. (1996)^[Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.] tested whether common toads (*Bufo bufo*) showed a similar pattern of handedness. There were some additional experiments with other species described in the paper, but we will focus on these two.
+
+Here is the description of their methods:
+
+> Toads were placed in the middle of a circular tank (60 cm diameter) with a small plastic balloon wrapped around their head (expt 1), or a small wet piece of paper stuck on their mouth and  nose (expt 2). They were given 10 successive trials; in each trial the first forepaw used in attempts to remove the annoyance was recorded.
+
+The results of the experiments were:
+
+1. Experiment 1: 14 toads showed right preference and 4 left
+2. Experiment 2: 26 toads showed right and 10 left
+
+These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness). A $\chi^2$ test is a perfectly reasonable way to analyze these data. One downside is that you get a yes/no answer to the question "do these counts differ from equality?" -- a *P*-value without any additional information about the uncertainty. You can test different proportions (i.e., not just 50-50), but the basic fact remains.
+
+```{r}
+# Experiment 1
+chisq.test(c(14, 4))
+
+# Experiment 2
+chisq.test(c(26, 10))
+```
+
+Here's a function to plot two Beta distributions together. You provide a and b for each distribution, and the plot is made. These could, for example, be the prior and posterior distributions.
+
+Examine the code and make sure you understand what it does.
+
+```{r}
+prior_post_beta <- function (a1, b1, a2, b2) {
+  ggplot() +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a1, shape2 = b1)),
+            aes(P, Density), linewidth = 2) +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a2, shape2 = b2)),
+            aes(P, Density), color = "blue", linewidth = 2)
+}
+
+```
+
+In the chunk below, try out the function for some different Beta distributions.
+
+```{r}
+# FIXME
+prior_post_beta(1, 1, 2, 2)
+```
+
+
+Beta(1, 1) Prior
+
+```{r}
+prior_post_beta(1, 1, 16, 6)
+
+exp1 <- rbeta(1e4, 15, 5)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+
+prior_post_beta(1, 1, 27, 11)
+
+exp2 <- rbeta(1e4, 27, 11)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
+
+Beta(5, 5) Prior
+
+```{r}
+prior_post_beta(5, 5, 19, 9)
+
+exp1 <- rbeta(1e4, 19, 9)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+
+prior_post_beta(5, 5, 31, 15)
+
+exp2 <- rbeta(1e4, 31, 15)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
+
+Beta(0.5, 0.5) Prior
+
+What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
+
+```{r}
+prior_post_beta(0.5, 0.5, 14.5, 4.5)
+
+exp1 <- rbeta(1e4, 14.5, 4.5)
+quantile(exp1, probs = c(0.025, 0.5, 0.975))
+
+
+prior_post_beta(0.5, 0.5, 26.5, 10.5)
+
+exp2 <- rbeta(1e4, 26.5, 10.5)
+quantile(exp2, probs = c(0.025, 0.5, 0.975))
+```
+
+About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people in a sample (e.g., a sample of professional athletes)? You can either use the plotting function from above to test out some distributions or write your own function below.
+
+> There is no one correct answer. Beta(3, 15) puts the mean at a little above 0.1. (10%). There is still a lot of mass above 20%, but little beyond 50%.
+
+```{r}
+# FIXME
+ggplot() +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = 3, shape2 = 15)),
+            aes(P, Density), linewidth = 2) +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1)) +
+  theme_bw()
+```
+
+why can you just add 1 to a or b for the carp thing?
