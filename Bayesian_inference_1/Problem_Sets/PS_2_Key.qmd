@@ -42,7 +42,9 @@ theme_set(theme_cowplot())
 
 ## Adaptation to drought stress in Silver Fir
 
-The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*. We used this dataset in *Quantitative Methods 1* to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
+The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*.
+
+We used this dataset in *Quantitative Methods 1* to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
 
 ![](https://i.imgur.com/0KwbeIe.jpg)
 
@@ -63,12 +65,13 @@ dim(M)
 
 You should have 512 rows remaining in two columns. Each row represents one tree measured in 1999.
 
-Split the data in two: one for CHE and one for LAC (for simplicity, call these opbjects `CHE` and `LAC`).
+Split the data in two: one for CHE and one for LAC (for simplicity, call these objects `CHE` and `LAC`).
 
 We will model these separately.
 
 ```{r}
 # FIXME
+
 CHE <- M |> filter(population == "CHE")
 LAC <- M |> filter(population == "LAC")
 ```
@@ -124,9 +127,9 @@ ulam(
 )
 ```
 
-`ulam()` is the call to the `rethinking` function of the same name. This function converts the code contained within `alist()` into stan code. An `alist()` is a special kind of un-evaluated list in R. You don't need to know anything more about it than it's the way that models are specified in `ulam()`. It's elements are separated by commas.
+`ulam()` is the call to the `rethinking` function of the same name. This function converts the code contained within `alist()` into stan code. An `alist()` is a special kind of un-evaluated list in R. You don't need to know anything more about it than it's the way that models are specified in `ulam()`^[Neither of us has ever used an `alist` in any other context.]. It's elements are separated by commas.
 
-The first line in the call to `alist()` the is distribution for the outcome variable. The second is the model statement. And the remaining lines are the priors. It's is not required that things go in this order or that everything fits on one line. It does help to keep the lines in this order just for clarity.
+The first line in the `alist()` the is distribution for the outcome variable. The second is the model statement. And the remaining lines are the priors. It's is not required that things go in this order or that everything fits on one line. It does help to keep the lines in this order for clarity, and if you always set them up the same way, you will be less likely to make a mistake.
 
 The other parameter options control data and sampling. We will cover these later. If you have a multicore computer (most are these days), you can set `cores = 4` to sample all the chains in parallel. Here we are sampling 4 chains for 5,000 total iterations. By default, half of the iterations are used for warmup. So we end up with 10,000 post-warmup samples.
 
@@ -167,6 +170,7 @@ ulam(
 Here the second line says that `mu` from the line `ht99mm ~ dnorm(mu, sigma)` is a function of `a`. You use `<-` to define a functional relationship rather than `~` which defines distributions. In line 3, a prior for `a` is specified instead of `mu`. 
 
 If there were other predictors, we could add them: `mu <- a + bx`. 
+
 
 ### Prior prediction with `ulam()`
 
