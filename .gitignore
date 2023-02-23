@@ -41,6 +41,6 @@ vignettes/*.pdf
 .DS_Store
 
 *.html
-binomial
-Bayesian_inference_1/DBH
-Bayesian_inference_1/DBH.exe
+
+# Unignore
+!/Data_visualization/*.html
