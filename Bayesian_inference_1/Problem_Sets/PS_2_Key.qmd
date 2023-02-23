@@ -604,7 +604,7 @@ Make a scatter plot of sigma vs. mu from all the posterior samples. This is a "p
 ```{r}
 post_sav |> 
   ggplot(aes(x = mu, y = sigma)) +
-  geom_point(color = "steelblue")
+  geom_point(color = "steelblue", alpha = 0.5, pch = 16)
 ```
 
 What do you observe in the scatter plot?
