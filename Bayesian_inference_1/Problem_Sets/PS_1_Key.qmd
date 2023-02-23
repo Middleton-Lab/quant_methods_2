@@ -15,7 +15,9 @@ format:
 #| message: false
 
 library(tidyverse)
+library(cowplot)
 
+theme_set(theme_cowplot())
 # Required files for this problem set:
 
 ```
@@ -123,62 +125,6 @@ Congratulations, you have just run a Bayesian model (a logistic regression to be
 If your machinery does not work, let us know right away.
 
 
-## Bayesian vs. Frequentist Frameworks
-
-Crickets omniscent - know proportion is exactly 30%
-
-```{r}
-
-set.seed(38277983)
-
-propLW <- 0.3
-Nsamp <- 100
-WP <- rbinom(Nsamp,1,propLW)
-
-muP <- mean(WP)
-
-#mod <- summary(glm(WP ~ 1, family=binomial))
-#estL <- exp(mod$coefficients[1])/(1 + exp(mod$coefficients[1]))
-
-SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
-
-
-
-
-
-consider one case - can you calculate the probability the parameter is true? no - you can just calculate how likely you observe your prop given some parameter estimate.
-
-
-chisq.test()
-
-
-
-
-```
-
-Assuming there is a true value - we know how it behaves for the unknown true value. 
-
-You do an experiment once. Don't know that value
-
-
-  - assumptions, which things are "given"
-
-
-go through probablity for parameter?
-what info would you need to figure this out from a single dataset?
-
-
-## Likelihood and probability
-
-a "by hand" type example
-
-
-1. priors - how to pick what they mean - why
-  - sampling - try out some values and see what you get
-1. CIs
-1. simple model and/or ABC
-
-
 ## Handedness in Common Toads
 
 Preference for one forelimb over the other ("handedness" or "pawedness") is common among vertebrates. Humans, dogs, birds, and other amniotes all have been shown to have some degree of handedness. Bisazza et al. (1996)^[Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.] tested whether common toads (*Bufo bufo*) showed a similar pattern of handedness. There were some additional experiments with other species described in the paper, but we will focus on these two.
@@ -192,7 +138,7 @@ The results of the experiments were:
 1. Experiment 1: 14 toads showed right preference and 4 left
 2. Experiment 2: 26 toads showed right and 10 left
 
-These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness). A $\chi^2$ test is a perfectly reasonable way to analyze these data. One downside is that you get a yes/no answer to the question "do these counts differ from equality?" -- a *P*-value without any additional information about the uncertainty. You can test different proportions (i.e., not just 50-50), but the basic fact remains.
+These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness). A $\chi^2$ test is a perfectly reasonable way to analyze these data. One downside to a $\chi^2$ test is that you get a yes/no answer to the question "do these counts differ from equality?" -- a *P*-value without any additional information about the uncertainty. Note that you can calculate an exact or estimated confidence interval for a proportion (see below).
 
 ```{r}
 # Experiment 1
@@ -227,52 +173,130 @@ prior_post_beta(1, 1, 2, 2)
 ```
 
 
-Beta(1, 1) Prior
+### Beta(1, 1) Prior
+
+Use the function above to plot the prior/posterior pairing for a Beta(1, 1) prior for experiment 1.
 
 ```{r}
-prior_post_beta(1, 1, 16, 6)
+# FIXME
+prior_post_beta(1, 1, 15, 5)
+```
 
+Describe what does a Beta(1, 1) prior means in the context of this experiment?
+
+> We have prior belief that the proportion falls between 0 and 1 and that all values in that range are equally probable.
+
+How much influence does the prior appear to have on the posterior?
+
+> Not much. Thinking about it, the prior can't have much, because there is much more "data" in the data than in the prior.
+
+We have data (counts of toads), a model (a simple proportion of counts), a prior (Beta(1, 1)) and a posterior (Beta(15, 5)), so we have now carried out a Bayesian analysis (believe it or not).
+
+We can sample randomly from the posterior and use those samples to calculate the median and quantiles, which will give us estimates of the most probable sets of values consistent with this analysis.
+
+In the chunk below draw 10,000 random samples from a beta distribution (`rbeta()`) using the values for $a$ and $b$ from the posterior. With those samples, calculate the 0.5, 0.025, and 0.975 quantiles, representing the median and 95% credible interval for the proportion.
+
+```{r}
+# FIXME
 exp1 <- rbeta(1e4, 15, 5)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
+```
 
+What are the median and 95% credible interval for the proportion of right pawed toads in experiment 1? 
 
+> 0.759 (95% CI = 0.546 - 0.908)
+
+How does the median compare to the "raw" proportion (14/18)? What accounts for the difference wherein the median of the posterior is lower?
+
+>  The raw proportion is 0.778. The median of the posterior is 0.759. The difference comes from the Beta(1, 1) prior assigning some prior probability across the range 0-1.
+
+Repeat the steps above for experiment 2 in the chunk below.
+
+```{r}
+# FIXME
 prior_post_beta(1, 1, 27, 11)
 
 exp2 <- rbeta(1e4, 27, 11)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
-Beta(5, 5) Prior
+What are the median and 95% credible interval for the proportion of right pawed toads in experiment 1? 
+
+> 0.712 (95% CI = 0.556 - 0.841)
+
+How does the median compare to the "raw" proportion (26/36)? Why is this median closer to the raw proportion than in experiment 1?
+
+>  The raw proportion is 0.722. The median of the posterior is 0.712. The two values are close because there is twice as much data in experiment 2 than in experiment 1 (36 observations vs. 18 observations). But they have the same Beta(1, 1) prior, so the data in experiment 2 is relatively stronger vs. the prior.
+
+
+### Beta(5, 5) Prior
+
+We'd like to see how sensitive our results are to a different prior.
+
+Describe what a Beta(5, 5) prior means in the context of this experiment? Feel free to plot a Beta distribution with a and b equal to 5.
+
+> We have prior belief that the proportion falls between 0 and 1 and that values close to 0.5 are most likely. Probability falls off toward 0.25 and 0.75, with little prior belief in values less than 0.1 or above 0.9.
+
+In the chunk below repeat the analyses above for a Beta(5, 5) prior for experiments 1 and 2.
 
 ```{r}
+# FIXME
+# Experiment 1
 prior_post_beta(5, 5, 19, 9)
 
 exp1 <- rbeta(1e4, 19, 9)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
 
-
+# Experiment 2
 prior_post_beta(5, 5, 31, 15)
 
 exp2 <- rbeta(1e4, 31, 15)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
 
-Beta(0.5, 0.5) Prior
+How do these results differ from those above for a Beta(1, 1) prior?
 
-What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
+> The median and CI for experiment 1 are now 0.683 (0.49 - 0.837), indicating some support for toads randomly choosing a limb (i.e., no credible evidence for "pawedness" in toads). These values for experiment 2 are 0.677 (0.533 - 0.797), which is also approaching 0.5.
+
+What would happen to the posteriors if we used Beta priors with increasing concentration at 0.5 (Beta(10, 10) or Beta(20, 20))?
+
+> The observed data would have much less impact on the prior. We would find a posterior median closer to 0.5 than to the raw proportion.
+
+
+### Beta(0.5, 0.5) Prior
+
+We'd like to try one more prior before we move on. What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
+
+> We have strong prior belief that all toads in the experiment will either be right-"pawed" or left-"pawed" (i.e., proportions near 0 or 1), but little belief in values in between.
+
+Carry out the same analyses using a Beta(0.5, 0.5) prior. Here also use `plot_grid()` to stack the prior/posterior plots for Beta(1, 1) and Beta(0.5, 0.5) on top of one another.
 
 ```{r}
-prior_post_beta(0.5, 0.5, 14.5, 4.5)
+# FIXME
+# Experiment 1
+plot_grid(prior_post_beta(1, 1, 15, 5),
+          prior_post_beta(0.5, 0.5, 14.5, 4.5),
+          nrow = 2)
 
 exp1 <- rbeta(1e4, 14.5, 4.5)
 quantile(exp1, probs = c(0.025, 0.5, 0.975))
 
-
-prior_post_beta(0.5, 0.5, 26.5, 10.5)
+# Experiment 2
+plot_grid(prior_post_beta(1, 1, 27, 11),
+          prior_post_beta(0.5, 0.5, 26.5, 10.5),
+          nrow = 2)
 
 exp2 <- rbeta(1e4, 26.5, 10.5)
 quantile(exp2, probs = c(0.025, 0.5, 0.975))
 ```
+
+How do these results differ from those above for a Beta(1, 1) prior?
+
+> Because the Beta(0.5, 0.5) prior has even less information than the (1, 1) prior, the medians are closer to the raw proportions.
+
+What is your conclusion about the relationship between the "information" contained in the prior and the "information" contained in the posterior (we'll learn later that this is the prior vs. likelihood).
+
+> The posterior is a function of the strength of the prior (amount of data)
 
 About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people in a sample (e.g., a sample of professional athletes)? You can either use the plotting function from above to test out some distributions or write your own function below.
 
@@ -288,4 +312,160 @@ ggplot() +
   theme_bw()
 ```
 
-why can you just add 1 to a or b for the carp thing?
+
+## Bayesian and Frequentist Frameworks
+
+Bayesian and frequentist frameworks differ in the assumptions they make during the analysis process and the goals of what probabilities they attempt to estimate in order to make inferences. Here, we will work through an example showing the basis and assumptions underlying the frequentist framework. 
+
+Some cricket species (and other types of insects) show a discrete wing polymorphism where individuals are either long winged with large functional wings and flight muscles or short winged with short, non-functional wings and no flight muscles. The two morphs differ in their ability to fly (long winged crickets can fly, short winged crickets cannot) and in their reproductive output (short winged crickets have higher early reproduction).
+
+Let's consider the simple case where you have the question: what is the proportion of long winged crickets in one population. Typically, an experimenter would go to this population and sample a set of crickets to estimate this parameter. A Bayesian analysis (like the one you just did!) asks: given this sample, what is the relative probability of different parameters (i.e., possible actual proportions in the population).
+
+A frequentist analysis instead asks: for different possible parameters, what is the probabilty of observing this sample? The estimate is the parameter that leads to the highest probability of observing the sample. The measure of uncertainty (a confidence interval) is based in this same framework: assuming a true population parameter, what would you observe with repeated sampling? 
+
+We will explore this difference in the two frameworks here.
+
+Let's say you are omniscient and you know the true proportion of long winged crickets is 0.3 in the population (i.e., if you phenotyped every single cricket in the population, 30% would be long winged). Use this true value, and generate a dataset of 100 crickets using `rbinom()`. Don't forget to set the seed.
+
+- Calculate the mean value for your one sample
+- Use `glm()` and `family = binomial` to fit a logistic regression fitting only the intercept. Back transform the estimate from the logit using the equation $1 / 1 + \exp(- coef(model))$, where `coef(model)` is the coefficient estimate for the glm model. Note that this estimate matches the mean
+- Calculate the 95% confidence interval for the estimate of the mean proportion ($\mu_P$) using the normal approximation: $\mu_P \pm1.96 * \sqrt{(\mu_P*(1-\mu_P))/n}$, where $n$ is the sample size.
+- Place these values along with an index value of 1 in a tibble, and plot the confidence interval with a point for the mean and a horizontal segment at the index value for the CI. Add a vertical line showing the true proportion in the population. Set the x-axis to range from 0 to 1.  
+
+```{r}
+# FIXME
+set.seed(38277983)
+
+propLW <- 0.3
+Nsamp <- 100
+WP <- rbinom(Nsamp,1,propLW)
+
+muP <- mean(WP)
+
+mod <- summary(glm(WP ~ 1, family=binomial))
+estL <- 1/(1 + exp(-coef(mod)[1]))
+
+SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
+
+CI_dat <- tibble(index = 1, mu = muP, lower = muP-SEp, upper = muP+SEp)
+
+CI_dat |>
+  ggplot() +
+  geom_point(aes(mu, index)) +
+  geom_segment(aes(y=index, yend=index, x=lower, xend=upper)) +
+  geom_vline(xintercept = propLW, color = "steelblue") +
+  xlim(c(0,1))
+```
+
+Our interpretation of a frequentist confidence interval is based on repeated sampling given the true parameter value. Create 100 samples of 100 crickets each using 0.3 as the true population proportion, and calculate the mean and confidence interval. Plot these vertically with sample number (index) on the y-axis in the same as above. 
+
+```{r}
+# FIXME
+
+niter <- 100
+CI_dat <- tibble(index = seq(1, niter),
+                 mu = numeric(length = niter),
+                 lower = numeric(length = niter),
+                 upper = numeric(length = niter))
+
+for(ii in 1:niter) {
+  WP <- rbinom(Nsamp,1,propLW)
+  
+  muP <- mean(WP)
+  
+  SEp <- 1.96*sqrt((muP*(1-muP))/Nsamp)
+  
+  CI_dat[ii,] <- tibble(index = ii,
+                        mu = muP,
+                        lower = muP-SEp,
+                        upper = muP+SEp)
+}  
+
+CI_dat |>
+  ggplot() +
+  geom_point(aes(mu, index)) +
+  geom_segment(aes(y=index, yend=index, x=lower, xend=upper)) +
+  geom_vline(xintercept = propLW, color = "steelblue") +
+  xlim(c(0,1))
+```
+
+Does the confidence interval always include the actual true value? How many of the 100 CIs do you predict will *not* include the true value? 
+
+> No, it does not. We predict that about 5 (5%) will not include the true value. 95% of them will inclide 0.3.
+
+Verify your prediction in the chunk below. For each simulated dataset, test whether the lower bound is above 0.3 *or* the upper bound is below 0.3 (i.e., the entire bound falls outside of 0.3).
+
+```{r}
+# FIXME
+CI_doesnt_include_P <- numeric(niter)
+
+for (ii in 1:niter) {
+  CI_doesnt_include_P[ii] <- 
+    if_else(CI_dat$lower[ii] > 0.3 | CI_dat$upper[ii] < 0.3, 1, 0)
+}
+mean(CI_doesnt_include_P)
+```
+
+How do your results compare with your prediction?
+
+> For our seed value, 6 of 100 fell outside true value. This is close enough.
+
+Consider the assumptions that we need to use here to get an estimate of the uncertainty in our parameter estimate when the typical practical use case will include only a single dataset. How do these differ from what we need to assume when calculating a Bayesian HPDI?
+
+> 
+
+Often when studying discrete traits, one might be interested in whether there is evidence the trait is determined by a single gene. This need not be the case as many discrete traits are polygenic and are modeled by a [liability threshold model](https://en.wikipedia.org/wiki/Threshold_model#Liability_threshold_model). Imagine you perform a cross where you expect a 3:1 phenotypic ratio, if the trait is determined by a single gene. You want to perform a goodness-of-fit test to ask if the proportion differs from this expectation.
+
+In crickets, wing length is a polygenic trait. Let's again assume you are omniscient, and the true proportion in your cross is 0.38. You have done a cross in the lab and have a single dataset of 50 crickets. You count 32 with long wings and 18 with short wings.
+
+For these data, perform a goodness of fit test against the expected probabilities of 0.75 and 0.25. Keep the value of the $\chi^2$ statistic and the p-value.
+
+```{r}
+# FIXME
+
+chiT <- chisq.test(c(32, 18), p = c(0.75, 0.25))
+chiT
+
+obs.s <- chiT$statistic
+obs.p <- chiT$p.value
+```
+
+What do you conclude in your single case?
+
+> P = 0.07, so at an alpha level of 0.05, the observed proportion does not differ from the expected 3:1 phenotypic ratio.
+
+Remember, the frequentist framework is based on repeated runs of the same process to make conclusions. The test you just did is based on determining how often we would see a result like the one in your single dataset if there is actually no difference between your observed proportion and a 3:1 ratio (i.e., it is due to the randomness of sampling only). Simulate a dataset of 50 crickets with a true 3:1 ratio 1,000 times and store the resulting 1,000 $\chi^2$ statistics in a vector. 
+
+```{r}
+# FIXME
+niter <- 1000
+chiT.set <- numeric(length = niter)
+
+for(ii in 1:niter) {
+  propLW <- 0.75
+  Nsamp <- 50
+  WP <- rbinom(Nsamp, 1, propLW)
+  
+  LWSW <- c(sum(WP), Nsamp - sum(WP))
+  chiT.set[ii] <- chisq.test(LWSW, p = c(0.75, 0.25))$statistic
+}
+```
+
+In the chunk below, calculate the proportion of random tests above in which the $\chi^2$ statistic is equal to or greater than the one for the observed data.
+
+```{r}
+# FIXME
+
+length(which(chiT.set >= obs.s)) / niter
+
+```
+
+How does this proportion compare to the p-value you observed?
+
+> They are very close. Our observed p-value is 0.07 and represents the expected proportion of times you would observe your counts when there actually is a 3:1 ratio by random sampling alone.
+
+In a Bayesian analysis, the framework takes the dataset as given and explores the probability of different possible parameter values. Consider the analysis you did about the toads above. What assumptions did you need to make, and how do these lead to differences in how you approach the question you are asking?
+
+> 
+
+We have emphasized the differences in these frameworks here to help with understanding how the analysis process works in each. You should also recognize some similarities between the two in the general approach of using probability, randomness, and sampling to make inferences about data. In fact, if you use a uniform prior in a Bayesian analysis and your dataset is normally distributed, these two analyses should produce nearly identical conclusions.
