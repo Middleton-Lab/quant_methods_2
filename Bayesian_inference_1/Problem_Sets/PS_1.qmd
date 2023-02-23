@@ -1,0 +1,352 @@
+---
+title: "Problem Set 1"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+
+```
+
+## Setup
+
+Throughout this module, we will use an array of packages. Some of these are on CRAN and some are not. We will also need some helper software tools. Before you begin, make sure that both R and RStudio are updated to their latest versions.
+
+
+### Command lines tools
+
+Because the packages that do Bayesian sampling have to compile their code for the models you specify, we have to start with the tools for compiling. On both types of machines these steps are somewhat time consuming. You only have to do them once, though.
+
+*For Windows*: Install [RTools for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
+
+- You will want RTools version 4.2, because that matches the latest "point" version of R. You will need to update to RTools 4.3 when R 4.3 is released (and you update your R installation, which you should do).
+- By default, it will install into `C:\`. If you do not have root access to your laptop (i.e., if you are on a University controlled machine) you can install to your user directory. You might need to change the PATH variable in this case (if you need help with that, let us know).
+
+*For MacOS*: Install the Xcode Command Line Tools
+
+- Open a terminal (Applications -> Utilities -> Terminal.app)
+- Paste the following code: `xcode-select --install`
+- Follow the prompts. You will probably have to enter your password.
+- If you are on a University-controlled machine and have trouble, let us know and we can try to help.
+
+
+### Install packages
+
+These are definitely ones we will use. There may be others, but we can install those later.
+
+*Packages from CRAN*:
+
+Use `install.packages()` to install these packages:
+
+- `coda`
+- `rstan`
+- `brms`
+- `bayesplot`
+- `posterior`
+- `tidybayes`
+- `HDInterval`
+- `truncnorm`
+
+```
+install.packages(c("coda", "rstan", "brms", "bayesplot",
+                   "posterior", "tidybayes", "HDinterval",
+                   "truncnorm"))
+```
+
+*Packages not available from CRAN*:
+
+First install the `remotes` package (if you do not already have it installed), which allows you to install packages from GitHub directly.
+
+Second, install `cmdstanr`
+
+- You can follow along with [Getting started with cmdstanr](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or just run the following lines of code.
+- `install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))`
+- The first time you load `cmdstanr` with `library()`, it will prompt you to install the cmdstan backend (which does the actual comoilation and sampling of models)
+    - Check that the toolchain is working `check_cmdstan_toolchain()`
+    - If everything looks good, install cmdstan: `install_cmdstan()`
+- This takes a few minutes. Again, you only do this once.
+
+Third, install `rethinking`
+
+- `rethinking` is an R package that accompanies the book *Statistical Rethinking* by Richard McElreath.
+- Install with `remotes::install_github("rmcelreath/rethinking")`
+- It might have some dependencies that it installs also, but usually it goes well if this is the last package you install.
+
+
+### Test it out
+
+If everything worked, you should be able to run a simple model. You can either execute this block or copy and paste the code to the console. `#| eval: false` means that it will not run every time you render the document.
+
+```{r}
+#| eval: false
+library(rethinking)
+
+# Remember that the order of the data
+# does not matter.
+d <- list(pass = c(rep(0, times = 62),
+                   rep(1, times = 9)))
+
+fm <- ulam(
+  alist(
+    pass ~ bernoulli(theta),
+    logit(theta) <- a,
+    a ~ normal(0, 3)
+  ),
+  data = d,
+  chains = 4,
+  iter = 5e3
+)
+
+summary(fm)
+a <- extract.samples(fm)$a
+median(logistic(a))
+```
+
+As stan starts compiling, you will get a warning about `Declaration of arrays by placing brackets after a variable name...`. You can ignore this warning. There is a code fix needed in `ulam()` that hasn't been made yet in the main branch. It doesn't impact the sampling.
+
+We will learn what all this code (`ulam`, `alist`, etc.) means soon. Don't worry about those for now. You will hopefully recognize that the last line outputs the median of the logistic transformation of `a`, a value which is very close to the proportion of carp that "passed" from our Unit 1 lectures (0.127). 
+
+Congratulations, you have just run a Bayesian model (a logistic regression to be more precise). Although we are perhaps getting a bit ahead of ourselves, it's nice to know that the machinery works.
+
+If your machinery does not work, let us know right away.
+
+
+## Handedness in Common Toads
+
+Preference for one forelimb over the other ("handedness" or "pawedness") is common among vertebrates. Humans, dogs, birds, and other amniotes all have been shown to have some degree of handedness. Bisazza et al. (1996)^[Bisazza, A., C. Cantalupo, A. Robins, L. J. Rogers, and G. Vallortigara. 1996. Right-pawedness in toads. *Nature* 379:408–408.] tested whether common toads (*Bufo bufo*) showed a similar pattern of handedness. There were some additional experiments with other species described in the paper, but we will focus on these two.
+
+Here is the description of their methods:
+
+> Toads were placed in the middle of a circular tank (60 cm diameter) with a small plastic balloon wrapped around their head (expt 1), or a small wet piece of paper stuck on their mouth and  nose (expt 2). They were given 10 successive trials; in each trial the first forepaw used in attempts to remove the annoyance was recorded.
+
+The results of the experiments were:
+
+1. Experiment 1: 14 toads showed right preference and 4 left
+2. Experiment 2: 26 toads showed right and 10 left
+
+These authors used a $\chi^2$ test of equal proportions to test whether these observations deviated from random (i.e., equal probability of right or left pawedness). A $\chi^2$ test is a perfectly reasonable way to analyze these data. One downside to a $\chi^2$ test is that you get a yes/no answer to the question "do these counts differ from equality?" -- a *P*-value without any additional information about the uncertainty. Note that you can calculate an exact or estimated confidence interval for a proportion (see below).
+
+```{r}
+# Experiment 1
+chisq.test(c(14, 4))
+
+# Experiment 2
+chisq.test(c(26, 10))
+```
+
+Here's a function to plot two Beta distributions together. You provide a and b for each distribution, and the plot is made. These could, for example, be the prior and posterior distributions.
+
+Examine the code and make sure you understand what it does.
+
+```{r}
+prior_post_beta <- function (a1, b1, a2, b2) {
+  ggplot() +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a1, shape2 = b1)),
+            aes(P, Density), linewidth = 2) +
+  geom_line(data = tibble(P = seq(0, 1, length.out = 200),
+                          Density = dbeta(P, shape1 = a2, shape2 = b2)),
+            aes(P, Density), color = "blue", linewidth = 2)
+}
+
+```
+
+In the chunk below, try out the function for some different Beta distributions.
+
+```{r}
+
+```
+
+
+### Beta(1, 1) Prior
+
+Use the function above to plot the prior/posterior pairing for a Beta(1, 1) prior for experiment 1.
+
+```{r}
+
+```
+
+Describe what does a Beta(1, 1) prior means in the context of this experiment?
+
+> 
+
+How much influence does the prior appear to have on the posterior?
+
+> 
+
+We have data (counts of toads), a model (a simple proportion of counts), a prior (Beta(1, 1)) and a posterior (Beta(15, 5)), so we have now carried out a Bayesian analysis (believe it or not).
+
+We can sample randomly from the posterior and use those samples to calculate the median and quantiles, which will give us estimates of the most probable sets of values consistent with this analysis.
+
+In the chunk below draw 10,000 random samples from a beta distribution (`rbeta()`) using the values for $a$ and $b$ from the posterior. With those samples, calculate the 0.5, 0.025, and 0.975 quantiles, representing the median and 95% credible interval for the proportion.
+
+```{r}
+
+```
+
+What are the median and 95% credible interval for the proportion of right pawed toads in experiment 1? 
+
+> 
+
+How does the median compare to the "raw" proportion (14/18)? What accounts for the difference wherein the median of the posterior is lower?
+
+> 
+
+Repeat the steps above for experiment 2 in the chunk below.
+
+```{r}
+
+```
+
+What are the median and 95% credible interval for the proportion of right pawed toads in experiment 1? 
+
+> 
+
+How does the median compare to the "raw" proportion (26/36)? Why is this median closer to the raw proportion than in experiment 1?
+
+> 
+
+
+### Beta(5, 5) Prior
+
+We'd like to see how sensitive our results are to a different prior.
+
+Describe what a Beta(5, 5) prior means in the context of this experiment? Feel free to plot a Beta distribution with a and b equal to 5.
+
+> 
+
+In the chunk below repeat the analyses above for a Beta(5, 5) prior for experiments 1 and 2.
+
+```{r}
+
+```
+
+How do these results differ from those above for a Beta(1, 1) prior?
+
+> 
+
+What would happen to the posteriors if we used Beta priors with increasing concentration at 0.5 (Beta(10, 10) or Beta(20, 20))?
+
+> 
+
+
+### Beta(0.5, 0.5) Prior
+
+We'd like to try one more prior before we move on. What would a Beta(0.5, 0.5) prior mean in the context of this experiment?
+
+> 
+
+Carry out the same analyses using a Beta(0.5, 0.5) prior. Here also use `plot_grid()` to stack the prior/posterior plots for Beta(1, 1) and Beta(0.5, 0.5) on top of one another.
+
+```{r}
+
+```
+
+How do these results differ from those above for a Beta(1, 1) prior?
+
+> 
+
+What is your conclusion about the relationship between the "information" contained in the prior and the "information" contained in the posterior (we'll learn later that this is the prior vs. likelihood).
+
+> 
+
+About 90% of humans are right handed. What would be a good prior for right-handedness if you were to test a sample of humans to see if there is an unusually large proportion of left-handed people in a sample (e.g., a sample of professional athletes)? You can either use the plotting function from above to test out some distributions or write your own function below.
+
+> 
+
+```{r}
+
+```
+
+
+## Bayesian and Frequentist Frameworks
+
+Bayesian and frequentist frameworks differ in the assumptions they make during the analysis process and the goals of what probabilities they attempt to estimate in order to make inferences. Here, we will work through an example showing the basis and assumptions underlying the frequentist framework. 
+
+Some cricket species (and other types of insects) show a discrete wing polymorphism where individuals are either long winged with large functional wings and flight muscles or short winged with short, non-functional wings and no flight muscles. The two morphs differ in their ability to fly (long winged crickets can fly, short winged crickets cannot) and in their reproductive output (short winged crickets have higher early reproduction).
+
+Let's consider the simple case where you have the question: what is the proportion of long winged crickets in one population. Typically, an experimenter would go to this population and sample a set of crickets to estimate this parameter. A Bayesian analysis (like the one you just did!) asks: given this sample, what is the relative probability of different parameters (i.e., possible actual proportions in the population).
+
+A frequentist analysis instead asks: for different possible parameters, what is the probabilty of observing this sample? The estimate is the parameter that leads to the highest probability of observing the sample. The measure of uncertainty (a confidence interval) is based in this same framework: assuming a true population parameter, what would you observe with repeated sampling? 
+
+We will explore this difference in the two frameworks here.
+
+Let's say you are omniscient and you know the true proportion of long winged crickets is 0.3 in the population (i.e., if you phenotyped every single cricket in the population, 30% would be long winged). Use this true value, and generate a dataset of 100 crickets using `rbinom()`. Don't forget to set the seed.
+
+- Calculate the mean value for your one sample
+- Use `glm()` and `family = binomial` to fit a logistic regression fitting only the intercept. Back transform the estimate from the logit using the equation $1 / 1 + \exp(- coef(model))$, where `coef(model)` is the coefficient estimate for the glm model. Note that this estimate matches the mean
+- Calculate the 95% confidence interval for the estimate of the mean proportion ($\mu_P$) using the normal approximation: $\mu_P \pm1.96 * \sqrt{(\mu_P*(1-\mu_P))/n}$, where $n$ is the sample size.
+- Place these values along with an index value of 1 in a tibble, and plot the confidence interval with a point for the mean and a horizontal segment at the index value for the CI. Add a vertical line showing the true proportion in the population. Set the x-axis to range from 0 to 1.  
+
+```{r}
+
+```
+
+Our interpretation of a frequentist confidence interval is based on repeated sampling given the true parameter value. Create 100 samples of 100 crickets each using 0.3 as the true population proportion, and calculate the mean and confidence interval. Plot these vertically with sample number (index) on the y-axis in the same as above. 
+
+```{r}
+
+```
+
+Does the confidence interval always include the actual true value? How many of the 100 CIs do you predict will *not* include the true value? 
+
+> 
+
+Verify your prediction in the chunk below. For each simulated dataset, test whether the lower bound is above 0.3 *or* the upper bound is below 0.3 (i.e., the entire bound falls outside of 0.3).
+
+```{r}
+
+```
+
+How do your results compare with your prediction?
+
+> 
+
+Consider the assumptions that we need to use here to get an estimate of the uncertainty in our parameter estimate when the typical practical use case will include only a single dataset. How do these differ from what we need to assume when calculating a Bayesian HPDI?
+
+> 
+
+Often when studying discrete traits, one might be interested in whether there is evidence the trait is determined by a single gene. This need not be the case as many discrete traits are polygenic and are modeled by a [liability threshold model](https://en.wikipedia.org/wiki/Threshold_model#Liability_threshold_model). Imagine you perform a cross where you expect a 3:1 phenotypic ratio, if the trait is determined by a single gene. You want to perform a goodness-of-fit test to ask if the proportion differs from this expectation.
+
+In crickets, wing length is a polygenic trait. Let's again assume you are omniscient, and the true proportion in your cross is 0.38. You have done a cross in the lab and have a single dataset of 50 crickets. You count 32 with long wings and 18 with short wings.
+
+For these data, perform a goodness of fit test against the expected probabilities of 0.75 and 0.25. Keep the value of the $\chi^2$ statistic and the p-value.
+
+```{r}
+
+```
+
+What do you conclude in your single case?
+
+> 
+
+Remember, the frequentist framework is based on repeated runs of the same process to make conclusions. The test you just did is based on determining how often we would see a result like the one in your single dataset if there is actually no difference between your observed proportion and a 3:1 ratio (i.e., it is due to the randomness of sampling only). Simulate a dataset of 50 crickets with a true 3:1 ratio 1,000 times and store the resulting 1,000 $\chi^2$ statistics in a vector. 
+
+```{r}
+
+```
+
+In the chunk below, calculate the proportion of random tests above in which the $\chi^2$ statistic is equal to or greater than the one for the observed data.
+
+```{r}
+
+```
+
+How does this proportion compare to the p-value you observed?
+
+> 
+
+In a Bayesian analysis, the framework takes the dataset as given and explores the probability of different possible parameter values. Consider the analysis you did about the toads above. What assumptions did you need to make, and how do these lead to differences in how you approach the question you are asking?
+
+> 
+
+We have emphasized the differences in these frameworks here to help with understanding how the analysis process works in each. You should also recognize some similarities between the two in the general approach of using probability, randomness, and sampling to make inferences about data. In fact, if you use a uniform prior in a Bayesian analysis and your dataset is normally distributed, these two analyses should produce nearly identical conclusions.
