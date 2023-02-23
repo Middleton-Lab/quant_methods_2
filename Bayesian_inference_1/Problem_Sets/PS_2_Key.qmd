@@ -620,4 +620,4 @@ mc <- as.mcmc(post_sav)
 autocorr.diag(mc)
 ```
 
-You should observe that all the autocorrelations (except for lag 1, which is 1 by definition) are very close to zero. You might also see that some are less than zero. Such negative autocorrelations are common in stan because of the no u-turn sampler (NUTS). This peculiarity can lead to effective sample sizes (`Neff`) that are actually greater than the number of post-warmup samples. [Here is a little more discussion](https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html).
+You should observe that all the autocorrelations (except for lag 1, which is 1 by definition) are very close to zero. You might also see that some are less than zero. Such negative autocorrelations are common in stan because of the no u-turn sampler (NUTS). This peculiarity can lead to effective sample sizes (`n_eff`) that are actually greater than the number of post-warmup samples. [Here is a little more discussion](https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html).
