@@ -13,11 +13,17 @@ format:
 ```{r}
 #| echo: false
 
-#Required files for this problem set:
+library(tidyverse)
 
+# Required files for this problem set:
+#    - HornedLizards.csv
+#    - Earwigs.csv
+#    - JetLag.csv
 ```
 
 ## Bayesian workflow
+
+Recall the 7 steps of our Bayesian workflow. Remember that some steps are relatively quick and straightforward (Model specification, Sampling, and Diagnostics -- at least for these models), while others are more involved (Priors and Posteriors).
 
 1. Model specification
 2. Prior specification
@@ -27,9 +33,84 @@ format:
 6. Posterior predictive simulation
 7. Summarizing the posterior
 
+We will work through these steps with a few different linear models. All of these models have only 1 predictor and are ones that we used in *Quantitative Methods 1*, either for lecture or in problem sets. So the data should be familiar even if the conclusions are not fresh in your mind.
 
-Difference of means t-test-like: horned lizards
+In this problem set we will be very explicit about following the steps. This is good practice to learn as you are getting familiar with Bayesian inference.
 
-Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
 
-ANOVA-like: Jet lag knees
+## Difference of means with two groups
+
+t-test-like: horned lizards
+
+Read data
+
+- drop any NA rows
+
+```{r}
+HL <- read_csv("../Data/HornedLizards.csv", show_col_types = FALSE) |> 
+  drop_na()
+
+HL
+```
+
+Plot histogram
+
+```{r}
+ggplot(HL, aes(horn_length, fill = group)) +
+  geom_histogram(bins = 30) +
+  scale_fill_manual(values = c("tomato", "steelblue")) +
+  facet_grid(group ~ .) +
+  cowplot::theme_cowplot() +
+  labs(x = "Horn Length (mm)", y = "Count") +
+  theme(legend.position = "none")
+```
+
+What do you observe?
+
+> There are many more "alive" samples than "dead" (counts are higher overall). The mean for "dead" looks like it might be lower than for the "alive" sample, but it's hard to tell. The overlap in the speads is large, with the "dead" samples completely contained in the range of "alive".
+
+Notice that there are a few "alive" lizards with very small horns. In a regular *t*-test, these observations might be problematic -- mathematically problematic in dragging the mean down rather than scientifically problematic in being erroneous. In the parlance, these observations have a large "weight" or "leverage" on the mean. Our regularizing priors will have no problem with these observations. They will be automatically down-weighted in the analysis.
+
+Check sample size, means and variances
+
+```{r}
+HL |> count(group)
+
+HL |> 
+  group_by(group) |> 
+  summarize(Mean = mean(horn_length),
+            Var = var(horn_length))
+```
+
+
+
+Prep data for `ulam()`
+
+- code `group` as integer (as.integer(factor(group)))
+- confirm that group is an integer with values of 1 and 2
+
+```{r}
+HL <- HL |> 
+  mutate(group = as.integer(factor(group)))
+```
+
+### Model specification
+
+
+
+### Prior specification and prior predictive check
+
+
+
+### Sampling
+
+### Diagnostics
+
+### Posterior predictive simulation
+
+### Summarizing the posterior
+
+
+## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
+
+## ANOVA-like: Jet lag knees
