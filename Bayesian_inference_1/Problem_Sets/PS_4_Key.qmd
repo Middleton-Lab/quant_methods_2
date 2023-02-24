@@ -1,5 +1,5 @@
 ---
-title: "Problem Set 1"
+title: "Problem Set 4"
 author:
   - Your Name Here
 format: 
@@ -22,6 +22,15 @@ options(brms.backend = "cmdstan")
 # Required files for this problem set:
 # remotes::install_github("n-kall/priorsense")
 ```
+
+
+ANOVA-like PS 8 heart transplant
+
+Multiple regression: mammal milk
+
+2x2 factorial bird plasma
+
+
 
 - brms with factors
 - Use pp_check with grouped data

@@ -1,5 +1,5 @@
 ---
-title: "Problem Set 1"
+title: "Problem Set 3"
 author:
   - Your Name Here
 format: 
@@ -17,5 +17,19 @@ format:
 
 ```
 
+## Bayesian workflow
+
+1. Model specification
+2. Prior specification
+3. Prior predictive simulation / check
+4. Sampling
+5. Diagnostics
+6. Posterior predictive simulation
+7. Summarizing the posterior
 
 
+Difference of means t-test-like: horned lizards
+
+Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
+
+ANOVA-like: Jet lag knees

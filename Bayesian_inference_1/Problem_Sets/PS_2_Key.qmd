@@ -29,9 +29,9 @@ theme_set(theme_cowplot())
 
 ## Adaptation to drought stress in Silver Fir
 
-The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*.
+The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues^[Csilléry, K., N. Buchmann, and B. Fady. 2020. Adaptation to drought is coupled with slow growth, but independent from phenology in marginal silver fir (*Abies alba* Mill.) populations. *Evol. Appl.* 13:2357–2376.] carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*.
 
-We used this dataset in *Quantitative Methods 1* to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
+We used this dataset in *Quantitative Methods 1* unit 5 to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
 
 ![](https://i.imgur.com/0KwbeIe.jpg)
 
