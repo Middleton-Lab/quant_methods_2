@@ -609,9 +609,9 @@ post_sav |>
 
 What do you observe in the scatter plot?
 
-> It looks totally random, like a perfect bivariate normal. There is no apparent structure or correlation between the samples. Note that this doesn't always happen when one of the variables in a standard deviation. Since sd is bounded at 0, it's often not normally distributed in the posterior. Similarly, pairs of samples will often be correlated in bivariate regression. When you change the slope of a regression line the intercept will also change. 
+> It looks totally random, like a perfect bivariate normal. There is no apparent structure or correlation between the samples. Note that pattern of a lack of correlation doesn't always happen, especially when one of the variables is a standard deviation. Since sd is bounded at 0, it's often not normally distributed in the posterior. It is here, because of the nature of the (large amount of logged) data. Similarly, pairs of samples will often be correlated in bivariate regression (an OLS-like model). When you change the slope of a regression line the intercept will also change. 
 
-Finally load the `coda` package. Convert the posterior to an `mcmc` object with `as.mcmc()`. Then run the autocorrelation diagnostics on this object with `autocorr.diag()`.
+Finally load the `coda` package. Convert the posterior which is currently a data.frame to an `mcmc` object with `as.mcmc()`. Then run the autocorrelation diagnostics on this object with `autocorr.diag()`. This is similar to what we did in the lecture.
 
 ```{r}
 # FIXME
@@ -620,4 +620,4 @@ mc <- as.mcmc(post_sav)
 autocorr.diag(mc)
 ```
 
-You should observe that all the autocorrelations (except for lag 1, which is 1 by definition) are very close to zero. You might also see that some are less than zero. Such negative autocorrelations are common in stan because of the no u-turn sampler (NUTS). This peculiarity can lead to effective sample sizes (`n_eff`) that are actually greater than the number of post-warmup samples. [Here is a little more discussion](https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html).
+You should observe that all the autocorrelations (except for lag 1, which is 1 by definition -- any value has a correlation of 1 with itself) are very close to zero. You might also see that some are less than zero. Such negative autocorrelations are common in stan because of the no u-turn sampler (NUTS). This peculiarity can lead to effective sample sizes (`n_eff`) that are actually greater than the number of post-warmup samples. [Here is a little more discussion](https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html).
