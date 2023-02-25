@@ -152,7 +152,7 @@ mcmc_combo(fm_add, regex_pars = "b",
 
 ## Posterior predictive checks
 
-Plot the distribution of `RPM` and a sample of 100 draws from the posterior ($y_{rep}$})
+Plot the distribution of `RPM` and a sample of 100 draws from the posterior ($y_{rep}$)
 
 ```{r}
 #| echo: true
