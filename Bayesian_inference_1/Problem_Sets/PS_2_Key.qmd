@@ -52,7 +52,7 @@ dim(M)
 
 You should have 512 rows remaining in two columns. Each row represents one tree measured in 1999.
 
-Split the data in two: one for CHE and one for LAC (for simplicity, call these objects `CHE` and `LAC`).
+Split the data into two `data.frame`s (or `tibble`s): one for CHE and one for LAC (for simplicity, call these objects `CHE` and `LAC`).
 
 We will model these separately.
 
@@ -356,7 +356,7 @@ How do the means and HDIs of these posterior estimates compare to the values you
 > Depending on your priors, your answer will vary. We centered the $\mu$ prior on 200, which ended up close to the posterior mean. The mean of $\sigma$ was ~40 in the prior (`mean(truncnorm::rtruncnorm(1e4, a = 0, mean = 0, sd = 50))`) but ~70 in the posterior. The standard deviations are both very small in the posterior relative to the prior.
 
 
-## Lather, rinse, repeat for `LAC`
+## Repeat for `LAC`
 
 Repeat the steps above with the `LAC` dataset for only the "LAC" population. You can/should copy the code from above and modify rather than starting from scratch.
 
