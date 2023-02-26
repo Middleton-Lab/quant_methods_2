@@ -47,15 +47,19 @@ Read data
 - drop any NA rows
 
 ```{r}
+# FIXME
+
 HL <- read_csv("../Data/HornedLizards.csv", show_col_types = FALSE) |> 
   drop_na()
 
 HL
 ```
 
-Plot histogram
+Plot a histogram of the two groups, faceting rows by group so that the distributions are easier to compare.
 
 ```{r}
+# FIXME
+
 ggplot(HL, aes(horn_length, fill = group)) +
   geom_histogram(bins = 30) +
   scale_fill_manual(values = c("tomato", "steelblue")) +
@@ -67,13 +71,17 @@ ggplot(HL, aes(horn_length, fill = group)) +
 
 What do you observe?
 
-> There are many more "alive" samples than "dead" (counts are higher overall). The mean for "dead" looks like it might be lower than for the "alive" sample, but it's hard to tell. The overlap in the speads is large, with the "dead" samples completely contained in the range of "alive".
+> There are many more alive samples than dead (counts are higher overall). The mean for dead looks like it might be lower than for the alive sample, but it's hard to tell. The overlap in the speads is large, with the dead samples completely contained in the range of alive.
 
-Notice that there are a few "alive" lizards with very small horns. In a regular *t*-test, these observations might be problematic -- mathematically problematic in dragging the mean down rather than scientifically problematic in being erroneous. In the parlance, these observations have a large "weight" or "leverage" on the mean. Our regularizing priors will have no problem with these observations. They will be automatically down-weighted in the analysis.
+Notice that there are a few alive lizards with very small horns. In a regular *t*-test, these observations might be problematic (mathematically problematic by dragging the mean down, rather than scientifically problematic in being erroneous values). In the parlance, these observations have a large "weight" or "leverage" on the mean and, thus, on statistical comparisons of means.
 
-Check sample size, means and variances
+The regularizing priors that we will use will have no problem with these observations. They will be automatically down-weighted in the analysis.
+
+In the chunk below, check sample size, means, and variances for each group:
 
 ```{r}
+# FIXME
+
 HL |> count(group)
 
 HL |> 
@@ -82,16 +90,19 @@ HL |>
             Var = var(horn_length))
 ```
 
+You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances), in contrast to standard deviation (which is scaled to the sample size). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R.
 
+To prepare the data for passing to `ulam()`, we have to make a change to the formatting of the `group` variable:
 
-Prep data for `ulam()`
-
-- code `group` as integer (as.integer(factor(group)))
-- confirm that group is an integer with values of 1 and 2
+- Recode `group` as an integer (`as.integer(factor(group))`)
+- Confirm that group is an integer with values of 1 and 2
 
 ```{r}
+# FIXME
+
 HL <- HL |> 
   mutate(group = as.integer(factor(group)))
+unique(HL$group)
 ```
 
 ### Model specification
