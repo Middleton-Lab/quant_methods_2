@@ -224,7 +224,7 @@ post |>
 - "Raw" parameter estimates (control, low, high)
     - Maybe / maybe not
     - You may have already reported group means
-    - These are "block-aware" mean from regularizing priors
+    - These are "block-aware" means from regularizing priors
 - Contrasts (i.e., hypothesis tests)
     - Other hypothesis tests and model comparisons (unit 5)
 
