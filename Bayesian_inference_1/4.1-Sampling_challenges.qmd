@@ -70,7 +70,7 @@ When sampling goes poorly, often there is a problem with the model:
 
 - Chains converge to different distributions
 - Rank histogram is wavy
-- Stan samples slowly (but also you jmight just have a lot of data)
+- Stan samples slowly (but also you might just have a lot of data)
 - $\widehat{R}$ is >1
 - Effective sample size is < 100
 
