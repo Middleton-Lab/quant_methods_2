@@ -47,7 +47,7 @@ library(bayesplot)
     - Reviewers and editors can ask for less
 
 
-## What do I want to learn from the posterior?
+## What do I want to learn from the posterior? {.smaller}
 
 - Estimates
     - Means / medians / modes
