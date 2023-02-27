@@ -29,7 +29,7 @@ theme_set(theme_cowplot())
 
 ## Adaptation to drought stress in Silver Fir
 
-The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csillery and colleagues^[Csilléry, K., N. Buchmann, and B. Fady. 2020. Adaptation to drought is coupled with slow growth, but independent from phenology in marginal silver fir (*Abies alba* Mill.) populations. *Evol. Appl.* 13:2357–2376.] carried out a very large (n > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*.
+The Silver Fir (*Abies alba*) is a widespread evergreen conifer tree native to the mountainous regions of Europe. Csilléry and colleagues^[Csilléry, K., N. Buchmann, and B. Fady. 2020. Adaptation to drought is coupled with slow growth, but independent from phenology in marginal silver fir (*Abies alba* Mill.) populations. *Evol. Appl.* 13:2357–2376.] carried out a very large (*n* > 8000 measurements) greenhouse experiment to study the genetic adaptations to drought tolerance in *Abies*.
 
 We used this dataset in *Quantitative Methods 1* unit 5 to explore the mean and median. Here we will use it to estimate the means through Bayesian inference and explore the effect of priors on posteriors.
 
@@ -281,7 +281,7 @@ Either delete the `sample_prior` option or set it to `FALSE`. Then add the follo
 
 - `iter = 5000` to sample 5000 iterations
 - `refresh = 2500` to reduce the verbosity of the stan sampling output
-    - You can set `refresh = 0` to not show the sampling iterations at all
+    - You can set `refresh = 0` to not show the sampling iterations at all, and only the final sampling output.
 - `chains = 4` to sample 4 independent chains
 
 If you have a multicore machine, you can also use `cores = 4`. But this model should sample really fast anyway, so it's not necessary.
