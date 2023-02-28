@@ -4,6 +4,7 @@ author:
   - Your Name Here
 format: 
   html:
+    standalone: true
     embed-resources: true
     toc: true
     toc-depth: 2
@@ -12,8 +13,11 @@ format:
 
 ```{r}
 #| echo: false
+#| message: false
+#| warning: false
 
 library(tidyverse)
+library(rethinking)
 
 # Required files for this problem set:
 #    - HornedLizards.csv
@@ -73,9 +77,9 @@ What do you observe?
 
 > There are many more alive samples than dead (counts are higher overall). The mean for dead looks like it might be lower than for the alive sample, but it's hard to tell. The overlap in the speads is large, with the dead samples completely contained in the range of alive.
 
-Notice that there are a few alive lizards with very small horns. In a regular *t*-test, these observations might be problematic (mathematically problematic by dragging the mean down, rather than scientifically problematic in being erroneous values). In the parlance, these observations have a large "weight" or "leverage" on the mean and, thus, on statistical comparisons of means.
+Notice that there are a few "alive" lizards with very small horns. In a regular *t*-test, these observations might be problematic -- mathematically problematic in dragging the mean down and increasing the variance rather than scientifically problematic in being erroneous. In the parlance, these observations have a large "weight" or "leverage".
 
-The regularizing priors that we will use will have no problem with these observations. They will be automatically down-weighted in the analysis.
+The regularizing priors that we will use will have no problem with these observations. They will be automatically down-weighted in the analysis, because they are relatively less likely than the majority of the observations.
 
 In the chunk below, check sample size, means, and variances for each group:
 
@@ -90,11 +94,11 @@ HL |>
             Var = var(horn_length))
 ```
 
-You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances), in contrast to standard deviation (which is scaled to the sample size). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R.
+You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances, just because of the equation for variance). This is in contrast to standard deviation (which is scaled to the sample size and thus comparable across samples of different size, as long as the units are the same). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R.
 
 To prepare the data for passing to `ulam()`, we have to make a change to the formatting of the `group` variable:
 
-- Recode `group` as an integer (`as.integer(factor(group))`)
+- Recode `group` to be an integer (`as.integer(factor(group))`)
 - Confirm that group is an integer with values of 1 and 2
 
 ```{r}
@@ -107,11 +111,212 @@ unique(HL$group)
 
 ### Model specification
 
+We will fit a linear model to these data. The basic model statements are:
+
+\begin{align}
+  \mathrm{horn\_length} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{group}] \\
+\end{align}
+
+Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called `b`.
+
+We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX is a markup language (like html, rmd, qmd, etc) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `\$ \$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes mark new lines.
+
+If you find yourself doing this kind of quantitative analysis often, it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
 
 
 ### Prior specification and prior predictive check
 
+We have not added the lines to the model for the priors yet, because we need to carry out the prior predictive check. In the chunk below, we have given you the basic model as describe above.
 
+- Set `eval` to `true`
+- Add lines for the priors. Choose some reasonable values for a normal distribution for `a_group` and a half-normal for `sigma`.
+
+We are set to only sample the prior (`sample_prior = TRUE`), so all the samples will come only from the prior. We still have to pass the data, but it is ignored during sampling.
+
+```{r}
+#| eval: true
+# FIXME
+PP <- ulam(
+  alist(
+    horn_length ~ dnorm(mu, sigma),
+    mu <- b[group],
+    b[group] ~ dnorm(20, 7.5),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = HL,
+  sample_prior = TRUE
+)
+```
+
+Because we are only sampling the prior, we can use the default of 500 samples and 1 chain. This is enough samples to see if the values are reasonable.
+
+Below we have provided you the code to extract the `b` parameter matrix from the samples. `extract.samples()` returns a list, and when you use `[]` notation, those parameters are returned as a matrix. We also convert it to a `data.frame` and rename the columns to match the original column names for the observed data.
+
+- Set `eval` to `true`
+- Plot the prior predictive distributions for both groups as histograms. You can use the same code that you wrote above to compare distributions of the observed data, just changing the data.
+
+```{r}
+#| eval: true
+# FIXME
+pp_dist <- extract.samples(PP)$b |> 
+  as.data.frame() |> 
+  rename(alive = V1,
+         dead = V2)
+
+pp_dist |> 
+  pivot_longer(cols = everything(), names_to = "group", values_to = "horn_length") |> 
+  ggplot(aes(horn_length, fill = group)) +
+  geom_histogram(bins = 30) +
+  scale_fill_manual(values = c("tomato", "steelblue")) +
+  facet_grid(group ~ .) +
+  cowplot::theme_cowplot() +
+  labs(x = "Horn Length (mm)", y = "Count") +
+  theme(legend.position = "none")
+```
+
+Iterate through different priors until you find a prior that seems good to you. Because we are not actually using the standard deviation in the prior prediction, changing its value won't alter the pattern. If we wanted to, we could choose rows from the prior and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
+
+
+### Final model specification
+
+Add the values that you chose for the priors to the model statement below:
+
+# FIXME
+
+\begin{align}
+  \mathrm{horn\_length} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{group}] \\
+  b[\mathrm{group}] & \sim Normal(20, 7.5) \\
+  \sigma & \sim HalfNormal(0, 5)
+\end{align}
+
+
+### Sampling
+
+Finally, we can sample the model. Copy the `ulam()` code from above and make a few modifications:
+
+- Rename the model to something besides `PP` (we like `fm` for "fitted model")
+- Either set `sample_prior` to `FALSE` or delete the line completely.
+- Set `chains = 4` to use 4 replicate chains
+- Set `iter = 5e3` to sample each chain for 5,000 iterations
+- Set `refresh = 5e5` to give fewer output lines
+
+This sampling regime will give us 10,000 draws after warmup.
+
+```{r}
+# FIXME
+
+fm <- ulam(
+  alist(
+    horn_length ~ dnorm(mu, sigma),
+    mu <- b[group],
+    b[group] ~ dnorm(20, 7.5),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = HL,
+  chains = 4,
+  iter = 5e3,
+  refresh = 5e5
+)
+```
+
+Make note of any warnings or errors from `ulam()` or stan.
+
+
+### Diagnostics
+
+Pass the model object to either `summary()` or `precis()`. Check for adequate sampling as evidenced by sufficiently large `n_eff` and `Rhat4` of ~1.
+
+```{r}
+# FIXME
+summary(fm)
+precis(fm, depth = 2)
+```
+
+What do you learn from the summary?
+
+> Everything looks good. We have almost 10,000 effective samples for each parameter. Rhat is 1.
+
+Now check the sampling visually by making a trace plot (`traceplot()`) and rank histogram plot (`trankplot()`).
+
+```{r}
+# FIXME
+traceplot(fm)
+trankplot(fm)
+```
+
+What do you learn from the visual checks?
+
+> Everything looks good. The traceplot shows that values move quite a lot very early in the sampling, but quickly stabilize to their posterior distributions. The rank histogram plot also looks pretty flat. It's scaled to take up most of the plot window, but there are no obvious areas of concern.
+
+Taken together, do you think that the sampling was successful?
+
+> From the summaries to the plots, everything seems to agree that sampling went well.
+
+
+### Posterior predictive check
+
+First we would like to compare the prior to the posterior.
+
+```{r}
+# FIXME
+
+post <- extract.samples(fm)$b |> 
+  as.data.frame() |> 
+  rename(alive = V1,
+         dead = V2) |> 
+  mutate(PP = "Posterior")
+
+pp_dist <- pp_dist |> 
+  mutate(PP = "Prior")
+
+samples <- bind_rows(pp_dist, post) |> 
+  pivot_longer(cols = -PP, names_to = "group", values_to = "horn_length")
+
+ggplot() +
+  geom_density(data = samples, aes(horn_length, color = group, linetype = PP)) +
+  scale_color_manual(values = c("tomato", "steelblue")) +
+  cowplot::theme_cowplot() +
+  labs(x = "Horn Length (mm)", y = "Density")
+```
+
+Compare the posterior to the data
+
+```{r}
+# FIXME
+HL <- read_csv("../Data/HornedLizards.csv", show_col_types = FALSE) |> 
+  drop_na() |> 
+  mutate(PP = "Observed")
+
+post_long <- post |> 
+  pivot_longer(cols = -PP, names_to = "group", values_to = "horn_length")
+
+ggplot() +
+  geom_density(data = HL, aes(horn_length, color = group), linetype = "solid") +
+  geom_density(data = post_long, aes(horn_length, color = group), linetype = "dotted") +
+  scale_color_manual(values = c("tomato", "steelblue")) +
+  cowplot::theme_cowplot() +
+  labs(x = "Horn Length (mm)", y = "Density")
+```
+
+How does the posterior for each group compare to the observed data?
+
+> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values. These values do not include the standard deviations. We would have to do things somewhat differently to include the variation encoded by `sigma`. We will do this step later in the course.
+
+
+### Summarizing the posterior
+
+
+
+
+## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
+
+### Model specification
+
+### Prior specification
+
+### Prior predictive simulation / check
 
 ### Sampling
 
@@ -122,6 +327,18 @@ unique(HL$group)
 ### Summarizing the posterior
 
 
-## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
-
 ## ANOVA-like: Jet lag knees
+
+### Model specification
+
+### Prior specification
+
+### Prior predictive simulation / check
+
+### Sampling
+
+### Diagnostics
+
+### Posterior predictive simulation
+
+### Summarizing the posterior
