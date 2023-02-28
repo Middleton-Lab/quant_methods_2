@@ -144,7 +144,7 @@ Inside `alist()`, the lines are:
 2. Prior for `mu`: normal distribution with a mean of 100 and standard deviation of 10
 3. Prior for `sigma`: half-normal distribution with a mean of 0 and standard deviation of 5
 
-Note that there is no model statement in this case. Because we are only estimating a single mean, we can just put in a prior for `mu` directly. Alternately, we could make an explicit intercept like this:
+Note that there is no model statement in this case. Because we are only estimating a single mean, we can just put in a prior for `mu` directly. Alternately, we could make an explicit intercept (which would accomplish the same goal) like this:
 
 ```{r}
 #| eval: false
@@ -188,7 +188,7 @@ PP <- ulam(
 )
 ```
 
-You will again get the warning `Declaration of arrays by placing brackets...`. You can ignore this warning.
+You again might get the warning `Declaration of arrays by placing brackets...`. You can ignore this warning.
 
 Next we extract the samples from the posterior. This returns a list with `mu` and `sigma` that we convert into a `data.frame()`.
 
