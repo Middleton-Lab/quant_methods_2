@@ -17,6 +17,7 @@ format:
 #| warning: false
 
 library(tidyverse)
+library(cmdstanr)
 library(rethinking)
 
 # Required files for this problem set:
@@ -257,10 +258,18 @@ Taken together, do you think that the sampling was successful?
 
 ### Posterior predictive check
 
-First we would like to compare the prior to the posterior.
+First we would like to compare the prior to the posterior. We would like to get the two sets of samples into the same R object with a new column that specifies if the samples came from the prior or the posterior.
+
+- Add a column to `pp_dist` from above named `PP` with the value "Prior". The `PP` column will denote which set of samples we are using.
+- Extract the posterior by adapting the code we used above for the prior. Then add the same `PP` column, but set to "Posterior".
+- To get the two sets of samples into the same object, pass both to `bind_rows()`.
+- Now pivot the full set longer using all variables except `PP`. Set the names to `group` and the values to `horn_length`.
 
 ```{r}
 # FIXME
+
+pp_dist <- pp_dist |> 
+  mutate(PP = "Prior")
 
 post <- extract.samples(fm)$b |> 
   as.data.frame() |> 
@@ -268,20 +277,38 @@ post <- extract.samples(fm)$b |>
          dead = V2) |> 
   mutate(PP = "Posterior")
 
-pp_dist <- pp_dist |> 
-  mutate(PP = "Prior")
-
 samples <- bind_rows(pp_dist, post) |> 
   pivot_longer(cols = -PP, names_to = "group", values_to = "horn_length")
+```
+
+Now make a density plot of all the samples (adapting the code from above):
+
+- Encode color with `group`
+- Encode linetype with `PP`
+
+Your plot should have four lines, two solid lines from the posterior and two dashed lines from the prior.
+
+```{r}
+# FIXME
 
 ggplot() +
-  geom_density(data = samples, aes(horn_length, color = group, linetype = PP)) +
+  geom_density(data = samples, aes(horn_length, color = group,
+                                   linetype = PP), linewidth = 1) +
   scale_color_manual(values = c("tomato", "steelblue")) +
   cowplot::theme_cowplot() +
   labs(x = "Horn Length (mm)", y = "Density")
 ```
 
-Compare the posterior to the data
+How does the posterior compare to the prior?
+
+> The priors are broad and relatively flat in comparison to the posteriors. The posteriors are very compressed and do not overlap much. The priors overlap perfectly (they should because we used the same prior for both).
+
+Next we would like to compare the posterior to the data. We will mostly let you try to figure this out. A few suggestions:
+
+- Reload the `HornedLizards.csv` file (copy your code from above). This has the original codings for "alive" "dead" rather than those recoded as 1 and 2.
+- The observed data is already in long format. So just add the `PP` column as "Observed".
+- Use your posterior object from above and pivot that longer as above.
+- Add the data separately by using `geom_density()` separately for each set of data. Set the linetype manually (i.e., outside of `aes()`).
 
 ```{r}
 # FIXME
@@ -293,8 +320,10 @@ post_long <- post |>
   pivot_longer(cols = -PP, names_to = "group", values_to = "horn_length")
 
 ggplot() +
-  geom_density(data = HL, aes(horn_length, color = group), linetype = "solid") +
-  geom_density(data = post_long, aes(horn_length, color = group), linetype = "dotted") +
+  geom_density(data = HL, aes(horn_length, color = group),
+               linetype = "solid", linewidth = 1) +
+  geom_density(data = post_long, aes(horn_length, color = group),
+               linetype = "dotted", linewidth = 1) +
   scale_color_manual(values = c("tomato", "steelblue")) +
   cowplot::theme_cowplot() +
   labs(x = "Horn Length (mm)", y = "Density")
@@ -302,12 +331,22 @@ ggplot() +
 
 How does the posterior for each group compare to the observed data?
 
-> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values. These values do not include the standard deviations. We would have to do things somewhat differently to include the variation encoded by `sigma`. We will do this step later in the course.
+> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values. These values do not include the standard deviation. We would have to do things slightly differently to include the variation encoded by `sigma`. We will do this step later in the course.
 
 
 ### Summarizing the posterior
 
+```{r}
+# FIXME
 
+HL |> 
+  group_by(group) |> 
+  summarize(Mean = mean(horn_length))
+
+precis(fm, depth = 2)
+```
+
+Contrasts
 
 
 ## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
