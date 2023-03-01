@@ -127,12 +127,12 @@ Translated, these lines say that `horn_length` is modeled by a normal distributi
 
 We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
 
-If you find yourself doing this kind of quantitative analysis often (and writing manuscripts in quarto), it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
+If you find yourself doing this kind of quantitative analysis often, you will also find yourself writing about it often (maybe even writing manuscripts in quarto) and it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
 
 
 ### Prior specification and prior predictive check
 
-We have not added the lines to the model for the priors yet, because we need to carry out the prior predictive check. In the chunk below, we have given you the basic model as describe above.
+We have not added the lines to the model for the priors yet, because we need to carry out the prior predictive check. In the chunk below, we have given you the basic model as described above.
 
 - Set `eval` to `true`
 - Add lines for the priors. Choose some reasonable values for a normal distribution for `a_group` and a half-normal for `sigma`.
@@ -180,8 +180,7 @@ pp_dist |>
   theme(legend.position = "none")
 ```
 
-Iterate through different priors until you find a prior that seems good to you. Because we are not actually using the standard deviation in the prior prediction, changing its value won't alter the pattern. If we wanted to, we could choose rows from the prior and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
-
+Try out different priors for `a_group` until you find a prior that seems good to you. Because we are not looking at the values for the standard deviation (we just asked you to extract the `b` parameter matrix from the samples, ignoring the standard deviation for now), changing its value won't alter the pattern. If we wanted to, we could choose rows from both priors and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
 
 ### Final model specification
 
