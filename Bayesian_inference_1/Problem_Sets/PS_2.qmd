@@ -14,12 +14,6 @@ format:
 #| echo: false
 #| message: false
 
-library(tidyverse)
-library(readxl)
-library(rethinking)
-library(cowplot)
-
-theme_set(theme_cowplot())
 
 # Required files for this problem set:
 #   - Silver_fir.xlsx
@@ -42,13 +36,7 @@ We used this dataset in *Quantitative Methods 1* unit 5 to explore the mean and 
 - Drop any rows with NA
 
 ```{r}
-# FIXME
 
-M <- read_excel("../data/Silver_fir.xlsx", na = "NA") |> 
-  filter(population %in% c("LAC", "CHE")) |> 
-  select(population, ht99mm) |> 
-  drop_na()
-dim(M)
 ```
 
 You should have 512 rows remaining in two columns. Each row represents one tree measured in 1999.
@@ -58,10 +46,7 @@ Split the data into two `data.frame`s (or `tibble`s): one for CHE and one for LA
 We will model these separately.
 
 ```{r}
-# FIXME
 
-CHE <- M |> filter(population == "CHE")
-LAC <- M |> filter(population == "LAC")
 ```
 
 Starting with the CHE population:
@@ -71,22 +56,7 @@ Starting with the CHE population:
 - Add the mean and median as vertical lines on the density plot.
 
 ```{r}
-# FIXME
 
-ss <- tibble(
-  Mean = mean(CHE$ht99mm),
-  Median = median(CHE$ht99mm)) |> 
-  pivot_longer(cols = everything(),
-               values_to = "Measure",
-               names_to = "Mean_Median")
-
-ss
-
-ggplot() +
-  geom_histogram(data = CHE, aes(ht99mm), bins = 30, fill = "goldenrod") +
-  geom_vline(data = ss, aes(xintercept = Measure, color = Mean_Median),
-             linewidth = 1) +
-  scale_color_manual(values = c("darkblue", "darkred"), name = NULL)
 ```
 
 Based on the values of the mean and median, do these data seem acceptable to model the mean height as normally distributed?
@@ -126,7 +96,7 @@ Here is a basic model to estimate a mean for height. When it compiles, you will 
 You will need to set `eval` to `true` (lower case) to have the chunk below run during rendering.
 
 ```{r}
-#| eval: true
+#| eval: false
 
 ulam(
   alist(
@@ -148,7 +118,7 @@ Inside `alist()`, the lines are:
 Note that there is no model statement in this case. Because we are only estimating a single mean, we can just put in a prior for `mu` directly. Alternately, we could make an explicit intercept (which would accomplish the same goal) like this:
 
 ```{r}
-#| eval: true
+#| eval: false
 
 ulam(
   alist(
@@ -177,7 +147,8 @@ This option makes prior prediction very easy: you can set up the model and prosp
 Let's add `sample_prior` to sample the prior and save the output to `PP`. This model object is not especially interesting, but the 1,000 samples it contains for `mu` and `sigma` will let us plot the prior predictive distributions. You will again need to set `eval` to `true`.
 
 ```{r}
-#| eval: true
+#| eval: false
+
 PP <- ulam(
   alist(
     ht99mm ~ dnorm(mu, sigma),
@@ -194,7 +165,8 @@ You again might get the warning `Declaration of arrays by placing brackets...`. 
 Next we extract the samples from the posterior. This returns a list with `mu` and `sigma` that we convert into a `data.frame()`.
 
 ```{r}
-#| eval: true
+#| eval: false
+
 post <- extract.samples(PP) |> as.data.frame()
 str(post)
 ```
@@ -202,7 +174,7 @@ str(post)
 We can use these samples to simulate datasets from the specified distributions. The code below generates 20 sets of normal density plots (`dnorm()`) in the range of 0 to 500 drawn from the first 20 prior prediction:
 
 ```{r}
-#| eval: true
+#| eval: false
 set.seed(4468623)
 PP_sim <- purrr::map(
   .x = 1:20,
@@ -222,7 +194,7 @@ We can plot these along with our observed data to see if we get reasonable value
 We fix the x-axis for the observed data in the range 0 to 500 to match the simulated data. This will result in warnings from `ggplot()` that points are dropped. This is okay, because we want to have matching x-axes between the two plots.
 
 ```{r}
-#| eval: true
+#| eval: false
 p_obs <- ggplot(CHE, aes(ht99mm)) +
   geom_histogram(aes(y = after_stat(density)),
                  fill = "#2D5DA1", bins = 30) +
@@ -239,13 +211,12 @@ In the chunk below, first change the value for the priors to something completel
 There is no one correct answer. Generally with Bayesian inference, the priors are helpful in guiding the sampler to parameter estimates. You don't want the prior to determine the posterior.
 
 ```{r}
-# FIXME
-
+#| eval: false
 PP <- ulam(
   alist(
     ht99mm ~ dnorm(mu, sigma),
-    mu ~ dnorm(200, 75),
-    sigma ~ dhalfnorm(0, 50)
+    mu ~ dnorm(0, 5),
+    sigma ~ dhalfnorm(0, 1)
   ),
   data = CHE,
   sample_prior = TRUE
@@ -289,74 +260,33 @@ Either delete the `sample_prior` option or set it to `FALSE`. Then add the follo
 If you have a multicore machine, you can also use `cores = 4`. But this model should sample really fast anyway, so it's not necessary.
 
 ```{r}
-#| warning: false
-# FIXME
 
-fm <- ulam(
-  alist(
-    ht99mm ~ dnorm(mu, sigma),
-    mu ~ dnorm(200, 75),
-    sigma ~ dhalfnorm(0, 50)
-  ),
-  data = CHE,
-  iter = 5000,
-  refresh = 2500,
-  chains = 4, cores = 4
-)
-
-post <- extract.samples(fm) |> as.data.frame()
-
-set.seed(313123)
-PP_sim <- purrr::map(
-  .x = 1:20,
-  .f = function(ii) {
-    tibble(ID = ii,
-           ht99mm_sim = seq(0, 500, length.out = 200),
-           density = dnorm(ht99mm_sim,
-                           mean = post$mu[ii],
-                           sd = post$sigma[ii]))
-  }) |> 
-  list_rbind()
-
-p_obs <- ggplot(CHE, aes(ht99mm)) +
-  geom_histogram(aes(y = after_stat(density)),
-                 fill = "#2D5DA1", bins = 30) +
-  xlim(c(0, 500))
-p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
-  geom_line()
-cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
 ```
 
 Looking at the plot of the samples from the posterior compared to the distribution of `ht99mm`, does it look like the posterior is a good representation of the data ("posterior predictive check")? It should -- and if it does not, you should rethink your priors.
 
-> Yes, it looks like the distribution of posterior samples fits well with the histogram of the data.
+> 
 
 Use `summary()` to summarize the fit model.
 
 ```{r}
-# FIXME
-
-summary(fm)
 ```
 
 Does everything look okay from a diagnostics standpoint (`n_eff` and `Rhat`)?
 
-> Yes, it seems fine. There are a lot of samples. Rhat is 1 for all variables. There are no warnings.
+> 
 
 What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` function from rethinking.
 
 ```{r}
-# FIXME
 
-HPDI(post$mu, prob = 0.89)
-HPDI(post$sigma, prob = 0.89)
 ```
 
-> For mu, the 89% HDI is 195-209 and for sigma 64-73.
+> 
 
 How do the means and HDIs of these posterior estimates compare to the values you used for the prior?
 
-> Depending on your priors, your answer will vary. We centered the $\mu$ prior on 200, which ended up close to the posterior mean. The mean of $\sigma$ was ~40 in the prior (`mean(truncnorm::rtruncnorm(1e4, a = 0, mean = 0, sd = 50))`) but ~70 in the posterior. The standard deviations are both very small in the posterior relative to the prior.
+> 
 
 
 ## Repeat for `LAC`
@@ -373,152 +303,60 @@ We will do some things the same and some differently.
 Make the initial histogram + mean and median plot here (pre-transformation): 
 
 ```{r}
-# FIXME
 
-ss <- tibble(
-  Mean = mean(LAC$ht99mm),
-  Median = median(LAC$ht99mm)) |> 
-  pivot_longer(cols = everything(),
-               values_to = "Measure",
-               names_to = "Mean_Median")
-
-ss
-
-ggplot() +
-  geom_histogram(data = LAC, aes(ht99mm), bins = 30, fill = "goldenrod") +
-  geom_vline(data = ss, aes(xintercept = Measure, color = Mean_Median),
-             linewidth = 1) +
-  scale_color_manual(values = c("darkblue", "darkred"), name = NULL)
 ```
 
 Describe the shape of the histogram and the relationship between mean and median.
 
-> The data have a long tail on the right (right skew). The mean is higher than the median, pulled toward larger values by the small number of large trees.
+> 
 
 Do the log-transformation here:
 
 ```{r}
-# FIXME
 
-LAC <- LAC |> 
-  mutate(log_ht99mm = log(ht99mm))
 ```
 
 From here on, use the log-transformed height. Carry out the prior predictive check below. You will need to figure out what priors to use.
 
 ```{r}
-# FIXME
 
-PP <- ulam(
-  alist(
-    log_ht99mm ~ dnorm(mu, sigma),
-    mu ~ dnorm(5, 0.5),
-    sigma ~ dhalfnorm(0.4, 0.1)
-  ),
-  data = LAC,
-  sample_prior = TRUE
-)
-
-post <- extract.samples(PP) |> as.data.frame()
-
-set.seed(313123)
-PP_sim <- purrr::map(
-  .x = 1:20,
-  .f = function(ii) {
-    tibble(ID = ii,
-           ht99mm_sim = seq(3, 7, length.out = 200),
-           density = dnorm(ht99mm_sim,
-                           mean = post$mu[ii],
-                           sd = post$sigma[ii]))
-  }) |> 
-  list_rbind()
-
-p_obs <- ggplot(LAC, aes(log_ht99mm)) +
-  geom_histogram(aes(y = after_stat(density)),
-                 fill = "#2D5DA1", bins = 30) +
-  xlim(c(3, 7))
-p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
-  geom_line() +
-  xlim(c(3, 7))
-cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
 ```
 
 What priors did you try, what did you decide to use, and explain why.
 
-> Your answer will vary. We settled on normal(5, 0.5) for $\mu$ and a half-normal(0.4, 0.1) for $\sigma$. These seemed to give a good spread around the distribution of log-height, which is centered about 5, with a spread of +/- 1 on either side. We get prior predictive distributions in the range of ~3 to 7, which gives plenty of room on either side of the observed distribution.
+> 
 
 Carry out the sampling and posterior predictive check here:
 
 ```{r}
-#| warning: false
-# FIXME
 
-fm <- ulam(
-  alist(
-    log_ht99mm ~ dnorm(mu, sigma),
-    mu ~ dnorm(5, 0.5),
-    sigma ~ dhalfnorm(0.4, 0.1)
-  ),
-  data = LAC,
-  iter = 5000,
-  refresh = 2500,
-  chains = 4, cores = 4
-)
-
-post <- extract.samples(fm)
-post_sav <- as.data.frame(post)
-
-set.seed(313123)
-PP_sim <- purrr::map(
-  .x = 1:20,
-  .f = function(ii) {
-    tibble(ID = ii,
-           ht99mm_sim = seq(3, 7, length.out = 200),
-           density = dnorm(ht99mm_sim,
-                           mean = post$mu[ii],
-                           sd = post$sigma[ii]))
-  }) |> 
-  list_rbind()
-
-p_obs <- ggplot(LAC, aes(log_ht99mm)) +
-  geom_histogram(aes(y = after_stat(density)),
-                 fill = "#2D5DA1", bins = 30) +
-  xlim(c(3, 7))
-p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
-  geom_line()
-cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
 ```
 
 Looking at the plot of the samples from the posterior compared to the distribution of `ht99mm`, does it look like the posterior is a good representation of the data ("posterior predictive check")? It should -- and if it does not, you should rethink your priors.
 
-> Everything looks good. The posterior predictive distributions mirror the observed data very well.
+> 
 
 Use `summary()` to summarize the fit model.
 
 ```{r}
-# FIXME
 
-summary(fm)
 ```
 
 Does everything look okay from a diagnostics standpoint (`n_eff` and `Rhat`)?
 
-> Yes, it seems fine. There are a lot of samples. Rhat is 1 for all variables. There are no warnings
+> 
 
 What are the means and 89% HDIs for `mu` and `sigma`? You can use the `HPDI()` function from rethinking.
 
 ```{r}
-# FIXME
 
-HPDI(post$mu, prob = 0.89)
-HPDI(post$sigma, prob = 0.89)
 ```
 
-> For the mean, the 89% HDI is 5.01-5.08 and 0.34-0.39 for sigma.
+> 
 
 How do the means and HDIs of these posterior estimates compare to the values you used for the prior?
 
-> Again this will vary based on your answer.
+> 
 
 
 ## Sensitivity of the posterior to the prior
@@ -528,49 +366,12 @@ We want to explore how sensitive the posterior is to the choice of prior for the
 In the chunk below, copy the sampling code from above (the "LAC" model). Try changing different aspects of the priors (means and/or standard deviations). Sample the model and compare the posterior summaries (`summary()` or `precis()`). You don't need to save all the combinations, just compare as you go, observing any patterns.
 
 ```{r}
-#| warning: false
-# FIXME
 
-fm <- ulam(
-  alist(
-    log_ht99mm ~ dnorm(mu, sigma),
-    mu ~ dnorm(3, 0.1),
-    sigma ~ dhalfnorm(1, 0.1)
-  ),
-  data = LAC,
-  iter = 5000,
-  refresh = 2500,
-  chains = 4, cores = 4
-)
-
-post <- extract.samples(fm)
-
-set.seed(313123)
-PP_sim <- purrr::map(
-  .x = 1:20,
-  .f = function(ii) {
-    tibble(ID = ii,
-           ht99mm_sim = seq(3, 7, length.out = 200),
-           density = dnorm(ht99mm_sim,
-                           mean = post$mu[ii],
-                           sd = post$sigma[ii]))
-  }) |> 
-  list_rbind()
-
-p_obs <- ggplot(LAC, aes(log_ht99mm)) +
-  geom_histogram(aes(y = after_stat(density)),
-                 fill = "#2D5DA1", bins = 30) +
-  xlim(c(3, 7))
-p_pp <- ggplot(PP_sim, aes(x = ht99mm_sim, y = density, group = ID)) +
-  geom_line()
-cowplot::plot_grid(p_obs, p_pp, nrow = 2, align = "hv")
-
-precis(fm)
 ```
 
 What do you conclude about the relationship between prior and posterior for these data and this model?
 
-> The amount of data (261 points) is sufficient to overwhelm any reasonable prior. Even pretty narrow priors (sd of 0.1 for the mean) do not have much of an effect on the posterior, as long as the prior for the mean is reasonable.
+> 
 
 
 ## Looking at the samples
@@ -588,45 +389,28 @@ Make a plot of the first 25 samples from the posterior:
 - Free the y-axis scale.
 
 ```{r}
-# FIXME
 
-post_sav |> 
-  slice(1:25) |> 
-  mutate(Iteration = 1:n()) |> 
-  pivot_longer(cols = -Iteration,
-               names_to = "Parameter",
-               values_to = "Estimate") |> 
-  ggplot(aes(x = Iteration, y = Estimate)) +
-    geom_line() +
-  geom_point() +
-  facet_grid(Parameter ~ ., scales = "free_y")
 ```
 
 What do you observe about the samples? How does this compare to the samples from our "homebrew" MCMC sampler in lecture 1-3?
 
-> They should look completely disconnected. Even our thinned samples seemed to have some structure (points changing in correlated ways). These are totally independent.
+> 
 
 Make a scatter plot of sigma vs. mu from all the posterior samples. This is a "pairs" plot, which a common diagnostic tool for MCMC.
 
 ```{r}
-# FIXME
 
-post_sav |> 
-  ggplot(aes(x = mu, y = sigma)) +
-  geom_point(color = "steelblue", alpha = 0.5, pch = 16)
 ```
 
 What do you observe in the scatter plot?
 
-> It looks totally random, like a perfect bivariate normal. There is no apparent structure or correlation between the samples. Note that pattern of a lack of correlation doesn't always happen, especially when one of the variables is a standard deviation. Since sd is bounded at 0, it's often not normally distributed in the posterior. It is here, because of the nature of the (large amount of logged) data. Similarly, pairs of samples will often be correlated in bivariate regression (an OLS-like model). When you change the slope of a regression line the intercept will also change. 
+> 
 
 Finally load the `coda` package. Convert the posterior which is currently a data.frame to an `mcmc` object with `as.mcmc()`. Then run the autocorrelation diagnostics on this object with `autocorr.diag()`. This is similar to what we did in the lecture.
 
 ```{r}
-# FIXME
-library(coda)
-mc <- as.mcmc(post_sav)
-autocorr.diag(mc)
+
+
 ```
 
 You should observe that all the autocorrelations (except for lag 1, which is 1 by definition -- any value has a correlation of 1 with itself) are very close to zero. You might also see that some are less than zero. Such negative autocorrelations are common in stan because of the no u-turn sampler (NUTS). This peculiarity can lead to effective sample sizes (`n_eff`) that are actually greater than the number of post-warmup samples. [Here is a little more discussion](https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html).
