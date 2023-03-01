@@ -45,7 +45,7 @@ In this problem set we will be very explicit about following the steps. This is 
 
 ## Difference of means with two groups
 
-Our first model will compare the means of two groups. This is like an two-sample *t*-test, also called "independent samples". It is one of the most common statistical tests.
+Our first model will compare the means of two groups. This is like a two-sample *t*-test. It is one of the most common statistical tests, also sometimes called an "independent samples" *t*-test.
 
 Rather than thinking of it as a *t*-test, just consider it a linear model with a single predictor that is a categorical variable with two levels. We know that's a lot more convoluted sounding, but trying to move away from "named tests" is worthwhile in the long run.
 
