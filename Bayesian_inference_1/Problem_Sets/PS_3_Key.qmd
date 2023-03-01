@@ -40,16 +40,20 @@ Recall the 7 steps of our Bayesian workflow. Remember that some steps are relati
 
 We will work through these steps with a few different linear models. All of these models have only 1 predictor and are ones that we used in *Quantitative Methods 1*, either for lecture or in problem sets. So the data should be familiar even if the conclusions are not fresh in your mind.
 
-In this problem set we will be very explicit about following the steps. This is good practice to learn as you are getting familiar with Bayesian inference.
+In this problem set we will be very explicit about following the steps. This is good to practice and learn as you are gaining experience with Bayesian inference.
 
 
 ## Difference of means with two groups
 
-t-test-like: horned lizards
+Our first model will compare the means of two groups. This is like an two-sample *t*-test, also called "independent samples". It is one of the most common statistical tests.
 
-Read data
+Rather than thinking of it as a *t*-test, just consider it a linear model with a single predictor that is a categorical variable with two levels. We know that's a lot more convoluted sounding, but trying to move away from "named tests" is worthwhile in the long run.
 
-- drop any NA rows
+The data we will use involves the effects (or lack thereof) of predation on flat-tail horned lizards (*Phrynosoma mccalli*). The hypothesis is that longer horns a protective against predation by loggerhead shrikes (*Lanius ludovicianus*). 
+
+The parietal horn length of two groups of horned lizards were measured by Young et al. (2004)^[Young, K.V., E.D. Brodie, Jr., and E.D. Brodie, III. 2004. How the horned lizard got its horns. *Science* 304: 65]. One group of lizards were alive, and the other group had been killed by shrikes and left in trees or bushes.
+
+Read in the data included in the file `HornedLizards.csv`. Drop any rows with NA values. You should have 184 rows remaining.
 
 ```{r}
 # FIXME
@@ -336,6 +340,8 @@ How does the posterior for each group compare to the observed data?
 
 ### Summarizing the posterior
 
+Compare the means of horn length in the observed data to the means (or medians) of the posterior estimates.
+
 ```{r}
 # FIXME
 
@@ -346,10 +352,56 @@ HL |>
 precis(fm, depth = 2)
 ```
 
-Contrasts
+How do they compare?
+
+> They are very close.
+
+We aren't really interested in the posterior means themselves. We are interested in the difference between them (called a "contrast"). This difference tests the hypothesis that the means of the two groups are different from one another (or not).
+
+Calculate the difference between dead and alive using the posterior. You can just add a column to the tibble with the posterior.
+
+```{r}
+# FIXME
+
+post <- post |> 
+  mutate(dead_minus_alive = dead - alive)
+```
+
+Make a density plot of the difference you calculated.
+
+```{r}
+# FIXME
+ggplot(post, aes(dead_minus_alive)) +
+  geom_density() +
+  cowplot::theme_cowplot() +
+  labs(x = "Dead - Alive (mm)", y = "Density")
+```
+
+What is your interpretation of the plot?
+
+> There is credible difference between the means for the dead vs. alive groups. The peak of the density is about -2, with most of the distribution between -1 and -3.5.
+
+Finally, calculate the 89% highest density interval for the difference in any way you want (`HPDI()` from `rethinking` is fine for example). 
+
+```{r}
+# FIXME
+
+HPDI(post$dead_minus_alive)
+```
+
+Does the interval agree with your assessment of the plot?
+
+> Yes, the interval is from -1.45 to -3.13. So all of the density is far from 0. We don't need to worry about a ROPE or anything here.
 
 
 ## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
+
+```{r}
+# FIXME
+
+EW <- read_csv("../Data/Earwigs.csv", show_col_types = FALSE)
+EW
+```
 
 ### Model specification
 
