@@ -99,7 +99,7 @@ HL |>
             Var = var(horn_length))
 ```
 
-You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances, just because of the equation for variance). This is in contrast to standard deviation (which is scaled to the sample size and thus comparable across samples of different size, as long as the units are the same). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R.
+You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances, just because of the equation for variance). This is in contrast to standard deviation (which is scaled to the sample size and thus comparable across samples of different size, as long as the units are the same). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R. There are frequentist approaches that do something similar, which fall under the general term "robust regression".
 
 To prepare the data for passing to `ulam()`, we have to make a change to the formatting of the `group` variable:
 
@@ -125,9 +125,9 @@ We will fit a linear model to these data. The basic model statements are:
 
 Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called `b`.
 
-We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX is a markup language (like html, rmd, qmd, etc) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `\$ \$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes mark new lines.
+We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
 
-If you find yourself doing this kind of quantitative analysis often, it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
+If you find yourself doing this kind of quantitative analysis often (and writing manuscripts in quarto), it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
 
 
 ### Prior specification and prior predictive check
@@ -187,7 +187,7 @@ Iterate through different priors until you find a prior that seems good to you. 
 
 Add the values that you chose for the priors to the model statement below:
 
-# FIXME
+## FIXME
 
 \begin{align}
   \mathrm{horn\_length} & \sim Normal(\mu, \sigma) \\
@@ -356,7 +356,9 @@ How do they compare?
 
 > They are very close.
 
-We aren't really interested in the posterior means themselves. We are interested in the difference between them (called a "contrast"). This difference tests the hypothesis that the means of the two groups are different from one another (or not).
+It is important to remember the conceptual differences between frequentist analysis (like a *t*-test) and Bayesian inference. The underlying frequentist assumption is that these samples of lizards are drawn from populations with fixed means (i.e., a fixed mean value for horn length in each group). The Bayesian approach views the data as fixed (i.e., this is what we observe) and seeks to find the parameter estimates that are most compatible. The numerical answers are very very close (at least for this example), but the assumptions / framework are quite different. If you run `t.test()` on these data, the means that are compared are just the group means. Our Bayesian analysis gives similar values but these are posterior estimates (not just the directly calculated group means for the groups).
+
+We aren't really interested in the posterior means themselves. We are interested in the *difference* between them (called a "contrast"). This difference tests the hypothesis that the means of the two groups are different (or not) from one another.
 
 Calculate the difference between dead and alive using the posterior. You can just add a column to the tibble with the posterior.
 
@@ -371,6 +373,7 @@ Make a density plot of the difference you calculated.
 
 ```{r}
 # FIXME
+
 ggplot(post, aes(dead_minus_alive)) +
   geom_density() +
   cowplot::theme_cowplot() +
@@ -379,7 +382,7 @@ ggplot(post, aes(dead_minus_alive)) +
 
 What is your interpretation of the plot?
 
-> There is credible difference between the means for the dead vs. alive groups. The peak of the density is about -2, with most of the distribution between -1 and -3.5.
+> There appears to be robust and credible difference between the means for the dead vs. alive groups. The peak of the density is about -2 mm, with most of the distribution between -1 and -3.5 mm.
 
 Finally, calculate the 89% highest density interval for the difference in any way you want (`HPDI()` from `rethinking` is fine for example). 
 
@@ -391,7 +394,7 @@ HPDI(post$dead_minus_alive)
 
 Does the interval agree with your assessment of the plot?
 
-> Yes, the interval is from -1.45 to -3.13. So all of the density is far from 0. We don't need to worry about a ROPE or anything here.
+> Yes, the interval is from -1.45 to -3.13 mm. So all of the density is far from 0. We don't need to worry about a ROPE or anything here.
 
 
 ## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
