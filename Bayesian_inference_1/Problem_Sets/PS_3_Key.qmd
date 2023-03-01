@@ -123,7 +123,7 @@ We will fit a linear model to these data. The basic model statements are:
   \mu & = b[\mathrm{group}] \\
 \end{align}
 
-Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called `b`.
+Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called $b$.
 
 We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
 
