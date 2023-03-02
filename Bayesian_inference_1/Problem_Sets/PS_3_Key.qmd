@@ -23,6 +23,7 @@ library(rethinking)
 library(cowplot)
 
 theme_set(theme_cowplot())
+set_ulam_cmdstan(TRUE)
 
 # Required files for this problem set:
 #    - HornedLizards.csv
@@ -208,7 +209,7 @@ Finally, we can sample the model. Copy the `ulam()` code from above and make a f
 - Rename the model to something besides `PP` (we like `fm` for "fitted model")
 - Either set `sample_prior` to `FALSE` or delete the line completely.
 - Set `chains = 4` to use 4 replicate chains
-- Set `iter = 5e3` to sample each chain for 5,000 iterations
+- Set `iter = 5e3` to sample each chain for 5,000 iterations (2,500 warmup and 2,500 post-warmup)
 - Set `refresh = 1e3` to give fewer output lines
 
 This sampling regime will give us 10,000 draws after warmup.
@@ -634,5 +635,176 @@ ggplot() +
               alpha = 0.5)
 
 HPDI(post$b1)
+```
+
+
+## ANOVA-like linear model
+
+The final model is an ANOVA-like model, with one categorical predictor with three levels. The data for this problem come from an experiment designed to test whether appication of light to the eyes would result in a shorter time shift for the test subject.
+
+The data are in `JetLag.csv`. There are two columns:
+
+- `Treatment`: the categorical predictor with three levels. The "control" group had no light application. The "eyes" group had light in their eyes (the test condition). The "knee" group had light allied to the back of the knee as a negative control (there are no photoreceptors on the knee).
+- `Shift`: the continuous outcome variable measured in hours
+
+The hypothesis that you want to test is whether light application to the eyes resulted in a different mean shift than did light application to the knee. Thus we are only interested in two contrasts: 
+
+1. knee vs. control
+2. eyes vs. control
+
+This model is very similar to the first in this problem set. Below we have given you empty headings. Adapt the code from above to test this hypothesis.
+
+```{r}
+# FIXME
+
+JL <- read_csv("../Data/JetLag.csv", show_col_types = FALSE) |> 
+  mutate(Treatment = factor(Treatment,
+                            levels = c("control", "knee", "eyes")))
+
+ggplot() +
+  geom_point(data = JL, aes(x = Treatment, y = Shift),
+             position = position_jitter(width = 0.1),
+             color = "goldenrod",
+             size = 2) +
+  labs(y = "Shift (h)")
+```
+
+### Model specification
+
+\begin{align}
+  \mathrm{Shift} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Treatment}] \\
+\end{align}
+
+
+### Prior specification and prior predictive check
+
+```{r}
+#| eval: true
+# FIXME
+PP <- ulam(
+  alist(
+    Shift ~ dnorm(mu, sigma),
+    mu <- b[Treatment],
+    b[Treatment] ~ dnorm(0, 3),
+    sigma ~ dhalfnorm(0, 2)
+  ),
+  data = JL,
+  sample_prior = TRUE
+)
+
+pp_dist <- extract.samples(PP)$b |> 
+  as.data.frame() |> 
+  rename(control = V1,
+         knee = V2,
+         eyes = V3)
+
+pp_dist |> 
+  pivot_longer(cols = everything(),
+               names_to = "Treatment",
+               values_to = "Shift") |> 
+  ggplot(aes(Shift, fill = Treatment)) +
+  geom_histogram(bins = 30) +
+  scale_fill_manual(values = c("tomato", "steelblue", "darkgreen")) +
+  facet_grid(Treatment ~ .) +
+  cowplot::theme_cowplot() +
+  labs(x = "Shift (h)", y = "Count") +
+  theme(legend.position = "none")
+```
+
+
+### Final model specification
+
+\begin{align}
+  \mathrm{Shift} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Treatment}] \\
+  b[\mathrm{Treatment}] & \sim Normal(0, 3) \\
+  \sigma & \sim HalfNormal(0, 2)
+\end{align}
+
+
+### Sampling
+
+```{r}
+#| eval: true
+# FIXME
+
+fm <- ulam(
+  alist(
+    Shift ~ dnorm(mu, sigma),
+    mu <- b[Treatment],
+    b[Treatment] ~ dnorm(0, 3),
+    sigma ~ dhalfnorm(0, 2)
+  ),
+  data = JL,
+  chains = 4,
+  iter = 5e3,
+  refresh = 0
+)
+```
+
+
+### Diagnostics
+
+```{r}
+# FIXME
+
+summary(fm)
+precis(fm, depth = 2)
+```
+
+```{r}
+# FIXME
+
+traceplot(fm)
+trankplot(fm)
+```
+
+
+### Posterior predictive simulation
+
+```{r}
+# FIXME
+
+post <- extract.samples(fm)$b |> 
+  as.data.frame() |> 
+  rename(control = V1,
+         knee = V2,
+         eyes = V3)
+
+post |> 
+  pivot_longer(cols = everything(),
+               names_to = "Treatment",
+               values_to = "Shift") |> 
+  ggplot(aes(Shift, color = Treatment)) +
+  geom_density(linewidth = 1.5) +
+  geom_point(data = JL, aes(x = Shift, y = 0, color = Treatment),
+             size = 3) +
+  scale_color_manual(values = c("tomato", "steelblue", "darkgreen")) +
+  facet_grid(Treatment ~ .) +
+  cowplot::theme_cowplot() +
+  labs(x = "Shift (h)", y = "Count") +
+  theme(legend.position = "none")
+```
+
+
+### Summarizing the posterior
+
+```{r}
+# FIXME
+
+post_contrast <- post |> 
+  mutate(`Knee vs. Control` = knee - control,
+         `Eyes vs. Control` = eyes - control,
+         .keep = "none")
+
+post_contrast |> 
+  pivot_longer(cols = everything(),
+               names_to = "Contrast", values_to = "Difference") |> 
+  ggplot(aes(Difference, color = Contrast)) +
+  scale_color_manual(values = c("steelblue", "darkgreen")) +
+  geom_density(linewidth = 1.5)
+
+apply(post_contrast, MARGIN = 2, FUN = HPDI)
 ```
 
