@@ -20,6 +20,10 @@ library(tidyverse)
 library(cmdstanr)
 library(rethinking)
 
+library(cowplot)
+
+theme_set(theme_cowplot())
+
 # Required files for this problem set:
 #    - HornedLizards.csv
 #    - Earwigs.csv
@@ -125,7 +129,7 @@ We will fit a linear model to these data. The basic model statements are:
 
 Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called $b$.
 
-We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows up for format the equations with the operators lining up where the `&` character is. The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
+We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows formatting the equations with the operators lining up (where the `&` character is located). The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
 
 If you find yourself doing this kind of quantitative analysis often, you will also find yourself writing about it often (maybe even writing manuscripts in quarto) and it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
 
@@ -135,7 +139,7 @@ If you find yourself doing this kind of quantitative analysis often, you will al
 We have not added the lines to the model for the priors yet, because we need to carry out the prior predictive check. In the chunk below, we have given you the basic model as described above.
 
 - Set `eval` to `true`
-- Add lines for the priors. Choose some reasonable values for a normal distribution for `a_group` and a half-normal for `sigma`.
+- Add lines for the priors. Choose some reasonable values (mean and standard deviation) for a normal distribution for `a_group` and a half-normal for `sigma` (mean and standard deviation).
 
 We are set to only sample the prior (`sample_prior = TRUE`), so all the samples will come only from the prior. We still have to pass the data, but it is ignored during sampling.
 
@@ -180,7 +184,8 @@ pp_dist |>
   theme(legend.position = "none")
 ```
 
-Try out different priors for `a_group` until you find a prior that seems good to you. Because we are not looking at the values for the standard deviation (we just asked you to extract the `b` parameter matrix from the samples, ignoring the standard deviation for now), changing its value won't alter the pattern. If we wanted to, we could choose rows from both priors and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
+Try out different priors for `a_group` until you find a prior that seems good to you. Because we are not looking at the values for the `sigma` standard deviation (we just asked you to extract the `b` parameter matrix from the samples, ignoring `sigma` for now), changing its value won't alter the pattern. If we wanted to, we could choose rows from both priors and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
+
 
 ### Final model specification
 
@@ -204,7 +209,7 @@ Finally, we can sample the model. Copy the `ulam()` code from above and make a f
 - Either set `sample_prior` to `FALSE` or delete the line completely.
 - Set `chains = 4` to use 4 replicate chains
 - Set `iter = 5e3` to sample each chain for 5,000 iterations
-- Set `refresh = 5e5` to give fewer output lines
+- Set `refresh = 1e3` to give fewer output lines
 
 This sampling regime will give us 10,000 draws after warmup.
 
@@ -221,7 +226,7 @@ fm <- ulam(
   data = HL,
   chains = 4,
   iter = 5e3,
-  refresh = 5e5
+  refresh = 1e3
 )
 ```
 
@@ -234,6 +239,7 @@ Pass the model object to either `summary()` or `precis()`. Check for adequate sa
 
 ```{r}
 # FIXME
+
 summary(fm)
 precis(fm, depth = 2)
 ```
@@ -246,6 +252,7 @@ Now check the sampling visually by making a trace plot (`traceplot()`) and rank 
 
 ```{r}
 # FIXME
+
 traceplot(fm)
 trankplot(fm)
 ```
@@ -261,7 +268,9 @@ Taken together, do you think that the sampling was successful?
 
 ### Posterior predictive check
 
-First we would like to compare the prior to the posterior. We would like to get the two sets of samples into the same R object with a new column that specifies if the samples came from the prior or the posterior.
+First we would like to compare the prior to the posterior. You wouldn't necessarily always do this, but it is instructive to see how they compare -- essentially how much information the data contains.
+
+We would like to get the two sets of samples into the same R object with a new column (`PP` for prior/posterios) that specifies if the samples came from the prior or the posterior.
 
 - Add a column to `pp_dist` from above named `PP` with the value "Prior". The `PP` column will denote which set of samples we are using.
 - Extract the posterior by adapting the code we used above for the prior. Then add the same `PP` column, but set to "Posterior".
@@ -334,7 +343,7 @@ ggplot() +
 
 How does the posterior for each group compare to the observed data?
 
-> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values. These values do not include the standard deviation. We would have to do things slightly differently to include the variation encoded by `sigma`. We will do this step later in the course.
+> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values for the twogroup means. These values do not include the standard deviation (`sigma`. We would have to do things slightly differently to include the variation encoded by `sigma`. We will do this step later in the course (using the standard deviation generates a "posterior predictive distribution").
 
 
 ### Summarizing the posterior
@@ -355,7 +364,7 @@ How do they compare?
 
 > They are very close.
 
-It is important to remember the conceptual differences between frequentist analysis (like a *t*-test) and Bayesian inference. The underlying frequentist assumption is that these samples of lizards are drawn from populations with fixed means (i.e., a fixed mean value for horn length in each group). The Bayesian approach views the data as fixed (i.e., this is what we observe) and seeks to find the parameter estimates that are most compatible. The numerical answers are very very close (at least for this example), but the assumptions / framework are quite different. If you run `t.test()` on these data, the means that are compared are just the group means. Our Bayesian analysis gives similar values but these are posterior estimates (not just the directly calculated group means for the groups).
+It is important to remember the conceptual differences between frequentist analysis (like a *t*-test) and Bayesian inference. The underlying frequentist assumption is that these samples of lizards are drawn from populations with fixed means (i.e., a fixed true mean value for horn length in each group). The Bayesian approach views the data as fixed (i.e., this is what we observe) and seeks to find the parameter estimates that are most compatible. The numerical answers are very very close (at least for this example), but the assumptions / framework are quite different. If you run `t.test()` on these data, the means that are compared are just the group means. Our Bayesian analysis gives similar values but these are posterior estimates (not just the directly calculated group means for the groups).
 
 We aren't really interested in the posterior means themselves. We are interested in the *difference* between them (called a "contrast"). This difference tests the hypothesis that the means of the two groups are different (or not) from one another.
 
@@ -396,42 +405,234 @@ Does the interval agree with your assessment of the plot?
 > Yes, the interval is from -1.45 to -3.13 mm. So all of the density is far from 0. We don't need to worry about a ROPE or anything here.
 
 
-## Bivariate OLS-like: Earwigs proportion forceps QMLS 1 PS 6
+## Bivariate regression
+
+Our second model is a bivariate regression, a linear model predicting one continuous outcome variable by another continuous variable. This is an ordinary least-squares-like model. The data come from Tomkins and Brown (2004)^[Tomkins, J.L. and G.S. Brown. 2004. Population density drives the local evolution of a threshold dimorphism. *Nature* 431: 1099-1103.], who studied the proportion of European earwigs (*Forficula auricularia*) with forceps as a function of population density.
+
+The hypothesis (among others that these authors tested) is that at higher population densities, earwigs are more likely to have pincers, which are used for fighting and courtship.
+
+The data are in `Earwigs.csv`. There are 22 observations of 2 variables:
+
+1. `Density`: The mean number of earwigs caught in traps (a proxy for population density) across different islands in Scotland.
+2. `Proportion_forceps`: The mean proportion of earwigs in that area with forceps
+
+Load the data and plot the relationship between the proportion of earwigs with forceps and population density.
 
 ```{r}
 # FIXME
 
 EW <- read_csv("../Data/Earwigs.csv", show_col_types = FALSE)
-EW
+
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3)
 ```
 
-### Model specification
-
-### Prior specification
-
-### Prior predictive simulation / check
-
-### Sampling
-
-### Diagnostics
-
-### Posterior predictive simulation
-
-### Summarizing the posterior
-
-
-## ANOVA-like: Jet lag knees
 
 ### Model specification
 
-### Prior specification
+The basic model we want to fit models `Proportion_forceps` as a normal distribution. The mean $\mu$ is a linear function of an intercept `b0` plus a slope `b1` that is a function of `Density`:
 
-### Prior predictive simulation / check
+\begin{align}
+  \mathrm{Proportion\_forceps} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \cdot \mathrm{Density} \\
+\end{align}
+
+From here on, follow the same steps that you went through for the first set of data. We have given you an outline of the steps with the headings. You can (should) adapt the code you wrote above, changing/adding/removing parts so that you set up the linear model described above. Copy the code chunks and change. Test the code as you go to make sure that everything makes sense.
+
+We advise you to restart your R session before you start this section. Load the packages at the top and then begin with loading the earwigs data. That way you will not have any leftover objects in your session that might get called by the new code.
+
+For each section we have provided a few guiding questions (to think about but not necessarily answer), but we will leave everything from here on up to you.
+
+
+### Prior specification and prior predictive check
+
+- Should the intercept be large or small? Does the model need an intercept at all, thinking about it from a biological standpoint?
+- Think about the range of the data in x and y. Do you expect the `b1` slope parameter to be large or small? What about `sigma`?
+- What does a prior predictive check look like when the priors define lines, rather than means like above? You might have to expand the y-axis to see the prior predictions better when you plot them.
+
+```{r}
+# FIXME
+PP <- ulam(
+  alist(
+    Proportion_forceps ~ dnorm(mu, sigma),
+    mu <- b0 + b1 * Density,
+    b0 ~ dnorm(0, 0.1 ),
+    b1 ~ dnorm(0, 0.01),
+    sigma ~ dhalfnorm(0, 0.1)
+  ),
+  data = EW,
+  sample_prior = TRUE
+)
+
+pp_dist <- extract.samples(PP) |> 
+  as.data.frame() |> 
+  slice_sample(n = 100)
+
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3) +
+  geom_abline(intercept = pp_dist$b0, slope = pp_dist$b1,
+              color = "tomato",
+              alpha = 0.5) +
+  ylim(c(-1, 1))
+```
+
+
+### Final model specification
+
+Add the values that you chose for the priors for `b0`, `b1`, and `sigma` to the model statement below:
+
+\begin{align}
+  \mathrm{Proportion\_forceps} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \cdot \mathrm{Density} \\
+  b0 & \sim Normal(0, 0.1) \\
+  b1 & \sim Normal(0, 0.01) \\
+  sigma & \sim HalfNormal(0, 0.1) \\
+\end{align}
+
 
 ### Sampling
 
+- How many draws do you need to make from the model to get a good representation of the posterior?
+
+```{r}
+# FIXME
+fm <- ulam(
+  alist(
+    Proportion_forceps ~ dnorm(mu, sigma),
+    mu <- b0 + b1 * Density,
+    b0 ~ dnorm(0, 0.1),
+    b1 ~ dnorm(0, 0.01),
+    sigma ~ dhalfnorm(0, 0.5)
+  ),
+  data = EW,
+  chains = 4,
+  iter = 5e3,
+  refresh = 1e3
+)
+```
+
+
 ### Diagnostics
+
+- What visual and summary checks will you use to determine if the model fit adequately and without obvious errors?
+
+```{r}
+# FIXME
+
+summary(fm)
+precis(fm)
+```
+
+```{r}
+# FIXME
+
+traceplot(fm)
+trankplot(fm)
+```
+
 
 ### Posterior predictive simulation
 
+- Similar to the prior predictive check, what does the posterior predictive check look like when the posterior samples define lines?
+
+```{r}
+# FIXME
+
+post <- extract.samples(fm) |> 
+  as.data.frame()
+
+post_sub <- post  |> 
+  slice_sample(n = 100)
+
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3) +
+  geom_abline(intercept = post_sub$b0, slope = post_sub$b1,
+              color = "tomato",
+              alpha = 0.5)
+```
+
+
 ### Summarizing the posterior
+
+- What hypothesis are you testing with these data?
+- How will you summarize the posterior in a way that will test that hypothesis?
+
+```{r}
+HPDI(post$b1)
+```
+
+```{r}
+# FIXME
+
+# With a more constrained intercept and less constrained slope
+
+fm <- ulam(
+  alist(
+    Proportion_forceps ~ dnorm(mu, sigma),
+    mu <- b0 + b1 * Density,
+    b0 ~ dnorm(0, 0.01),
+    b1 ~ dnorm(0, 0.05),
+    sigma ~ dhalfnorm(0, 0.5)
+  ),
+  data = EW,
+  chains = 4,
+  iter = 5e3,
+  refresh = 0
+)
+
+precis(fm)
+
+post <- extract.samples(fm) |> 
+  as.data.frame()
+
+post_sub <- post  |> 
+  slice_sample(n = 100)
+
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3) +
+  geom_abline(intercept = post_sub$b0, slope = post_sub$b1,
+              color = "tomato",
+              alpha = 0.5)
+HPDI(post$b1)
+```
+
+```{r}
+# FIXME
+
+# With no intercept, leave out b0
+
+fm <- ulam(
+  alist(
+    Proportion_forceps ~ dnorm(mu, sigma),
+    mu <- b1 * Density,
+    b1 ~ dnorm(0, 0.05),
+    sigma ~ dhalfnorm(0, 0.5)
+  ),
+  data = EW,
+  chains = 4,
+  iter = 5e3,
+  refresh = 0
+)
+
+precis(fm)
+
+post <- extract.samples(fm) |> 
+  as.data.frame()
+
+post_sub <- post  |> 
+  slice_sample(n = 100)
+
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3) +
+  geom_abline(intercept = 0, slope = post_sub$b1,
+              color = "tomato",
+              alpha = 0.5)
+
+HPDI(post$b1)
+```
+
