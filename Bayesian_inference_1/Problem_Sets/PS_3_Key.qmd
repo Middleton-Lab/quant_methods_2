@@ -441,7 +441,7 @@ The basic model we want to fit models `Proportion_forceps` as a normal distribut
 
 From here on, follow the same steps that you went through for the first set of data. We have given you an outline of the steps with the headings. You can (should) adapt the code you wrote above, changing/adding/removing parts so that you set up the linear model described above. Copy the code chunks and change. Test the code as you go to make sure that everything makes sense.
 
-We advise you to restart your R session before you start this section. Load the packages at the top and then begin with loading the earwigs data. That way you will not have any leftover objects in your session that might get called by the new code.
+We advise you to restart your R session before you start this section. Load the packages at the top and then begin with loading the earwigs data. That way you will not have any leftover objects in your session that might get called by the code (i.e., the old variables won't exist and so you will be sure to get errors if you forget to change something).
 
 For each section we have provided a few guiding questions (to think about but not necessarily answer), but we will leave everything from here on up to you.
 
@@ -453,6 +453,8 @@ For each section we have provided a few guiding questions (to think about but no
 - What does a prior predictive check look like when the priors define lines, rather than means like above? You might have to expand the y-axis to see the prior predictions better when you plot them.
 
 ```{r}
+#| message: false
+
 # FIXME
 PP <- ulam(
   alist(
@@ -498,6 +500,8 @@ Add the values that you chose for the priors for `b0`, `b1`, and `sigma` to the 
 - How many draws do you need to make from the model to get a good representation of the posterior?
 
 ```{r}
+#| message: false
+
 # FIXME
 fm <- ulam(
   alist(
@@ -566,6 +570,8 @@ HPDI(post$b1)
 ```
 
 ```{r}
+#| message: false
+
 # FIXME
 
 # With a more constrained intercept and less constrained slope
@@ -602,6 +608,8 @@ HPDI(post$b1)
 ```
 
 ```{r}
+#| message: false
+
 # FIXME
 
 # With no intercept, leave out b0
@@ -640,7 +648,7 @@ HPDI(post$b1)
 
 ## ANOVA-like linear model
 
-The final model is an ANOVA-like model, with one categorical predictor with three levels. The data for this problem come from an experiment designed to test whether appication of light to the eyes would result in a shorter time shift for the test subject.
+The final model is an ANOVA-like model, with one categorical predictor with three levels. The data for this problem come from an experiment designed to test whether application of light to the eyes would result in a shorter time shift for the test subject.
 
 The data are in `JetLag.csv`. There are two columns:
 
@@ -652,7 +660,9 @@ The hypothesis that you want to test is whether light application to the eyes re
 1. knee vs. control
 2. eyes vs. control
 
-This model is very similar to the first in this problem set. Below we have given you empty headings. Adapt the code from above to test this hypothesis.
+The knee vs. eyes contrast is not interesting for this experiment.
+
+This model is very similar to the first one in this problem set. Below we have given you empty headings. Adapt the code from above to test this hypothesis.
 
 ```{r}
 # FIXME
@@ -662,11 +672,12 @@ JL <- read_csv("../Data/JetLag.csv", show_col_types = FALSE) |>
                             levels = c("control", "knee", "eyes")))
 
 ggplot() +
-  geom_point(data = JL, aes(x = Treatment, y = Shift),
-             position = position_jitter(width = 0.1),
-             color = "goldenrod",
-             size = 2) +
-  labs(y = "Shift (h)")
+  geom_point(data = JL, aes(x = Treatment, y = Shift, color = Treatment),
+             position = position_jitter(width = 0.1, seed = 34879),
+             size = 3) +
+  scale_color_manual(values = c("tomato", "steelblue", "darkorchid")) +
+  labs(y = "Shift (h)") +
+  theme(legend.position = "none")
 ```
 
 ### Model specification
@@ -705,7 +716,7 @@ pp_dist |>
                values_to = "Shift") |> 
   ggplot(aes(Shift, fill = Treatment)) +
   geom_histogram(bins = 30) +
-  scale_fill_manual(values = c("tomato", "steelblue", "darkgreen")) +
+  scale_fill_manual(values = c("tomato", "steelblue", "darkorchid")) +
   facet_grid(Treatment ~ .) +
   cowplot::theme_cowplot() +
   labs(x = "Shift (h)", y = "Count") +
@@ -780,7 +791,7 @@ post |>
   geom_density(linewidth = 1.5) +
   geom_point(data = JL, aes(x = Shift, y = 0, color = Treatment),
              size = 3) +
-  scale_color_manual(values = c("tomato", "steelblue", "darkgreen")) +
+  scale_color_manual(values = c("tomato", "steelblue", "darkorchid")) +
   facet_grid(Treatment ~ .) +
   cowplot::theme_cowplot() +
   labs(x = "Shift (h)", y = "Count") +
@@ -802,7 +813,7 @@ post_contrast |>
   pivot_longer(cols = everything(),
                names_to = "Contrast", values_to = "Difference") |> 
   ggplot(aes(Difference, color = Contrast)) +
-  scale_color_manual(values = c("steelblue", "darkgreen")) +
+  scale_color_manual(values = c("steelblue", "darkorchid")) +
   geom_density(linewidth = 1.5)
 
 apply(post_contrast, MARGIN = 2, FUN = HPDI)
