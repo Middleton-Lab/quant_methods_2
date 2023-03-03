@@ -1,0 +1,464 @@
+---
+title: "Problem Set 3"
+author:
+  - Your Name Here
+format: 
+  html:
+    standalone: true
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+
+# Required files for this problem set:
+#    - HornedLizards.csv
+#    - Earwigs.csv
+#    - JetLag.csv
+```
+
+## Bayesian workflow
+
+Recall the 7 steps of our Bayesian workflow. Remember that some steps are relatively quick and straightforward (Model specification, Sampling, and Diagnostics -- at least for these models), while others are more involved (Priors and Posteriors).
+
+1. Model specification
+2. Prior specification
+3. Prior predictive simulation / check
+4. Sampling
+5. Diagnostics
+6. Posterior predictive simulation
+7. Summarizing the posterior
+
+We will work through these steps with a few different linear models. All of these models have only 1 predictor and are ones that we used in *Quantitative Methods 1*, either for lecture or in problem sets. So the data should be familiar even if the conclusions are not fresh in your mind.
+
+In this problem set we will be very explicit about following the steps. This is good to practice and learn as you are gaining experience with Bayesian inference.
+
+
+## Difference of means with two groups
+
+Our first model will compare the means of two groups. This is like a two-sample *t*-test. It is one of the most common statistical tests, also sometimes called an "independent samples" *t*-test.
+
+Rather than thinking of it as a *t*-test, just consider it a linear model with a single predictor that is a categorical variable with two levels. We know that's a lot more convoluted sounding, but trying to move away from "named tests" is worthwhile in the long run.
+
+The data we will use involves the effects (or lack thereof) of predation on flat-tail horned lizards (*Phrynosoma mccalli*). The hypothesis is that longer horns a protective against predation by loggerhead shrikes (*Lanius ludovicianus*). 
+
+The parietal horn length of two groups of horned lizards were measured by Young et al. (2004)^[Young, K.V., E.D. Brodie, Jr., and E.D. Brodie, III. 2004. How the horned lizard got its horns. *Science* 304: 65]. One group of lizards were alive, and the other group had been killed by shrikes and left in trees or bushes.
+
+Read in the data included in the file `HornedLizards.csv`. Drop any rows with NA values. You should have 184 rows remaining.
+
+```{r}
+
+```
+
+Plot a histogram of the two groups, faceting rows by group so that the distributions are easier to compare.
+
+```{r}
+
+```
+
+What do you observe?
+
+> 
+
+Notice that there are a few "alive" lizards with very small horns. In a regular *t*-test, these observations might be problematic -- mathematically problematic in dragging the mean down and increasing the variance rather than scientifically problematic in being erroneous. In the parlance, these observations have a large "weight" or "leverage".
+
+The regularizing priors that we will use will have no problem with these observations. They will be automatically down-weighted in the analysis, because they are relatively less likely than the majority of the observations.
+
+In the chunk below, check sample size, means, and variances for each group:
+
+```{r}
+
+```
+
+You will observe that there are about 5 times more alive lizards than dead. *t*-tests work best when sample sizes are fairly close and assume that the variances are equal between groups. Although the variances are very close in this sample, it is deceiving, because the sample sizes are so different. The variance scales with the sample size (larger samples will tend to have larger variances, just because of the equation for variance). This is in contrast to standard deviation (which is scaled to the sample size and thus comparable across samples of different size, as long as the units are the same). If you were going to use a *t*-test for these data, you would probably want to use Welch's correction for unequal variances ("Welch's correction"), which is the default in R. There are frequentist approaches that do something similar, which fall under the general term "robust regression".
+
+To prepare the data for passing to `ulam()`, we have to make a change to the formatting of the `group` variable:
+
+- Recode `group` to be an integer (`as.integer(factor(group))`)
+- Confirm that group is an integer with values of 1 and 2
+
+```{r}
+
+```
+
+
+### Model specification
+
+We will fit a linear model to these data. The basic model statements are:
+
+\begin{align}
+  \mathrm{horn\_length} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{group}] \\
+\end{align}
+
+Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called $b$.
+
+We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ by the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows formatting the equations with the operators lining up (where the `&` character is located). The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
+
+If you find yourself doing this kind of quantitative analysis often, you will also find yourself writing about it often (maybe even writing manuscripts in quarto), and it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
+
+
+### Prior specification and prior predictive check
+
+We have not added the lines to the model for the priors yet, because we need to carry out the prior predictive check. In the chunk below, we have given you the basic model as described above.
+
+- Set `eval` to `true`
+- Add lines for the priors. Choose some reasonable values (mean and standard deviation) for a normal distribution for `a_group` and a half-normal for `sigma` (mean and standard deviation).
+
+We are set to only sample the prior (`sample_prior = TRUE`), so all the samples will come only from the prior. We still have to pass the data, but it is ignored during sampling.
+
+```{r}
+#| eval: false
+
+PP <- ulam(
+  alist(
+    horn_length ~ dnorm(mu, sigma),
+    mu <- b[group],
+    b[group] ~ dnorm(20, 7.5),
+    sigma ~ dhalfnorm(0, 5)
+  ),
+  data = HL,
+  sample_prior = TRUE
+)
+```
+
+Because we are only sampling the prior, we can use the default of 500 samples and 1 chain. This is enough samples to see if the values are reasonable.
+
+Below we have provided you the code to extract the `b` parameter matrix from the samples. `extract.samples()` returns a list, and when you use `[]` notation, those parameters are returned as a matrix. We also convert it to a `data.frame` and rename the columns to match the original column names for the observed data.
+
+- Set `eval` to `true`
+- Plot the prior predictive distributions for both groups as histograms. You can use the same code that you wrote above to compare distributions of the observed data, just changing the data.
+
+```{r}
+#| eval: false
+
+pp_dist <- extract.samples(PP)$b |> 
+  as.data.frame() |> 
+  rename(alive = V1,
+         dead = V2)
+
+pp_dist |> 
+  pivot_longer(cols = everything(),
+               names_to = "group", values_to = "horn_length") |> 
+  ggplot(aes(horn_length, fill = group)) +
+  geom_histogram(bins = 30) +
+  scale_fill_manual(values = c("tomato", "steelblue")) +
+  facet_grid(group ~ .) +
+  cowplot::theme_cowplot() +
+  labs(x = "Horn Length (mm)", y = "Count") +
+  theme(legend.position = "none")
+```
+
+Try out different priors for `a_group` until you find a prior that seems good to you. Because we are not looking at the values for the `sigma` standard deviation (we just asked you to extract the `b` parameter matrix from the samples, ignoring `sigma` for now), changing its value won't alter the pattern. If we wanted to, we could choose rows from both priors and simulate data using the full set of parameters, which would be the most correct way to do this simulation. But we should be fine just using values for `horn_length`.
+
+
+### Final model specification
+
+Add the values that you chose for the priors to the model statement below:
+
+\begin{align}
+  \mathrm{horn\_length} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{group}] \\
+\end{align}
+
+
+### Sampling
+
+Finally, we can sample the model. Copy the `ulam()` code from above and make a few modifications:
+
+- Rename the model to something besides `PP` (we like `fm` for "fitted model")
+- Either set `sample_prior` to `FALSE` or delete the line completely.
+- Set `chains = 4` to use 4 replicate chains
+- Set `iter = 5e3` to sample each chain for 5,000 iterations (2,500 warmup and 2,500 post-warmup)
+- Set `refresh = 1e3` to give fewer output lines
+
+This sampling regime will give us 10,000 draws after warmup.
+
+```{r}
+
+```
+
+Make note of any warnings or errors from `ulam()` or stan.
+
+
+### Diagnostics
+
+Pass the model object to either `summary()` or `precis()`. Check for adequate sampling as evidenced by sufficiently large `n_eff` and `Rhat4` of ~1.
+
+```{r}
+
+```
+
+What do you learn from the summary?
+
+> 
+
+Now check the sampling visually by making a trace plot (`traceplot()`) and rank histogram plot (`trankplot()`).
+
+```{r}
+
+```
+
+What do you learn from the visual checks?
+
+> 
+
+Taken together, do you think that the sampling was successful?
+
+> 
+
+
+### Posterior predictive check
+
+First we would like to compare the prior to the posterior. You wouldn't necessarily always do this, but it is instructive to see how they compare -- essentially how much information the data contains.
+
+We would like to get the two sets of samples into the same R object with a new column (`PP` for prior/posterios) that specifies if the samples came from the prior or the posterior.
+
+- Add a column to `pp_dist` from above named `PP` with the value "Prior". The `PP` column will denote which set of samples we are using.
+- Extract the posterior by adapting the code we used above for the prior. Then add the same `PP` column, but set to "Posterior".
+- To get the two sets of samples into the same object, pass both to `bind_rows()`.
+- Now pivot the full set longer using all variables except `PP`. Set the names to `group` and the values to `horn_length`.
+
+```{r}
+
+```
+
+Now make a density plot of all the samples (adapting the code from above):
+
+- Encode color with `group`
+- Encode linetype with `PP`
+
+Your plot should have four lines, two solid lines from the posterior and two dashed lines from the prior.
+
+```{r}
+
+```
+
+How does the posterior compare to the prior?
+
+> 
+
+Next we would like to compare the posterior to the data. We will mostly let you try to figure this out. A few suggestions:
+
+- Reload the `HornedLizards.csv` file (copy your code from above). This has the original codings for "alive" and "dead" rather than those recoded as 1 and 2.
+- The observed data is already in long format. So just add the `PP` column as "Observed".
+- Use your posterior object from above and pivot that longer as above.
+- Add the data separately by using `geom_density()` separately for each set of data. Set the linetype manually (i.e., outside of `aes()`).
+
+```{r}
+
+```
+
+How does the posterior for each group compare to the observed data?
+
+> 
+
+
+### Summarizing the posterior
+
+Compare the means of horn length in the observed data to the means (or medians) of the posterior estimates.
+
+```{r}
+
+```
+
+How do they compare?
+
+> 
+
+It is important to remember the conceptual differences between frequentist analysis (like a *t*-test) and Bayesian inference. The underlying frequentist assumption is that these samples of lizards are drawn from populations with fixed means (i.e., a fixed true mean value for horn length in each group). The Bayesian approach views the data as fixed (i.e., this is what we observe) and seeks to find the parameter estimates that are most compatible. The numerical answers are very very close (at least for this example), but the assumptions / framework are quite different. If you run `t.test()` on these data, the means that are compared are just the group means. Our Bayesian analysis gives similar values but these are posterior estimates (not just the directly calculated group means for the groups).
+
+We aren't really interested in the posterior means themselves. We are interested in the *difference* between them (called a "contrast"). This difference tests the hypothesis that the means of the two groups are different (or not) from one another.
+
+Calculate the difference between dead and alive using the posterior. You can just add a column to the tibble with the posterior.
+
+```{r}
+
+```
+
+Make a density plot of the difference you calculated.
+
+```{r}
+
+```
+
+What is your interpretation of the plot?
+
+> 
+
+Finally, calculate the 89% highest density interval for the difference in any way you want (`HPDI()` from `rethinking` is fine for example). 
+
+```{r}
+
+```
+
+Does the interval agree with your assessment of the plot?
+
+> 
+
+
+## Bivariate regression
+
+Our second model is a bivariate regression, a linear model predicting one continuous outcome variable by another continuous variable. This is an ordinary least-squares-like model. The data come from Tomkins and Brown (2004)^[Tomkins, J.L. and G.S. Brown. 2004. Population density drives the local evolution of a threshold dimorphism. *Nature* 431: 1099-1103.], who studied the proportion of European earwigs (*Forficula auricularia*) with forceps as a function of population density.
+
+The hypothesis (among others that these authors tested) is that at higher population densities, earwigs are more likely to have pincers, which are used for fighting and courtship.
+
+The data are in `Earwigs.csv`. There are 22 observations of 2 variables:
+
+1. `Density`: The mean number of earwigs caught in traps (a proxy for population density) across different islands in Scotland.
+2. `Proportion_forceps`: The mean proportion of earwigs in that area with forceps
+
+Load the data and plot the relationship between the proportion of earwigs with forceps and population density.
+
+```{r}
+
+```
+
+
+### Model specification
+
+The basic model we want to fit models `Proportion_forceps` as a normal distribution. The mean $\mu$ is a linear function of an intercept `b0` plus a slope `b1` that is a function of `Density`:
+
+\begin{align}
+  \mathrm{Proportion\_forceps} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \cdot \mathrm{Density} \\
+\end{align}
+
+From here on, follow the same steps that you went through for the first set of data. We have given you an outline of the steps with the headings. You can (should) adapt the code you wrote above, changing/adding/removing parts so that you set up the linear model described above. Copy the code chunks and change. Test the code as you go to make sure that everything makes sense.
+
+We advise you to restart your R session before you start this section. Load the packages at the top and then begin with loading the earwigs data. That way you will not have any leftover objects in your session that might get called by the code (i.e., the old variables won't exist and so you will be sure to get errors if you forget to change something).
+
+For each section we have provided a few guiding questions (to think about but not necessarily answer), but we will leave everything from here on up to you.
+
+
+### Prior specification and prior predictive check
+
+- Should the intercept be large or small? Does the model need an intercept at all, considering it from a biological standpoint?
+- Think about the range of the data in x and y. Do you expect the `b1` slope parameter to be large or small? What about `sigma`?
+- What does a prior predictive check look like when the priors define lines, rather than means like above? You might have to expand the y-axis to see the prior predictions better when you plot them.
+
+```{r}
+
+```
+
+
+### Final model specification
+
+Add the values that you chose for the priors for `b0`, `b1`, and `sigma` to the model statement below:
+
+\begin{align}
+  \mathrm{Proportion\_forceps} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \cdot \mathrm{Density} \\
+\end{align}
+
+
+### Sampling
+
+- How many draws do you need to make from the model to get a good representation of the posterior?
+
+```{r}
+
+```
+
+
+### Diagnostics
+
+- What visual and summary checks will you use to determine if the model fit adequately and without obvious errors?
+
+```{r}
+
+```
+
+
+### Posterior predictive simulation
+
+- Similar to the prior predictive check, what does the posterior predictive check look like when the posterior samples define lines?
+
+```{r}
+
+```
+
+
+### Summarizing the posterior
+
+- What hypothesis are you testing with these data?
+- How will you summarize the posterior in a way that will test that hypothesis?
+
+```{r}
+
+```
+
+
+## ANOVA-like linear model
+
+The final model is an ANOVA-like model, with one categorical predictor with three levels. The data for this problem come from an experiment designed to test whether application of light to the eyes would result in a shorter time shift for the test subject.
+
+The data are in `JetLag.csv`. There are two columns:
+
+- `Treatment`: the categorical predictor with three levels. The "control" group had no light application. The "eyes" group had light in their eyes (the test condition). The "knee" group had light allied to the back of the knee as a negative control (there are no photoreceptors on the knee).
+- `Shift`: the continuous outcome variable measured in hours
+
+The hypothesis that you want to test is whether light application to the eyes resulted in a different mean shift than did light application to the knee. Thus we are only interested in two contrasts: 
+
+1. knee vs. control
+2. eyes vs. control
+
+The knee vs. eyes contrast is not interesting for this experiment.
+
+This model is very similar to the first one in this problem set. Below we have given you empty headings. Adapt the code from above to test this hypothesis.
+
+```{r}
+
+```
+
+### Model specification
+
+
+
+### Prior specification and prior predictive check
+
+```{r}
+
+```
+
+
+### Final model specification
+
+
+### Sampling
+
+```{r}
+
+```
+
+
+### Diagnostics
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+### Posterior predictive simulation
+
+```{r}
+
+```
+
+
+### Summarizing the posterior
+
+```{r}
+
+```
+
