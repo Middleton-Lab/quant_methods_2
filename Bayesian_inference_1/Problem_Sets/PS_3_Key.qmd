@@ -130,9 +130,9 @@ We will fit a linear model to these data. The basic model statements are:
 
 Translated, these lines say that `horn_length` is modeled by a normal distribution with a mean ($\mu$) and standard deviation ($\sigma$). The mean is estimated separately for each level of `group` by a predictor called $b$.
 
-We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ to the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows formatting the equations with the operators lining up (where the `&` character is located). The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
+We have written the model in [LaTeX code](https://www.overleaf.com/learn/latex/Mathematical_expressions). LaTeX (written as $\LaTeX$ by the purists) is a markup language (like html, rmd, qmd, etc.) for typesetting math equations (and lots of other things, like dissertations). You have seen it periodically throughout these problems sets and in the source code for the slides, most often inline using `$`, as for the mean and standard deviation in the previous paragraph. The `align` environment allows formatting the equations with the operators lining up (where the `&` character is located). The two backslashes `\\` mark new lines. `\mathrm{}` makes the text upright ("roman") although we are in math mode, which is useful to distinguish estimated parameters in italics from variable names.
 
-If you find yourself doing this kind of quantitative analysis often, you will also find yourself writing about it often (maybe even writing manuscripts in quarto) and it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
+If you find yourself doing this kind of quantitative analysis often, you will also find yourself writing about it often (maybe even writing manuscripts in quarto), and it's worth spending the time to pick up the relevant LaTeX coding. The basics are pretty straightforward, and you can get very far with just a little bit of knowledge. There are lots of online tutorials and translators.
 
 
 ### Prior specification and prior predictive check
@@ -175,7 +175,8 @@ pp_dist <- extract.samples(PP)$b |>
          dead = V2)
 
 pp_dist |> 
-  pivot_longer(cols = everything(), names_to = "group", values_to = "horn_length") |> 
+  pivot_longer(cols = everything(),
+               names_to = "group", values_to = "horn_length") |> 
   ggplot(aes(horn_length, fill = group)) +
   geom_histogram(bins = 30) +
   scale_fill_manual(values = c("tomato", "steelblue")) +
@@ -318,7 +319,7 @@ How does the posterior compare to the prior?
 
 Next we would like to compare the posterior to the data. We will mostly let you try to figure this out. A few suggestions:
 
-- Reload the `HornedLizards.csv` file (copy your code from above). This has the original codings for "alive" "dead" rather than those recoded as 1 and 2.
+- Reload the `HornedLizards.csv` file (copy your code from above). This has the original codings for "alive" and "dead" rather than those recoded as 1 and 2.
 - The observed data is already in long format. So just add the `PP` column as "Observed".
 - Use your posterior object from above and pivot that longer as above.
 - Add the data separately by using `geom_density()` separately for each set of data. Set the linetype manually (i.e., outside of `aes()`).
@@ -344,7 +345,7 @@ ggplot() +
 
 How does the posterior for each group compare to the observed data?
 
-> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values for the twogroup means. These values do not include the standard deviation (`sigma`. We would have to do things slightly differently to include the variation encoded by `sigma`. We will do this step later in the course (using the standard deviation generates a "posterior predictive distribution").
+> Their central tendencies are very similar. But the spread of the observed data is much larger. This is to be expected. For the posterior, we are plotting the distributions of the expected values for the twogroup means. These values do not include the standard deviation (`sigma`). We would have to do things slightly differently to include the variation encoded by `sigma`. We will do this step later in the course (using the standard deviation generates a "posterior predictive distribution").
 
 
 ### Summarizing the posterior
