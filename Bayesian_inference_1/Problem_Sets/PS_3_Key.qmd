@@ -449,7 +449,7 @@ For each section we have provided a few guiding questions (to think about but no
 
 ### Prior specification and prior predictive check
 
-- Should the intercept be large or small? Does the model need an intercept at all, thinking about it from a biological standpoint?
+- Should the intercept be large or small? Does the model need an intercept at all, considering it from a biological standpoint?
 - Think about the range of the data in x and y. Do you expect the `b1` slope parameter to be large or small? What about `sigma`?
 - What does a prior predictive check look like when the priors define lines, rather than means like above? You might have to expand the y-axis to see the prior predictions better when you plot them.
 
