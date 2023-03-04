@@ -52,7 +52,19 @@ options(brms.backend = "cmdstanr",
 ## Hypothesis tests
 
 
-## Bayesian vs. Frequentists viewpoints
+## Bayesian and frequentist approaches
+
+Frequentist / Maximum likelihood:
+
+- Parameters fixed, data varies
+- $Pr[Data | \theta]$
+
+Bayesian:
+
+- Data fixed, parameters vary
+- $Pr[\theta | Data]$
+
+$$Pr[\theta | Data] = \frac{Pr[Data | \theta] \times Pr[\theta]}{Pr[Data]}$$
 
 
 ## Energy expenditure in naked mole rats
@@ -194,7 +206,8 @@ hypothesis(fm, "CasteWorker - CasteNonWorker = 0", alpha = 0.89)
 
 ## Estimate difference while sampling?
 
-- Switch to low-level `stan` code, and use `rstan` or `cmdstanr`
+- `gq>` statement in `ulam()` model
+- Pure `stan` code, and use `rstan` or `cmdstanr`
 - `generated quantities` block lets you access the samples at each iteration
     - Calculations, predictions, etc., which all go into the output
 
