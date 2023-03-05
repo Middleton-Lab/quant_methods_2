@@ -1,0 +1,17 @@
+---
+title: "Final Project"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+## Instructions
+
+For the final project for Bayes 1, you will analyze a dataset and write the methods and results sections as you would for a manuscript. Ideally, you would use a dataset you are working on analyzing and intending to publish but you can use any dataset if you don't have one like that right now. You should restrict your writing to the methods about the analysis you have done. You do not need to include the other parts of the methods describing the experiment etc. The same is true for your results section. Simply write the sections describing the results of the analyses you do here. The entire thing should be written in this `.qmd` file, formatting the analysis, plots, etc. here. 
+
+We will take some time to discuss possible datasets with each of you during our week 3 check in meeting. 
