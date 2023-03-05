@@ -5,13 +5,24 @@ author:
 format: 
   html:
     embed-resources: true
-    toc: true
-    toc-depth: 2
-    toc-title: Contents
 ---
 
 ## Instructions
 
-For the final project for Bayes 1, you will analyze a dataset and write the methods and results sections as you would for a manuscript. Ideally, you would use a dataset you are working on analyzing and intending to publish but you can use any dataset if you don't have one like that right now. You should restrict your writing to the methods about the analysis you have done. You do not need to include the other parts of the methods describing the experiment etc. The same is true for your results section. Simply write the sections describing the results of the analyses you do here. The entire thing should be written in this `.qmd` file, formatting the analysis, plots, etc. here. 
+For the final project for Bayesian Inference 1, you will analyze a dataset and write the methods and results sections as you would for a manuscript. Ideally, you would use a dataset you are working on analyzing and intending to publish but you can use any dataset if you don't have one like that right now. 
+
+Your data and analysis doesn't have to be overly complicated, and if your actual data would demand a more complex model than we have used (e.g., multilevel or non-linear), feel free to simplify the data for the purposes of analysis.
+
+You should restrict your writing to the methods about the analysis you have done. You do not need to include the other parts of the methods describing the experiment, etc. Just include enough to know what questions you are answering and/or what hypotheses you are testing. The same is true for your results section. Simply write the sections describing the results of the analyses you do here. The entire thing should be written in this `.qmd` file, formatting the analysis, plots, etc. here. 
+
+Things to include:
+
+- Model statement(s)
+- Prior predictive checks
+- Sampling information and diagnostics
+- Posterior predictive check
+- Hypothesis tests, model comparison, and/or model averaging
+- Relevant figures
+    - Although you might not include all these figures in a manuscript, they could very easily go into supplemental information.
 
 We will take some time to discuss possible datasets with each of you during our week 3 check in meeting. 
