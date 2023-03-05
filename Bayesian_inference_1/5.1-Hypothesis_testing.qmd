@@ -46,11 +46,16 @@ options(brms.backend = "cmdstanr",
 4. Model averaging
 
 
-## Decisions
+## Making Decisions in Data Analysis
 
-
-## Hypothesis tests
-
+- Parameter estimation
+    - means, medians, intervals
+- Hypothesis testing
+    - P-values
+    - AIC, AICc
+    - Credible intervals, HDIs
+    - ROPEs
+    - LOO-CV values
 
 ## Bayesian and frequentist approaches
 
