@@ -174,18 +174,6 @@ tibble(Model = paste0("fm", 1:5),
 ```
 
 
-## Model weights by stacking
-
-```{r}
-plot_grid(p1 + labs(title = paste0("fm1: ", round(mw3[1], 3))),
-          p2 + labs(title = paste0("fm1: ", round(mw3[2], 3))),
-          p3 + labs(title = paste0("fm1: ", round(mw3[3], 3))),
-          p4 + labs(title = paste0("fm1: ", round(mw3[4], 3))),
-          p5 + labs(title = paste0("fm1: ", round(mw3[5], 3))),
-          ncol = 3)
-```
-
-
 ## Two kinds of posterior intervals
 
 1. HDIs for the parameter estimates

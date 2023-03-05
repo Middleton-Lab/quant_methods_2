@@ -148,7 +148,7 @@ fm <- brm(Energy ~ Mass + Caste - 1, data = M,
 1. Shared slope for `Mass`
 2. "Intercept" difference of Worker vs. Non-worker castes
     - Overall intercepts for `Caste` probably not interesting in this example
-    - What does `Mass` = 0 mean for a naked mole rate?
+    - What does `Mass` = 0 mean for a naked mole rat?
 
 
 ## HDI-based tests
