@@ -12,113 +12,397 @@ format:
 
 ```{r}
 #| echo: false
+#| message: false
+#| warning: false
 
 library(tidyverse)
+library(cowplot)
 library(brms)
 library(priorsense)
+library(tidybayes)
+library(distributional)
+library(modelr)
 
 options(brms.backend = "cmdstan")
+theme_set(theme_cowplot(font_size = 10))
 
 # Required files for this problem set:
 # remotes::install_github("n-kall/priorsense")
 ```
 
 
-ANOVA-like PS 8 heart transplant
-
-Multiple regression: mammal milk
-
-2x2 factorial bird plasma
-
-
-
-- brms with factors
-- Use pp_check with grouped data
-
-
 ## `priorsense` Package
 
 Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling.
 
+`remotes::install_github("n-kall/priorsense")`
+
 
 ```{r}
-HL <- abdData::HornedLizards |> 
-  rename(Horn_Length = horn.length,
-         Group = group) |> 
-  mutate(Group = if_else(Group == "living", "Alive", "Dead")) |> 
-  drop_na()
+EW <- read_csv("../Data/Earwigs.csv", show_col_types = FALSE)
 
-ggplot(HL, aes(Horn_Length, color = Group)) +
-  geom_density()
+ggplot() +
+  geom_point(data = EW, aes(Density, Proportion_forceps),
+             color = "steelblue", size = 3)
 ```
 
 Models
 
 ```{r}
-get_prior(Horn_Length ~ 0 + Group,
-           data = HL)
+get_prior(Proportion_forceps ~ 1 + Density,
+           data = EW)
 
-fm1 <- brm(Horn_Length ~ 0 + Group,
-           data = HL,
-           prior = prior(normal(0, 2), class = b))
+fm <- brm(Proportion_forceps ~ 1 + Density,
+          data = EW,
+          prior = c(prior(normal(0, 0.1), class = b),
+                    prior(normal(0, 1), class = Intercept),
+                    prior(normal(0, 1), class = sigma)),
+          refresh = 0)
 
-powerscale_sensitivity(fm1)
-pss1 <- powerscale_sequence(fm1)
+prior_summary(fm)
 
-powerscale_plot_quantities(
-  pss1,
-  quantities = c("mean", "sd"),
-  div_measure = "cjs_dist",
-  variables = c("b_GroupAlive", "b_GroupDead")
-)
-
-###
-
-fm2 <- brm(Horn_Length ~ 0 + Group,
-           data = HL,
-           prior = prior(normal(20, 10), class = b))
-
-powerscale_sensitivity(fm2)
-pss2 <- powerscale_sequence(fm2)
+powerscale_sensitivity(fm)
 
 powerscale_plot_quantities(
-  pss2,
+  powerscale_sequence(fm),
   quantities = c("mean", "sd"),
-  div_measure = "cjs_dist",
-  variables = c("b_GroupAlive", "b_GroupDead")
+  variables = c("b_Density", "b_Intercept")
 )
-
-###
-
-fm3 <- brm(Horn_Length ~ 0 + Group,
-           data = HL,
-           prior = prior(normal(22, 20), class = b))
-
-powerscale_sensitivity(fm3)
-pss3 <- powerscale_sequence(fm3)
-
-powerscale_plot_quantities(
-  pss3,
-  quantities = c("mean", "sd"),
-  div_measure = "cjs_dist",
-  variables = c("b_GroupAlive", "b_GroupDead")
-)
-
 ```
 
+Working with tidybayes: http://mjskay.github.io/tidybayes/articles/tidy-brms.html
 
 ```{r}
 library(tidybayes)
 fm |> tidy_draws() |> summarise_draws()
 
-fm %>%
-  spread_rvars(b_Intercept, b_x, sigma) |> 
+fm |>
+  spread_rvars(b_Intercept, b_Density, sigma) |> 
   median_hdi(.width = 0.89)
 
-fm %>%
-  spread_rvars(b_Intercept, b_x, sigma) |> 
+fm |>
+  spread_rvars(b_Intercept, b_Density, sigma) |> 
   pivot_longer(cols = everything()) |> 
   ggplot(aes(y = name, dist = value)) +
-  stat_dist_dotsinterval()
+  stat_pointinterval(.width = c(0.89, 0.97))
+
+library(modelr)
+EW |>
+  data_grid(Density = seq_range(Density, n = 100)) |>
+  add_epred_draws(fm) |> 
+  ggplot(aes(x = Density, y = Proportion_forceps)) +
+  stat_lineribbon(aes(y = .epred), alpha = 0.5) +
+  geom_point(data = EW)
+```
+
+
+## ANOVA-like
+
+- Load data
+- `Survival` is measured in days
+- `Mismatch` to factor: low, medium, high (not not default alphabetical ordering)
+
+```{r}
+HT <- read_csv("../Data/Heart_Transplants.csv", show_col_types = FALSE) |> 
+  mutate(Mismatch = fct_inorder(Mismatch))
+
+ggplot(HT, aes(x = Mismatch, y = Survival)) +
+  geom_point(position = position_jitter(width = 0.1, seed = 4564356)) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", 
+               width = 0.1,
+               linewidth = 1,
+               color = "red")
+
+HT |> 
+  group_by(Mismatch) |> 
+  summarize(mean_Survival = mean(Survival),
+            sd_Survival = sd(Survival))
+
+HT <- HT |> 
+  mutate(logSurvival = log(Survival))
+
+ggplot(HT, aes(x = Mismatch, y = logSurvival)) +
+  geom_point(position = position_jitter(width = 0.1, seed = 4564356)) +
+  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", 
+               width = 0.1,
+               linewidth = 1,
+               color = "red")
+```
+
+
+```{r}
+get_prior(logSurvival ~ Mismatch - 1,
+          data = HT)
+
+PP <- brm(logSurvival ~ Mismatch - 1,
+          data = HT,
+          prior = c(prior(normal(4, 3), class = b)),
+          refresh = 0,
+          sample_prior = "only")
+
+pp_check(PP, type = "stat_grouped", group = "Mismatch",
+         stat = "mean",
+         ndraws = 500,
+         binwidth = 0.5)
+```
+
+```{r}
+fm <- brm(logSurvival ~ Mismatch - 1,
+          data = HT,
+          prior = c(prior(normal(4, 3), class = b)),
+          refresh = 0)
+
+prior_summary(fm)
+
+powerscale_sensitivity(fm)
+
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_MismatchLow", "b_MismatchMedium", "b_MismatchHigh")
+)
+
+summary(fm)
+```
+
+```{r}
+pp_check(fm, type = "stat_grouped", group = "Mismatch",
+         stat = "mean",
+         ndraws = 500)
+```
+
+```{r}
+fm |>
+  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
+  set_names(distinct(HT, Mismatch) |> pull()) |> 
+  median_hdi(.width = 0.89)
+
+fm |>
+  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
+  set_names(distinct(HT, Mismatch) |> pull()) |> 
+  pivot_longer(cols = everything()) |> 
+  mutate(name = fct_inorder(name)) |> 
+  ggplot(aes(y = name, dist = value)) +
+  stat_pointinterval(.width = c(0.89, 0.97))
+
+HT |> 
+  data_grid(Mismatch) |> 
+  add_predicted_draws(fm) |> 
+  ggplot(aes(x = .prediction, y = Mismatch)) +
+  stat_slab()
+
+HT |> 
+  data_grid(Mismatch) |> 
+  add_predicted_draws(fm) |> 
+  ggplot(aes(x = .prediction, y = Mismatch)) +
+  stat_interval(.width = c(0.50, 0.89, 0.97)) +
+  geom_point(aes(x = logSurvival), data = HT) +
+  scale_color_brewer()
+
+
+library(distributional)
+HT |> 
+  data_grid(Mismatch) |> 
+  add_epred_draws(fm, dpar = c("mu", "sigma")) |> 
+  sample_draws(30) |> 
+  ggplot(aes(y = Mismatch)) +
+  stat_slab(aes(xdist = dist_normal(mu = mu, sigma = sigma)), 
+            slab_color = "gray65", alpha = 0.1, fill = NA) +
+  geom_point(aes(x = logSurvival), data = HT, shape = 21, fill = "#9ECAE1", size = 3)
+```
+
+```{r}
+fm |>
+  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
+  set_names(distinct(HT, Mismatch) |> pull()) |> 
+  mutate(Med_v_Low = Medium - Low,
+         High_v_Low = High - Low,
+         .keep = "none") |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(y = name, dist = value)) +
+  stat_pointinterval(.width = c(0.5, 0.89))
+```
+
+
+## 2x2 factorial design
+
+The file `Bird_Plasma.xlsx` contains factorial data on blood plasma calcium concentration (`Calcium`, mg/100 mL) in male and female birds (`Sex`) each of which was treated or not with a hormone (`Treatment`).
+
+Load the data, and convert hormone and sex to factors. The levels of `Treatment` are "Hormone" and "None". Relevel `Treatmeant` so that "None" the base level.
+
+```{r, message = FALSE}
+# FIXME
+BP <- readxl::read_excel("../Data/Bird_Plasma.xlsx") |> 
+  mutate(Treatment = factor(Treatment),
+         Sex = factor(Sex),
+         Treatment = fct_relevel(Treatment, "None"))
+
+BP |> count(Treatment, Sex)
+
+ggplot(BP, aes(x = Sex,
+               y = Calcium,
+               color = Treatment,
+               group = Treatment)) +
+  geom_point(position = position_jitter(width = 0.05, seed = 474577),
+             size = 3) +
+  stat_summary(fun = mean, geom = "point", pch = 5, size = 5) +
+  stat_summary(fun = mean, geom = "line") +
+  scale_color_manual(values = c("brown", "darkgreen"))
+```
+
+Only 5 points per group, so the prior is potentially very powerful.
+
+```{r}
+
+BP <- BP |> 
+  mutate(Sex_Trt = paste(Sex, Treatment, sep = "_"))
+
+get_prior(Calcium ~ Sex_Trt - 1,
+          data = BP)
+
+PP <- brm(Calcium ~ Sex_Trt - 1,
+          data = BP,
+          prior = c(prior(normal(20, 15), class = b),
+                    prior(normal(0, 10), class = sigma)),
+          refresh = 0,
+          sample_prior = "only")
+
+pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
+         stat = "mean",
+         ndraws = 500)
+
+```
+
+
+```{r}
+fm <- brm(Calcium ~ Sex_Trt - 1,
+          data = BP,
+          prior = c(prior(normal(20, 15), class = b),
+                    prior(normal(0, 10), class = sigma)),
+          refresh = 0)
+
+prior_summary(fm)
+
+powerscale_sensitivity(fm)
+
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Sex_TrtFemale_Hormone", "b_Sex_TrtFemale_None"))
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Sex_TrtMale_Hormone", "b_Sex_TrtMale_None"))
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("sigma"))
+
+summary(fm)
+
+BP |> 
+  data_grid(Sex_Trt) |> 
+  add_predicted_draws(fm) |> 
+  ggplot(aes(x = .prediction, y = Sex_Trt)) +
+  stat_slab(alpha = 0.5, fill = "firebrick4")
+
+
+BP |> 
+  data_grid(Sex_Trt) |> 
+  add_predicted_draws(fm) |> 
+  median_hdi(width = 0.89)
+```
+
+Contrasts
+
+```{r}
+post <- as_draws_df(fm) |> 
+  as_tibble() |> 
+  select(starts_with("b_")) |> 
+  mutate(`F: Horm. vs. C.` = b_Sex_TrtMale_Hormone - b_Sex_TrtMale_None,
+         `M: Horm. vs. C.` = b_Sex_TrtFemale_Hormone - b_Sex_TrtFemale_None,
+         .keep = "none")
+
+post |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(value, color = name, fill = name)) +
+  geom_density(alpha = 0.5)
+
+median_hdi(post, .width = 0.89)
+```
+
+
+## Multiple continuous predictors
+
+Tradeoff between fat and lactose in mammal milk.
+
+Example for multiple regression
+
+```{r}
+#| warning: false
+MM <- readxl::read_excel("../Data/Milk.xlsx") |> 
+  select(kcal.per.g, perc.fat, perc.lactose) |> 
+  drop_na() |> 
+  rename(Milk_energy = kcal.per.g,
+         Fat = perc.fat,
+         Lactose = perc.lactose)
+
+p1 <- plot_grid(ggplot(MM, aes(Fat, Milk_energy)) + geom_point(),
+                ggplot(MM, aes(Lactose, Milk_energy)) + geom_point(),
+                ncol = 2)
+p1
+```
+
+```{r}
+PP <- brm(Milk_energy ~ Fat + Lactose,
+          data = MM,
+          prior = prior(normal(0, 0.05), class = b),
+          sample_prior = "only",
+          refresh = 0)
+
+pp_check(PP, ndraws = 100)
+
+pp_check(PP, type = "stat", stat = "median")
+```
+
+```{r}
+fm <- brm(Milk_energy ~ Fat + Lactose,
+          data = MM,
+          prior = prior(normal(0, 0.05), class = b),
+          refresh = 0)
+
+prior_summary(fm)
+
+powerscale_sensitivity(fm)
+
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Intercept", "b_Fat", "b_Lactose"))
+
+pred_values <- crossing(
+  Fat = seq(3.9, 55.5, length.out = 50),
+  Lactose = c(30, 50, 70)
+)
+
+p_pred <- posterior_epred(fm, newdata = pred_values)
+
+pred_values <- pred_values |> 
+  mutate(Q50 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.5),
+         Q5.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.055),
+         Q94.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945),
+         Lactose = factor(Lactose))
+pred_values
+
+p2 <- ggplot() +
+  geom_ribbon(data = pred_values,
+              aes(x = Fat, ymin = Q5.5, ymax = Q94.5,
+                  fill = Lactose), alpha = 0.25) +
+  geom_line(data = pred_values,
+            aes(x = Fat, y = Q50, color = Lactose)) +
+  facet_grid(. ~ Lactose)
+plot_grid(p1, p2, nrow = 2)
 ```
 
