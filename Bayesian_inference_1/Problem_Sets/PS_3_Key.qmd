@@ -461,9 +461,9 @@ PP <- ulam(
   alist(
     Proportion_forceps ~ dnorm(mu, sigma),
     mu <- b0 + b1 * Density,
-    b0 ~ dnorm(0, 0.1 ),
-    b1 ~ dnorm(0, 0.01),
-    sigma ~ dhalfnorm(0, 0.1)
+    b0 ~ dnorm(0, 0.2),
+    b1 ~ dnorm(0, 0.1),
+    sigma ~ dhalfnorm(0, 1)
   ),
   data = EW,
   sample_prior = TRUE
@@ -510,7 +510,7 @@ fm <- ulam(
     mu <- b0 + b1 * Density,
     b0 ~ dnorm(0, 0.1),
     b1 ~ dnorm(0, 0.01),
-    sigma ~ dhalfnorm(0, 0.5)
+    sigma ~ dhalfnorm(0, 1)
   ),
   data = EW,
   chains = 4,
