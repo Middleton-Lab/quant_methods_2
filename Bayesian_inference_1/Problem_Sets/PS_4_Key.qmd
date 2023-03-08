@@ -22,23 +22,51 @@ library(priorsense)
 library(tidybayes)
 library(distributional)
 library(modelr)
+library(bayesplot)
 
 options(brms.backend = "cmdstan")
 theme_set(theme_cowplot(font_size = 10))
 
 # Required files for this problem set:
-# remotes::install_github("n-kall/priorsense")
+#   - Earwigs.csv
+#   - Heart_Transplants.csv
+#   - Bird_Plasma.xlsx
+#   - Milk.xlsx
+
+# Install priorsense from github
+#   remotes::install_github("n-kall/priorsense")
 ```
+
+In this problem set, before we get to the models, we want give some demonstration code about two packages that help with some aspects of Bayesian inference. We'll walk through code so you have templates to use for later analyses in this problem set.
 
 
 ## `priorsense` Package
 
-Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling.
+A recent development in evaluation of the relative information in the prior vs. the information gained from the data in the posterior is the `priorsense` package^[Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling. http://arxiv.org/abs/2107.14054]. If you are interested is a less technical introduction, here is a short [recent video describing the package](https://www.youtube.com/watch?v=TBXD3HjcIps).
 
-`remotes::install_github("n-kall/priorsense")`
+The approach that Kallioinen et al. take is to use importance sampling (as in PSIS-LOO-CV) of the prior or likelihood raised to exponent (the "power" in power-scaling) to detect instances of *prior-data conflict* wherein the prior contains too much information (e.g., is too constrained) or the likelihood (data) has too little information, or some combination of the two.
 
+The approach is simply to give either the prior or the likelihood more (or less) power by raising it to an exponent $\alpha$ that varies around 1 (i.e., no scaling). For example, in testing the prior $Pr(\theta)$ sensitivity:
+
+$$Pr(\theta|y) \sim Pr(y|\theta) Pr(\theta)^\alpha$$
+
+the prior is raised to an exponent $\alpha$ that can vary. The response of the posterior $Pr(\theta|y)$ to changing the strength of the prior tells us how sensitive the model is to the prior. Note here that we are only looking at the numerator of Bayes' Rule, because MCMC methods make dealing with the probability of the data ($Pr(y$) unnecessary.
+
+The prior scaling approach is a complementary to prior predictive simulation that we have been using so far. The general approach would be to develop priors via prior predictive simulation (using the different options in `ulam()` or `brm()` to sample from the prior only) and then check that those priors are adequate using the functions in `priorsense`.
+
+The main function of this package are:
+
+- `powerscale_sequence()` evaluates the prior/likelihood sensitivity across a rnag eod powers. This function can be wrapped in either `powerscale_plot_dens()` or `powerscale_plot_quantities()` to plot changes in the posterior densities or the dependency of the posterior on prior or likelihood scaling, respectively.
+- `powerscale_sensitivity()` is the main function to test the sensitivity of the prior and likelihood via power-scaling.
+
+The package is not (yet) on CRAN, so you have to install it directly from github: `remotes::install_github("n-kall/priorsense")`
+
+We will use the Earwigs data from Problem Set 3 to explore how to use this package. 
+
+Load the data and plot:
 
 ```{r}
+# Change the path to the location of Earwigs.csv on your computer
 EW <- read_csv("../Data/Earwigs.csv", show_col_types = FALSE)
 
 ggplot() +
@@ -46,61 +74,235 @@ ggplot() +
              color = "steelblue", size = 3)
 ```
 
-Models
+Check the variables that can have priors in the `brm()` model:
 
 ```{r}
 get_prior(Proportion_forceps ~ 1 + Density,
-           data = EW)
+          data = EW)
+```
 
+We will skip the prior predictive simulation in this example. To use the `priorsense` functions, you have to fit the model with the data (i.e., not sampling from the prior only). So in practice you would do the prior predictive simulation here, sampling from the prior to get a prospective set of priors.
+
+For now, we will set the priors to be very bad (which we know from doing Problem Set 3), to see what the diagnostics look like:
+
+```{r}
+fm <- brm(Proportion_forceps ~ 1 + Density,
+          data = EW,
+          prior = c(prior(normal(0, 0.0001), class = b),
+                    prior(normal(0, 0.0001), class = Intercept),
+                    prior(normal(0, 0.01), class = sigma)),
+          refresh = 0)
+```
+
+
+### Power-scale sensitivity visual diagnostics
+
+`powerscale_plot_dens()` plots overlapping density plots color coded by the range of `$\alpha$ power-scaling exponents in the tested range. When the lines overlap, it indicates that the density estimate is not sensitive to power-scaling.
+
+Because the scales of the variables are so different, we will plot them separately. Notice the embedded `powerscale_sequence(fm)`. We could pre-compute this and pass to the function just as well (if there were more data would be advantageous for speed).
+
+```{r}
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "b_Density")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "b_Intercept")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "sigma")
+```
+
+You can see how the all of the priors are sensitive to scaling, particularly `sigma`. We also get messages about high Pareto $k$ value, indicating poor fit.
+
+`powerscale_plot_quantities()` visualizes the rate of change in the posterior as $\alpha$ changes. Ideally we would like to see a flat-ish line for the prior, indicating that the prior is not sensitive to scaling. There are many options for the divergence measure, but the default "Cumulative Jensen-Shannon distance" (`cjs_dist`) seems to work fine.
+
+```{r}
+powerscale_plot_quantities(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Density", "b_Intercept", "sigma")
+)
+```
+
+
+## Power-scale sensitivity table
+
+Finally, the function`powerscale_sensitivity()` makes a table of sensitivity values. Values >0.05 indicates sensitivity of the prior or likelihood. The last column provides a diagnosis.
+
+```{r}
+powerscale_sensitivity(fm)
+```
+
+Here we have a "weak likelihood" for the first two rows, because the priors on the means and Intercept are way too strong (Normal(0, 0.0001)). This means that the data are insufficient to move the likelihood away from the prior.
+
+The prior for `sigma` is also poor, resulting in a prior-data conflict, where one goes up and one goes down as $\alpha$ changes
+
+
+### Improved priors
+
+Let's use the priors that we developed for problem set 3 and hopefully see a better pattern.
+
+```{r}
 fm <- brm(Proportion_forceps ~ 1 + Density,
           data = EW,
           prior = c(prior(normal(0, 0.1), class = b),
                     prior(normal(0, 1), class = Intercept),
                     prior(normal(0, 1), class = sigma)),
           refresh = 0)
+```
 
-prior_summary(fm)
+Evaluating the priors:
 
-powerscale_sensitivity(fm)
+```{r}
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "b_Density")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "b_Intercept")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "sigma")
 
 powerscale_plot_quantities(
   powerscale_sequence(fm),
   quantities = c("mean", "sd"),
-  variables = c("b_Density", "b_Intercept")
+  variables = c("b_Density", "b_Intercept", "sigma")
 )
+
+powerscale_sensitivity(fm)
 ```
 
-Working with tidybayes: http://mjskay.github.io/tidybayes/articles/tidy-brms.html
+Notice how in the density plots, densities of the priors are all overlapping (lack of sensitivity) and the posteriors are not overlapping (the data is able to inform the posterior). The quantities plot shows relatively flat lines for the priors and likelihoods that are sensitive to scaling. Finally the table has all values < 0.05 for the prior.
+
+
+## `tidybayes` Package
+
+We want to add one more set of analysis tools to our general Bayesian inference kit: the `tidybayes` package. `tidybayes` has a variety of functions for extracting parts of fit models (from lots of model fitting interfaces), augmenting model fits with various kinds of predicted values, and making some very impressive visualizations.
+
+The documentation has a [page of visualizations from `brms` models]http://mjskay.github.io/tidybayes/articles/tidy-brms.html().
+
+`tidybayes` is particularly useful for working with the posteriors of multilevel models, which is what the demo code that the documentation provides is based on. Our useage here will be a little more pedestrian, but we can still see how useful the package can be.
+
+We will adapt some of the demo code to plot the posterior for the earwigs model we just fit.
+
+When you are trying to figure out what the variable names are in a model, the function `get_variables()` returns them:
 
 ```{r}
 library(tidybayes)
+
+get_variables(fm)
+```
+
+By default, `brm()` returns parameters prepended with `b_` for "b" parameters (what are often called main or fixed effects) and `r_` for random/multilevel effects (though we aren't doing multilevel models in this module, it's useful to know).
+
+`tidy_draws()` is the simplest way to extract a posterior. You can see how it returns a lot of diagnostics as well: acceptance statistic, tree depth, step size, and whether that draw was a divergence or not.
+
+`tidybayes` has a `summary()`-like function `summarise_draws()` (Commonwealth spelling only). We can pipe the output of `tidy_draws()` directly to it.
+
+```{r}
+fm |> tidy_draws()
+
 fm |> tidy_draws() |> summarise_draws()
+```
+
+Many of the `tidybayes` functions require the posterior to be in a slightly different format, that of an `rvar`. An `rvar` is a compact way to store a distribution of values. We can use `spread_rvars()` to extract only a few of the columns. We then pipe that output to `median_hdi()` to get the median 89% HDI of the posterior for each.
+
+```{r}
+fm |>
+  spread_rvars(b_Intercept, b_Density, sigma)
 
 fm |>
   spread_rvars(b_Intercept, b_Density, sigma) |> 
   median_hdi(.width = 0.89)
+```
 
+There are many options in `tidybayes` to plot distributions and intervals. Here is a point + interval plot of the three main parameters.
+
+```{r}
 fm |>
   spread_rvars(b_Intercept, b_Density, sigma) |> 
   pivot_longer(cols = everything()) |> 
   ggplot(aes(y = name, dist = value)) +
   stat_pointinterval(.width = c(0.89, 0.97))
+```
 
+`b_Density` is very small relative to the other parameters, so it's variation looks really small in comparison. We might just plot it separately:
+
+```{r}
+fm |>
+  spread_rvars(b_Density) |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(y = name, dist = value)) +
+  stat_pointinterval(.width = c(0.89, 0.97))
+
+```
+
+From this plot you can see how the posterior is credibly different from 0, even though the parameter estimate is small.
+
+`tidybayes` works well with `data_grid()` from the `modelr` package. Like `crossing()` that we have used before, `data_grid()` generates the pairwise combinations of variables that are passed to it, but without needing to include as many details (it will by default use the range of continuous variables and all the levels of factors). 
+
+If we then pipe that out to `add_epred_draws()` called with the fitted model, we can create a tibble with the values of `Density` across a range paired with the expected value of `Proportion_forceps`.
+
+The second block of code pipes these values to `ggplot()` to make a plot of the observed data along with ribbons representing the 50%, 89%, and 97% HDIs for the expected values. Remember that these values do not include the standard deviation, so they are relatively narrow.
+
+```{r}
 library(modelr)
+
+# Expected parameter estimates
+
+EW |>
+  data_grid(Density = seq_range(Density, n = 100)) |>
+  add_epred_draws(fm)
+
 EW |>
   data_grid(Density = seq_range(Density, n = 100)) |>
   add_epred_draws(fm) |> 
   ggplot(aes(x = Density, y = Proportion_forceps)) +
-  stat_lineribbon(aes(y = .epred), alpha = 0.5) +
+  stat_lineribbon(aes(y = .epred),
+                  .width = c(0.5, 0.89, 0.97),
+                  alpha = 0.5) +
   geom_point(data = EW)
 ```
+
+We can do the same but generate a posterior predictive distribution plot by calling `add_predicted_draws()` instead (note that the variable is `.prediction` rather than `.epred`).
+
+```{r}
+# Posterior predictive distribution
+
+EW |>
+  data_grid(Density = seq_range(Density, n = 100)) |>
+  add_predicted_draws(fm) |> 
+  ggplot(aes(x = Density, y = Proportion_forceps)) +
+  stat_lineribbon(aes(y = .prediction),
+                  .width = c(0.5, 0.89, 0.97),
+                  alpha = 0.5) +
+  geom_point(data = EW)
+```
+
+Almost all of the points fall within the 97% interval, just like we would predict. Observe that the lines and edges are pretty rough. We could sample more iterations to smooth those out.
+
+In the analyses below, try to add the packages above to your now pretty well-developed Bayesian modeling routines. Also see if you can work with the `mcmc_` functions from `bayesplot` and `pp_check()` for plotting prior/posterior predictive checks.
+
+These are three models that you saw in Quantitative Methods 1. We will much of the leave the details of the analysis to you, providing some guidance for three challenging kinds of models to fit and interpret.
 
 
 ## ANOVA-like
 
-- Load data
-- `Survival` is measured in days
-- `Mismatch` to factor: low, medium, high (not not default alphabetical ordering)
+The data in `Heart_Transplants.csv` has data on the `Survival` time (in days) for heart transplant patients with varying degrees of `Mismatch` between the donor and recipient. You will need to convert `Mismatch` to a factor and get the factor in the correct order: low, medium, high. Low indicates a relatively good match and high a poor match. The data have a pronounced right skew.
+
+Load the data, visualize, and transform how you see fit.
 
 ```{r}
 HT <- read_csv("../Data/Heart_Transplants.csv", show_col_types = FALSE) |> 
@@ -132,7 +334,19 @@ ggplot(HT, aes(x = Mismatch, y = logSurvival)) +
 ```
 
 
+### Model specification
+
+\begin{align}
+  \mathrm{logSurvival} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Mismatch}] \\
+\end{align}
+
+
+### Prior specification and prior predictive check
+
 ```{r}
+# FIXME
+
 get_prior(logSurvival ~ Mismatch - 1,
           data = HT)
 
@@ -148,15 +362,42 @@ pp_check(PP, type = "stat_grouped", group = "Mismatch",
          binwidth = 0.5)
 ```
 
+
+### Final model specification
+
+\begin{align}
+  \mathrm{logSurvival} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Mismatch}] \\
+  b[\mathrm{Mismatch}] & \sim Normal(0, 3) \\
+  \sigma & \sim HalfNormal(0, 2)
+\end{align}
+
+
+### Sampling
+
 ```{r}
+# FIXME
+
 fm <- brm(logSurvival ~ Mismatch - 1,
           data = HT,
-          prior = c(prior(normal(4, 3), class = b)),
-          refresh = 0)
+          prior = c(prior(normal(4, 3), class = b),
+                    prior(normal(0, 3), class = sigma)),
+          refresh = 0,
+          iter = 5e3)
 
 prior_summary(fm)
+```
 
-powerscale_sensitivity(fm)
+
+### Diagnostics
+
+```{r}
+# FIXME
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_MismatchLow", "b_MismatchMedium", "b_MismatchHigh"))
 
 powerscale_plot_quantities(
   powerscale_sequence(fm),
@@ -164,21 +405,47 @@ powerscale_plot_quantities(
   variables = c("b_MismatchLow", "b_MismatchMedium", "b_MismatchHigh")
 )
 
+powerscale_sensitivity(fm)
+```
+
+```{r}
+# FIXME
+
 summary(fm)
 ```
 
 ```{r}
-pp_check(fm, type = "stat_grouped", group = "Mismatch",
-         stat = "mean",
-         ndraws = 500)
+# FIXME
+
+mcmc_trace(fm)
+mcmc_rank_overlay(fm)
 ```
 
+
+### Posterior predictive simulation
+
 ```{r}
+# FIXME
+
+pp_check(fm, type = "stat_grouped", group = "Mismatch",
+         stat = "mean",
+         ndraws = 500,
+         binwidth = 0.1)
+```
+
+
+### Summarizing the posterior
+
+```{r}
+# FIXME
+
+# Median HDI
 fm |>
   spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
   set_names(distinct(HT, Mismatch) |> pull()) |> 
   median_hdi(.width = 0.89)
 
+# Lots of different options for visualizing
 fm |>
   spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
   set_names(distinct(HT, Mismatch) |> pull()) |> 
@@ -201,7 +468,7 @@ HT |>
   geom_point(aes(x = logSurvival), data = HT) +
   scale_color_brewer()
 
-
+# Kruschke plot
 library(distributional)
 HT |> 
   data_grid(Mismatch) |> 
@@ -210,8 +477,11 @@ HT |>
   ggplot(aes(y = Mismatch)) +
   stat_slab(aes(xdist = dist_normal(mu = mu, sigma = sigma)), 
             slab_color = "gray65", alpha = 0.1, fill = NA) +
-  geom_point(aes(x = logSurvival), data = HT, shape = 21, fill = "#9ECAE1", size = 3)
+  geom_point(aes(x = logSurvival), data = HT, shape = 21,
+             fill = "#9ECAE1", size = 3)
 ```
+
+Test the hypothesis that Medium and High mismatch differ from Low using contrasts.
 
 ```{r}
 fm |>
@@ -228,9 +498,11 @@ fm |>
 
 ## 2x2 factorial design
 
-The file `Bird_Plasma.xlsx` contains factorial data on blood plasma calcium concentration (`Calcium`, mg/100 mL) in male and female birds (`Sex`) each of which was treated or not with a hormone (`Treatment`).
+The file `Bird_Plasma.xlsx` contains factorial data on blood plasma calcium concentration (`Calcium`, in mg Ca per 100 mL plasma) in male and female birds (`Sex`) each of which was treated or not with a hormone (`Treatment`).
 
-Load the data, and convert hormone and sex to factors. The levels of `Treatment` are "Hormone" and "None". Relevel `Treatmeant` so that "None" the base level.
+- Load the data, and convert hormone and sex to factors.
+- The levels of `Treatment` are "Hormone" and "None". Relevel `Treatmeant` so that "None" is the base level.
+- Plot a reaction norm of Calcium vs. Sex, with color encoding Treatment to get a sense for the pattern.
 
 ```{r, message = FALSE}
 # FIXME
@@ -249,15 +521,40 @@ ggplot(BP, aes(x = Sex,
              size = 3) +
   stat_summary(fun = mean, geom = "point", pch = 5, size = 5) +
   stat_summary(fun = mean, geom = "line") +
-  scale_color_manual(values = c("brown", "darkgreen"))
+  scale_color_manual(values = c("gray50", "darkgreen"))
 ```
 
-Only 5 points per group, so the prior is potentially very powerful.
+### Model specification
+
+We have a factorial model, so we would like to model the two main effects: Sex and Treatment as well as the Sex by Treatment interaction term. Interactions between categorical variables are complicated to code in Bayesian models. Although you can just input the model like you would with `lm()`: `Sex * Treatment`, specifying the priors might be tricky and getting the posteriors sorted out as well.
+
+One approach that works well in some (most? all?) situations is to create a new composite variable that combines the two other variables. Thus the four factorial groups become a single factor with four levels. Because we are testing hypotheses using contrasts (subtracting posterior distributions), we don't have to worry about the usual main effects and interaction *P*-value based hypothesis tests.
+
+You can do this with a simple mutate, joining the two variables:
 
 ```{r}
+#| eval: true
+
+# FIXME
 
 BP <- BP |> 
   mutate(Sex_Trt = paste(Sex, Treatment, sep = "_"))
+```
+
+One additional advantage of this approach is that you only need to specify a single prior for all the groups.
+
+\begin{align}
+  \mathrm{Calcium} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Sex\_Trt}] \\
+\end{align}
+
+
+### Prior specification and prior predictive check
+
+There are only 5 points per group, so the prior is potentially very powerful relative to the likelihood.
+
+```{r}
+# FIXME
 
 get_prior(Calcium ~ Sex_Trt - 1,
           data = BP)
@@ -269,23 +566,65 @@ PP <- brm(Calcium ~ Sex_Trt - 1,
           refresh = 0,
           sample_prior = "only")
 
+# Check the minimum predicted vs. observed
+pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
+         stat = "min",
+         ndraws = 500,
+         binwidth = 2)
+
+# Check the mean predicted vs. observed
 pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
          stat = "mean",
-         ndraws = 500)
+         ndraws = 500,
+         binwidth = 2)
 
+# Check the maximum predicted vs. observed
+pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
+         stat = "max",
+         ndraws = 500,
+         binwidth = 2)
 ```
 
+
+### Final model specification
+
+\begin{align}
+  \mathrm{Calcium} & \sim Normal(\mu, \sigma) \\
+  \mu & = b[\mathrm{Sex\_Trt}] \\
+  b[\mathrm{Sex\_Trt}] & \sim Normal(20, 15) \\
+  \sigma & \sim HalfNormal(0, 10)
+\end{align}
+
+
+### Sampling
 
 ```{r}
 fm <- brm(Calcium ~ Sex_Trt - 1,
           data = BP,
           prior = c(prior(normal(20, 15), class = b),
                     prior(normal(0, 10), class = sigma)),
-          refresh = 0)
+          refresh = 0,
+          iter = 5e3)
 
 prior_summary(fm)
+```
 
-powerscale_sensitivity(fm)
+
+### Diagnostics
+
+```{r}
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Sex_TrtFemale_Hormone", "b_Sex_TrtFemale_None"))
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Sex_TrtMale_Hormone", "b_Sex_TrtMale_None"))
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("sigma"))
 
 powerscale_plot_quantities(
   powerscale_sequence(fm),
@@ -300,6 +639,10 @@ powerscale_plot_quantities(
   quantities = c("mean", "sd"),
   variables = c("sigma"))
 
+powerscale_sensitivity(fm)
+```
+
+```{r}
 summary(fm)
 
 BP |> 
@@ -315,20 +658,152 @@ BP |>
   median_hdi(width = 0.89)
 ```
 
-Contrasts
+
+### Posterior predictive simulation
 
 ```{r}
-post <- as_draws_df(fm) |> 
-  as_tibble() |> 
-  select(starts_with("b_")) |> 
+# FIXME
+
+# Check the minimum predicted vs. observed
+pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
+         stat = "min",
+         ndraws = 500,
+         binwidth = 1)
+
+# Check the mean predicted vs. observed
+pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
+         stat = "mean",
+         ndraws = 500,
+         binwidth = 1)
+
+# Check the maximum predicted vs. observed
+pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
+         stat = "max",
+         ndraws = 500,
+         binwidth = 1)
+```
+
+
+### Summarizing the posterior
+
+Compare the means of Hormone vs. Control separately by sex.
+
+```{r}
+post <- fm |> 
+  spread_rvars(b_Sex_TrtFemale_Hormone, b_Sex_TrtFemale_None,
+               b_Sex_TrtMale_Hormone, b_Sex_TrtMale_None) |> 
   mutate(`F: Horm. vs. C.` = b_Sex_TrtMale_Hormone - b_Sex_TrtMale_None,
          `M: Horm. vs. C.` = b_Sex_TrtFemale_Hormone - b_Sex_TrtFemale_None,
          .keep = "none")
 
 post |> 
   pivot_longer(cols = everything()) |> 
-  ggplot(aes(value, color = name, fill = name)) +
-  geom_density(alpha = 0.5)
+  ggplot(aes(xdist = value, fill = name)) +
+  stat_slab(alpha = 0.5) +
+  scale_fill_manual(values = c("darkslateblue", "coral"), name = "Contrast") +
+  labs(x = "Difference (Hormone - Control)", y = "Density")
+
+median_hdi(post, .width = 0.89)
+```
+
+```{r}
+# FIXME
+
+# Here's how you would do this analysis using the regular interactions
+# coding with *.
+
+# This generates the prior prediction and converts to the group posteriors
+# The priors are really weak, because there is so little data to learn
+# from.
+PP <- brm(Calcium ~ Sex * Treatment,
+          data = BP,
+          prior = c(prior(normal(15, 20), class = Intercept),
+                    prior(normal(0, 10), coef = SexMale),
+                    prior(normal(0, 20), coef = TreatmentHormone),
+                    prior(normal(0, 10), coef = SexMale:TreatmentHormone),
+                    prior(normal(0, 15), class = sigma)),
+          refresh = 0,
+          sample_prior = "only") |> 
+  spread_draws(b_Intercept, b_SexMale,
+               b_TreatmentHormone, `b_SexMale:TreatmentHormone`) |> 
+  mutate(Female_None = b_Intercept,
+         Female_Hormone = b_Intercept + b_TreatmentHormone,
+         Male_None = b_Intercept + b_SexMale,
+         Male_Hormone = b_Intercept + b_SexMale + `b_SexMale:TreatmentHormone`,
+         .keep = "none")
+
+PP_long <- pivot_longer(PP, cols = everything(),
+                        names_to = "Sex_Trt",
+                        values_to = "Calcium") |> 
+  separate(col = Sex_Trt, into = c("Sex", "Treatment"), sep = "_")
+
+# See how the Female-None group has the lowest variance, and the Male-Hormone
+# group has the highest variance 
+PP_long |> 
+  group_by(Sex, Treatment) |> 
+  summarize(mean_Calcium = mean(Calcium),
+            var_Calcium = var(Calcium))
+
+# A kind of prior predictive distribution plot
+ggplot() +
+  geom_density(data = PP_long, aes(Calcium)) +
+  geom_point(data = BP, aes(x = Calcium, y = 0),
+             shape = 21, fill = "#9ECAE1", size = 3) +
+  facet_grid(Sex ~ Treatment)
+
+# Fit the model
+fm <- brm(Calcium ~ Sex * Treatment,
+          data = BP,
+          prior = c(prior(normal(15, 20), class = Intercept),
+                    prior(normal(0, 10), coef = SexMale),
+                    prior(normal(0, 20), coef = TreatmentHormone),
+                    prior(normal(0, 10), coef = SexMale:TreatmentHormone),
+                    prior(normal(0, 15), class = sigma)),
+          refresh = 0,
+          iter = 5e3)
+
+prior_summary(fm)
+
+# These all look fine.
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Intercept", "b_SexMale"))
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_TreatmentHormone", "b_SexMale:TreatmentHormone"))
+
+powerscale_sensitivity(fm)
+
+summary(fm)
+
+# Extract posterior and 
+post <- fm |> 
+  spread_draws(b_Intercept, b_SexMale,
+               b_TreatmentHormone, `b_SexMale:TreatmentHormone`) |> 
+  mutate(Female_None = b_Intercept,
+         Female_Hormone = b_Intercept + b_TreatmentHormone,
+         Male_None = b_Intercept + b_SexMale,
+         Male_Hormone = b_Intercept + b_SexMale + `b_SexMale:TreatmentHormone`,
+         .keep = "none")
+
+# The Male-Hormone group retains the wider variance in the posterior, even
+# though it does not in the observed data.
+pivot_longer(post, cols = everything(),
+             names_to = "Sex_Trt",
+             values_to = "Calcium") |> 
+  separate(col = Sex_Trt, into = c("Sex", "Treatment"), sep = "_") |> 
+  group_by(Sex, Treatment) |> 
+  summarize(mean_Calcium = mean(Calcium),
+            var_Calcium = var(Calcium))
+
+# Roughly equal variances in the observed data
+BP |> 
+  group_by(Sex, Treatment) |> 
+  summarize(mean_Calcium = mean(Calcium),
+            var_Calcium = var(Calcium))
 
 median_hdi(post, .width = 0.89)
 ```
@@ -336,9 +811,13 @@ median_hdi(post, .width = 0.89)
 
 ## Multiple continuous predictors
 
-Tradeoff between fat and lactose in mammal milk.
+Working with multiple continuous predictors also poses some unique challenges (not to mention continuous predictors with interactions). Visualization in particular is not straightforward, because, unless you want a 3D plot, you can't plot 3 continuous variables (1 outcome + 2 predictors) simultaneously. Options include making separate plots, coloring by one predictor by the other, or choosing specific values at which to visualize the data. And usually doing these reciprocally for the two predictors.
 
-Example for multiple regression
+To work through this example, we will use the (apparent) trade-off between fat content and lactose content in mammal milk. We used this example in *Quantitative Methods 1* to show how multiple regression is actually working (lecture 8-3). 
+
+Load the data in `Milk.xlsx`, select the columns `kcal.per.g`, `perc.fat`, `perc.lactose`, rename them to `Milk_energy`, `Fat`, and `Lactose`. We will predict the first by the additive effects of the latter two.
+
+There are some missing values in the data, so drop any rows with NA. These are comparative data for different species of primates, but we will ignore those relationships for this analysis.
 
 ```{r}
 #| warning: false
@@ -348,42 +827,129 @@ MM <- readxl::read_excel("../Data/Milk.xlsx") |>
   rename(Milk_energy = kcal.per.g,
          Fat = perc.fat,
          Lactose = perc.lactose)
+```
 
+Make two plots, one where energy is predicted by fat and the other by lactose.
+
+```{r}
 p1 <- plot_grid(ggplot(MM, aes(Fat, Milk_energy)) + geom_point(),
                 ggplot(MM, aes(Lactose, Milk_energy)) + geom_point(),
                 ncol = 2)
 p1
 ```
 
+You will see that they vary inversely. As fat goes up, lactose goes down. Because there is a finite percentage (100%) of what milk can be made of. As one goes up the other goes down. The third component, protein (mostly casein), makes up the last component. We are ignoring protein.
+
+If you check the correlation between fat and lactose, you will see it's large ($r \approx$ `r round(cor(MM$Fat, MM$Lactose), 2)`). In a frequentist regression, you might be worried about multicollinearity in this case.
+
+```{r}
+# FIXME
+
+cor(MM$Fat, MM$Lactose)
+```
+
+### Model specification
+
+\begin{align}
+  \mathrm{Milk\_energy} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \mathrm{Fat} + b2 \mathrm{Lactose} \\
+\end{align}
+
+
+### Prior specification and prior predictive check
+
 ```{r}
 PP <- brm(Milk_energy ~ Fat + Lactose,
           data = MM,
-          prior = prior(normal(0, 0.05), class = b),
+          prior = c(prior(normal(0, 0.05), class = b),
+                    prior(normal(0, 5), class = Intercept),
+                    prior(normal(0, 5), class = sigma)),
           sample_prior = "only",
           refresh = 0)
 
 pp_check(PP, ndraws = 100)
 
-pp_check(PP, type = "stat", stat = "median")
+pp_check(PP, type = "stat", stat = "median", binwidth = 1)
 ```
 
+
+### Final model specification
+
+\begin{align}
+  \mathrm{Milk\_energy} & \sim Normal(\mu, \sigma) \\
+  \mu & = b0 + b1 \mathrm{Fat} + b2 \mathrm{Lactose} \\
+  b0 & \sim Normal(0, 5) \\
+  b1 & \sim Normal(0, 0.05) \\
+  b2 & \sim Normal(0, 0.05) \\
+  sigma & \sim HalfNormal(0, 5)
+\end{align}
+
+
+### Sampling
+
 ```{r}
+# FIXME
+
 fm <- brm(Milk_energy ~ Fat + Lactose,
           data = MM,
-          prior = prior(normal(0, 0.05), class = b),
-          refresh = 0)
+          prior = c(prior(normal(0, 0.05), class = b),
+                    prior(normal(0, 5), class = Intercept),
+                    prior(normal(0, 5), class = sigma)),
+          refresh = 0,
+          iter = 5e3)
 
 prior_summary(fm)
+```
 
-powerscale_sensitivity(fm)
+
+### Diagnostics
+
+```{r}
+# FIXME
+
+mcmc_combo(fm, regex_pars = "^b")
+mcmc_rank_overlay(fm, regex_pars = "^b")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = "b_Intercept")
+
+powerscale_plot_dens(
+  powerscale_sequence(fm),
+  quantities = c("mean", "sd"),
+  variables = c("b_Fat", "b_Lactose"))
 
 powerscale_plot_quantities(
   powerscale_sequence(fm),
   quantities = c("mean", "sd"),
   variables = c("b_Intercept", "b_Fat", "b_Lactose"))
 
+powerscale_sensitivity(fm)
+```
+
+
+### Posterior predictive simulation
+
+Use `pp_check()` to make a density plot of the observed data superimposed on draws from the posterior.
+
+```{r}
+# FIXME
+
+pp_check(fm, ndraws = 100)
+```
+
+To visualize the effect of the two continuous predictors, we'll have to get creative. Here are the steps:
+
+- Make a grid of observations for prediction. Make a sequence of 200 values between 3 and 56 for `Fat`. Specify only three values for `Lactose`: 30, 50, and 70. Each value of `Fat` will be associated with three levels of `Lactose`.
+- Generate the posterior predictive distributions use `posterior_epred()` and the new data you just created.
+- Calculate the median and 89% HDI intervals using `mutate()` like we did in the lecture slides.
+
+```{r}
+# FIXME
+
 pred_values <- crossing(
-  Fat = seq(3.9, 55.5, length.out = 50),
+  Fat = seq(3, 56, length.out = 200),
   Lactose = c(30, 50, 70)
 )
 
@@ -395,6 +961,18 @@ pred_values <- pred_values |>
          Q94.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945),
          Lactose = factor(Lactose))
 pred_values
+```
+
+You should have a `tibble` of 600 x 5 columns, with columns for `Fat`, `lactose`, `Q50`, `Q5.5`, and `Q94.5`.
+
+Make a ribbon plot of the 89% interval, add a line for the median, and facet by `Lactose` in 3 columns. You should be able to see what the model predicts for milk energy as a function of fat at the three levels of lactose.
+
+It will take some staring at this plot to make sense of it. Pay particular attention to the places where the model is pretty sure (narrow bands) or unsure (wide bands).
+
+If you make a composite plot with the pair of scatterplots from the first chunk in this example in onw row and this new plot in row 2, it might help to make sense of the output.
+
+```{r}
+# FIXME
 
 p2 <- ggplot() +
   geom_ribbon(data = pred_values,
@@ -402,7 +980,21 @@ p2 <- ggplot() +
                   fill = Lactose), alpha = 0.25) +
   geom_line(data = pred_values,
             aes(x = Fat, y = Q50, color = Lactose)) +
-  facet_grid(. ~ Lactose)
+  facet_grid(. ~ Lactose) +
+  scale_color_viridis_d(option = "D") +
+  scale_fill_viridis_d(option = "D") +
+  labs(x = "Fat Percentage", y = "Milk Energy")
+
 plot_grid(p1, p2, nrow = 2)
+```
+
+### Summarizing the posterior
+
+Summarize the posterior however you think is appropriate.
+
+```{r}
+# FIXME
+
+summary(fm) |> print(digits = 4)
 ```
 
