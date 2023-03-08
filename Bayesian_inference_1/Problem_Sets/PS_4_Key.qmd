@@ -154,7 +154,8 @@ fm <- brm(Proportion_forceps ~ 1 + Density,
           prior = c(prior(normal(0, 0.1), class = b),
                     prior(normal(0, 1), class = Intercept),
                     prior(normal(0, 1), class = sigma)),
-          refresh = 0)
+          refresh = 0,
+          iter = 5e3)
 ```
 
 Evaluating the priors:
@@ -263,11 +264,11 @@ library(modelr)
 # Expected parameter estimates
 
 EW |>
-  data_grid(Density = seq_range(Density, n = 100)) |>
+  data_grid(Density = seq_range(Density, n = 200)) |>
   add_epred_draws(fm)
 
 EW |>
-  data_grid(Density = seq_range(Density, n = 100)) |>
+  data_grid(Density = seq_range(Density, n = 200)) |>
   add_epred_draws(fm) |> 
   ggplot(aes(x = Density, y = Proportion_forceps)) +
   stat_lineribbon(aes(y = .epred),
@@ -282,7 +283,7 @@ We can do the same but generate a posterior predictive distribution plot by call
 # Posterior predictive distribution
 
 EW |>
-  data_grid(Density = seq_range(Density, n = 100)) |>
+  data_grid(Density = seq_range(Density, n = 200)) |>
   add_predicted_draws(fm) |> 
   ggplot(aes(x = Density, y = Proportion_forceps)) +
   stat_lineribbon(aes(y = .prediction),
@@ -295,7 +296,7 @@ Almost all of the points fall within the 97% interval, just like we would predic
 
 In the analyses below, try to add the packages above to your now pretty well-developed Bayesian modeling routines. Also see if you can work with the `mcmc_` functions from `bayesplot` and `pp_check()` for plotting prior/posterior predictive checks.
 
-These are three models that you saw in Quantitative Methods 1. We will much of the leave the details of the analysis to you, providing some guidance for three challenging kinds of models to fit and interpret.
+These are three models that you saw in Quantitative Methods 1. We will leave much of the details of the analysis to you, providing some guidance for three challenging kinds of models to fit and interpret.
 
 
 ## ANOVA-like
