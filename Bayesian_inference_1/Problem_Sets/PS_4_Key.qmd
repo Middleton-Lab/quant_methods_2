@@ -1,5 +1,4 @@
 ---
-title: "Problem Set 4"
 author:
   - Your Name Here
 format: 
@@ -42,7 +41,7 @@ In this problem set, before we get to the models, we want give some demonstratio
 
 ## `priorsense` Package
 
-A recent development in evaluation of the relative information in the prior vs. the information gained from the data in the posterior is the `priorsense` package^[Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling. http://arxiv.org/abs/2107.14054]. If you are interested is a less technical introduction, here is a short [recent video describing the package](https://www.youtube.com/watch?v=TBXD3HjcIps).
+Usually, those new to Bayesian analysis have many questions about how to set a prior and how to evaluate whether the chosen prior is appropriate. We will show you a new package that helps to assess this second question - is my prior appropriate? This package is the `priorsense` package^[Kallioinen, N., T. Paananen, P.-C. Bürkner, and A. Vehtari. 2021. Detecting and diagnosing prior and likelihood sensitivity with power-scaling. http://arxiv.org/abs/2107.14054]. If you are interested is a less technical introduction, here is a short [recent video describing the package](https://www.youtube.com/watch?v=TBXD3HjcIps).
 
 The approach that Kallioinen et al. take is to use importance sampling (as in PSIS-LOO-CV) of the prior or likelihood raised to exponent (the "power" in power-scaling) to detect instances of *prior-data conflict* wherein the prior contains too much information (e.g., is too constrained) or the likelihood (data) has too little information, or some combination of the two.
 
@@ -56,7 +55,7 @@ The prior scaling approach is a complementary to prior predictive simulation tha
 
 The main function of this package are:
 
-- `powerscale_sequence()` evaluates the prior/likelihood sensitivity across a rnag eod powers. This function can be wrapped in either `powerscale_plot_dens()` or `powerscale_plot_quantities()` to plot changes in the posterior densities or the dependency of the posterior on prior or likelihood scaling, respectively.
+- `powerscale_sequence()` evaluates the prior/likelihood sensitivity across a range of powers. This function can be wrapped in either `powerscale_plot_dens()` or `powerscale_plot_quantities()` to plot changes in the posterior densities or the dependency of the posterior on prior or likelihood scaling, respectively.
 - `powerscale_sensitivity()` is the main function to test the sensitivity of the prior and likelihood via power-scaling.
 
 The package is not (yet) on CRAN, so you have to install it directly from github: `remotes::install_github("n-kall/priorsense")`
@@ -97,7 +96,8 @@ fm <- brm(Proportion_forceps ~ 1 + Density,
 
 ### Power-scale sensitivity visual diagnostics
 
-`powerscale_plot_dens()` plots overlapping density plots color coded by the range of `$\alpha$ power-scaling exponents in the tested range. When the lines overlap, it indicates that the density estimate is not sensitive to power-scaling.
+`powerscale_plot_dens()` plots overlapping density plots color coded by the range of `$\alpha$ power-scaling exponents in the tested range. When the lines overlap, it indicates that the density estimate is not sensitive to power-scaling. 
+###KMM - need to explain more
 
 Because the scales of the variables are so different, we will plot them separately. Notice the embedded `powerscale_sequence(fm)`. We could pre-compute this and pass to the function just as well (if there were more data would be advantageous for speed).
 
