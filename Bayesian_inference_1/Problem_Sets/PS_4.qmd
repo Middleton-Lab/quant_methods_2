@@ -305,34 +305,7 @@ The data in `Heart_Transplants.csv` has data on the `Survival` time (in days) fo
 Load the data, visualize, and transform how you see fit.
 
 ```{r}
-# FIXME
 
-HT <- read_csv("../Data/Heart_Transplants.csv", show_col_types = FALSE) |> 
-  mutate(Mismatch = fct_inorder(Mismatch))
-
-ggplot(HT, aes(x = Mismatch, y = Survival)) +
-  geom_point(position = position_jitter(width = 0.1, seed = 4564356)) +
-  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
-  stat_summary(fun.data = mean_se, geom = "errorbar", 
-               width = 0.1,
-               linewidth = 1,
-               color = "red")
-
-HT |> 
-  group_by(Mismatch) |> 
-  summarize(mean_Survival = mean(Survival),
-            sd_Survival = sd(Survival))
-
-HT <- HT |> 
-  mutate(logSurvival = log(Survival))
-
-ggplot(HT, aes(x = Mismatch, y = logSurvival)) +
-  geom_point(position = position_jitter(width = 0.1, seed = 4564356)) +
-  stat_summary(fun = mean, geom = "point", size = 3, color = "red") +
-  stat_summary(fun.data = mean_se, geom = "errorbar", 
-               width = 0.1,
-               linewidth = 1,
-               color = "red")
 ```
 
 
@@ -347,21 +320,7 @@ ggplot(HT, aes(x = Mismatch, y = logSurvival)) +
 ### Prior specification and prior predictive check
 
 ```{r}
-# FIXME
 
-get_prior(logSurvival ~ Mismatch - 1,
-          data = HT)
-
-PP <- brm(logSurvival ~ Mismatch - 1,
-          data = HT,
-          prior = c(prior(normal(4, 3), class = b)),
-          refresh = 0,
-          sample_prior = "only")
-
-pp_check(PP, type = "stat_grouped", group = "Mismatch",
-         stat = "mean",
-         ndraws = 500,
-         binwidth = 0.5)
 ```
 
 
@@ -370,131 +329,48 @@ pp_check(PP, type = "stat_grouped", group = "Mismatch",
 \begin{align}
   \mathrm{logSurvival} & \sim Normal(\mu, \sigma) \\
   \mu & = b[\mathrm{Mismatch}] \\
-  b[\mathrm{Mismatch}] & \sim Normal(0, 3) \\
-  \sigma & \sim HalfNormal(0, 2)
 \end{align}
 
 
 ### Sampling
 
 ```{r}
-# FIXME
 
-fm <- brm(logSurvival ~ Mismatch - 1,
-          data = HT,
-          prior = c(prior(normal(4, 3), class = b),
-                    prior(normal(0, 3), class = sigma)),
-          refresh = 0,
-          iter = 5e3)
-
-prior_summary(fm)
 ```
 
 
 ### Diagnostics
 
 ```{r}
-# FIXME
 
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_MismatchLow", "b_MismatchMedium", "b_MismatchHigh"))
-
-powerscale_plot_quantities(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_MismatchLow", "b_MismatchMedium", "b_MismatchHigh")
-)
-
-powerscale_sensitivity(fm)
 ```
 
 ```{r}
-# FIXME
 
-summary(fm)
 ```
 
 ```{r}
-# FIXME
 
-mcmc_trace(fm)
-mcmc_rank_overlay(fm)
 ```
 
 
 ### Posterior predictive simulation
 
 ```{r}
-# FIXME
 
-pp_check(fm, type = "stat_grouped", group = "Mismatch",
-         stat = "mean",
-         ndraws = 500,
-         binwidth = 0.1)
 ```
 
 
 ### Summarizing the posterior
 
 ```{r}
-# FIXME
 
-# Median HDI
-fm |>
-  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
-  set_names(distinct(HT, Mismatch) |> pull()) |> 
-  median_hdi(.width = 0.89)
-
-# Lots of different options for visualizing
-fm |>
-  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
-  set_names(distinct(HT, Mismatch) |> pull()) |> 
-  pivot_longer(cols = everything()) |> 
-  mutate(name = fct_inorder(name)) |> 
-  ggplot(aes(y = name, dist = value)) +
-  stat_pointinterval(.width = c(0.89, 0.97))
-
-HT |> 
-  data_grid(Mismatch) |> 
-  add_predicted_draws(fm) |> 
-  ggplot(aes(x = .prediction, y = Mismatch)) +
-  stat_slab()
-
-HT |> 
-  data_grid(Mismatch) |> 
-  add_predicted_draws(fm) |> 
-  ggplot(aes(x = .prediction, y = Mismatch)) +
-  stat_interval(.width = c(0.50, 0.89, 0.97)) +
-  geom_point(aes(x = logSurvival), data = HT) +
-  scale_color_brewer()
-
-# Kruschke plot
-library(distributional)
-HT |> 
-  data_grid(Mismatch) |> 
-  add_epred_draws(fm, dpar = c("mu", "sigma")) |> 
-  sample_draws(30) |> 
-  ggplot(aes(y = Mismatch)) +
-  stat_slab(aes(xdist = dist_normal(mu = mu, sigma = sigma)), 
-            slab_color = "gray65", alpha = 0.1, fill = NA) +
-  geom_point(aes(x = logSurvival), data = HT, shape = 21,
-             fill = "#9ECAE1", size = 3)
 ```
 
 Test the hypothesis that Medium and High mismatch differ from Low using contrasts.
 
 ```{r}
-fm |>
-  spread_rvars(b_MismatchLow, b_MismatchMedium, b_MismatchHigh) |> 
-  set_names(distinct(HT, Mismatch) |> pull()) |> 
-  mutate(Med_v_Low = Medium - Low,
-         High_v_Low = High - Low,
-         .keep = "none") |> 
-  pivot_longer(cols = everything()) |> 
-  ggplot(aes(y = name, dist = value)) +
-  stat_pointinterval(.width = c(0.5, 0.89))
+
 ```
 
 
@@ -507,23 +383,7 @@ The file `Bird_Plasma.xlsx` contains factorial data on blood plasma calcium conc
 - Plot a reaction norm of Calcium vs. Sex, with color encoding Treatment to get a sense for the pattern.
 
 ```{r, message = FALSE}
-# FIXME
-BP <- readxl::read_excel("../Data/Bird_Plasma.xlsx") |> 
-  mutate(Treatment = factor(Treatment),
-         Sex = factor(Sex),
-         Treatment = fct_relevel(Treatment, "None"))
 
-BP |> count(Treatment, Sex)
-
-ggplot(BP, aes(x = Sex,
-               y = Calcium,
-               color = Treatment,
-               group = Treatment)) +
-  geom_point(position = position_jitter(width = 0.05, seed = 474577),
-             size = 3) +
-  stat_summary(fun = mean, geom = "point", pch = 5, size = 5) +
-  stat_summary(fun = mean, geom = "line") +
-  scale_color_manual(values = c("gray50", "darkgreen"))
 ```
 
 
@@ -536,7 +396,7 @@ One approach that works well in some (most? all?) situations is to create a new 
 You can do this with a simple mutate, joining the two variables:
 
 ```{r}
-#| eval: true
+#| eval: false
 
 # FIXME
 
@@ -557,35 +417,7 @@ One additional advantage of this approach is that you only need to specify a sin
 There are only 5 points per group, so the prior is potentially very powerful relative to the likelihood.
 
 ```{r}
-# FIXME
 
-get_prior(Calcium ~ Sex_Trt - 1,
-          data = BP)
-
-PP <- brm(Calcium ~ Sex_Trt - 1,
-          data = BP,
-          prior = c(prior(normal(20, 15), class = b),
-                    prior(normal(0, 10), class = sigma)),
-          refresh = 0,
-          sample_prior = "only")
-
-# Check the minimum predicted vs. observed
-pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
-         stat = "min",
-         ndraws = 500,
-         binwidth = 2)
-
-# Check the mean predicted vs. observed
-pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
-         stat = "mean",
-         ndraws = 500,
-         binwidth = 2)
-
-# Check the maximum predicted vs. observed
-pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
-         stat = "max",
-         ndraws = 500,
-         binwidth = 2)
 ```
 
 
@@ -594,101 +426,31 @@ pp_check(PP, type = "stat_grouped", group = "Sex_Trt",
 \begin{align}
   \mathrm{Calcium} & \sim Normal(\mu, \sigma) \\
   \mu & = b[\mathrm{Sex\_Trt}] \\
-  b[\mathrm{Sex\_Trt}] & \sim Normal(20, 15) \\
-  \sigma & \sim HalfNormal(0, 10)
 \end{align}
 
 
 ### Sampling
 
 ```{r}
-# FIXME
 
-fm <- brm(Calcium ~ Sex_Trt - 1,
-          data = BP,
-          prior = c(prior(normal(20, 15), class = b),
-                    prior(normal(0, 10), class = sigma)),
-          refresh = 0,
-          iter = 5e3)
-
-prior_summary(fm)
 ```
 
 
 ### Diagnostics
 
 ```{r}
-# FIXME
 
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Sex_TrtFemale_Hormone", "b_Sex_TrtFemale_None"))
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Sex_TrtMale_Hormone", "b_Sex_TrtMale_None"))
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("sigma"))
-
-powerscale_plot_quantities(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Sex_TrtFemale_Hormone", "b_Sex_TrtFemale_None"))
-powerscale_plot_quantities(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Sex_TrtMale_Hormone", "b_Sex_TrtMale_None"))
-powerscale_plot_quantities(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("sigma"))
-
-powerscale_sensitivity(fm)
 ```
 
 ```{r}
-# FIXME
-summary(fm)
 
-BP |> 
-  data_grid(Sex_Trt) |> 
-  add_predicted_draws(fm) |> 
-  ggplot(aes(x = .prediction, y = Sex_Trt)) +
-  stat_slab(alpha = 0.5, fill = "firebrick4")
-
-
-BP |> 
-  data_grid(Sex_Trt) |> 
-  add_predicted_draws(fm) |> 
-  median_hdi(width = 0.89)
 ```
 
 
 ### Posterior predictive simulation
 
 ```{r}
-# FIXME
 
-# Check the minimum predicted vs. observed
-pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
-         stat = "min",
-         ndraws = 500,
-         binwidth = 1)
-
-# Check the mean predicted vs. observed
-pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
-         stat = "mean",
-         ndraws = 500,
-         binwidth = 1)
-
-# Check the maximum predicted vs. observed
-pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
-         stat = "max",
-         ndraws = 500,
-         binwidth = 1)
 ```
 
 
@@ -697,126 +459,7 @@ pp_check(fm, type = "stat_grouped", group = "Sex_Trt",
 Compare the means of Hormone vs. Control separately by sex.
 
 ```{r}
-# FIXME
 
-post <- fm |> 
-  spread_rvars(b_Sex_TrtFemale_Hormone, b_Sex_TrtFemale_None,
-               b_Sex_TrtMale_Hormone, b_Sex_TrtMale_None) |> 
-  mutate(`F: Horm. vs. C.` = b_Sex_TrtMale_Hormone - b_Sex_TrtMale_None,
-         `M: Horm. vs. C.` = b_Sex_TrtFemale_Hormone - b_Sex_TrtFemale_None,
-         .keep = "none")
-
-post |> 
-  pivot_longer(cols = everything()) |> 
-  ggplot(aes(xdist = value, fill = name)) +
-  stat_slab(alpha = 0.5) +
-  scale_fill_manual(values = c("darkslateblue", "coral"),
-                    name = "Contrast") +
-  labs(x = "Difference (Hormone - Control)", y = "Density")
-
-median_hdi(post, .width = 0.89)
-```
-
-```{r}
-# FIXME
-
-# Here's how you would do this analysis using the regular interactions
-# coding with *.
-
-# This generates the prior prediction and converts to the group posteriors
-# The priors are really weak, because there is so little data to learn
-# from.
-PP <- brm(Calcium ~ Sex * Treatment,
-          data = BP,
-          prior = c(prior(normal(15, 20), class = Intercept),
-                    prior(normal(0, 10), coef = SexMale),
-                    prior(normal(0, 20), coef = TreatmentHormone),
-                    prior(normal(0, 10), coef = SexMale:TreatmentHormone),
-                    prior(normal(0, 15), class = sigma)),
-          refresh = 0,
-          sample_prior = "only") |> 
-  spread_draws(b_Intercept, b_SexMale,
-               b_TreatmentHormone, `b_SexMale:TreatmentHormone`) |> 
-  mutate(Female_None = b_Intercept,
-         Female_Hormone = b_Intercept + b_TreatmentHormone,
-         Male_None = b_Intercept + b_SexMale,
-         Male_Hormone = b_Intercept + b_SexMale + `b_SexMale:TreatmentHormone`,
-         .keep = "none")
-
-PP_long <- pivot_longer(PP, cols = everything(),
-                        names_to = "Sex_Trt",
-                        values_to = "Calcium") |> 
-  separate(col = Sex_Trt, into = c("Sex", "Treatment"), sep = "_")
-
-# See how the Female-None group has the lowest variance, and the Male-Hormone
-# group has the highest variance 
-PP_long |> 
-  group_by(Sex, Treatment) |> 
-  summarize(mean_Calcium = mean(Calcium),
-            var_Calcium = var(Calcium))
-
-# A kind of prior predictive distribution plot
-ggplot() +
-  geom_density(data = PP_long, aes(Calcium)) +
-  geom_point(data = BP, aes(x = Calcium, y = 0),
-             shape = 21, fill = "#9ECAE1", size = 3) +
-  facet_grid(Sex ~ Treatment)
-
-# Fit the model
-fm <- brm(Calcium ~ Sex * Treatment,
-          data = BP,
-          prior = c(prior(normal(15, 20), class = Intercept),
-                    prior(normal(0, 10), coef = SexMale),
-                    prior(normal(0, 20), coef = TreatmentHormone),
-                    prior(normal(0, 10), coef = SexMale:TreatmentHormone),
-                    prior(normal(0, 15), class = sigma)),
-          refresh = 0,
-          iter = 5e3)
-
-prior_summary(fm)
-
-# These all look fine.
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Intercept", "b_SexMale"))
-
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_TreatmentHormone", "b_SexMale:TreatmentHormone"))
-
-powerscale_sensitivity(fm)
-
-summary(fm)
-
-# Extract posterior and 
-post <- fm |> 
-  spread_draws(b_Intercept, b_SexMale,
-               b_TreatmentHormone, `b_SexMale:TreatmentHormone`) |> 
-  mutate(Female_None = b_Intercept,
-         Female_Hormone = b_Intercept + b_TreatmentHormone,
-         Male_None = b_Intercept + b_SexMale,
-         Male_Hormone = b_Intercept + b_SexMale + `b_SexMale:TreatmentHormone`,
-         .keep = "none")
-
-# The Male-Hormone group retains the wider variance in the posterior, even
-# though it does not in the observed data.
-pivot_longer(post, cols = everything(),
-             names_to = "Sex_Trt",
-             values_to = "Calcium") |> 
-  separate(col = Sex_Trt, into = c("Sex", "Treatment"), sep = "_") |> 
-  group_by(Sex, Treatment) |> 
-  summarize(mean_Calcium = mean(Calcium),
-            var_Calcium = var(Calcium))
-
-# Roughly equal variances in the observed data
-BP |> 
-  group_by(Sex, Treatment) |> 
-  summarize(mean_Calcium = mean(Calcium),
-            var_Calcium = var(Calcium))
-
-median_hdi(post, .width = 0.89)
 ```
 
 
@@ -831,26 +474,13 @@ Load the data in `Milk.xlsx`, select the columns `kcal.per.g`, `perc.fat`, `perc
 There are some missing values in the data, so drop any rows with NA. These are comparative data for different species of primates, but we will ignore those relationships for this analysis.
 
 ```{r}
-# FIXME
 
-#| warning: false
-MM <- readxl::read_excel("../Data/Milk.xlsx") |> 
-  select(kcal.per.g, perc.fat, perc.lactose) |> 
-  drop_na() |> 
-  rename(Milk_energy = kcal.per.g,
-         Fat = perc.fat,
-         Lactose = perc.lactose)
 ```
 
 Make two plots, one where energy is predicted by fat and the other by lactose.
 
 ```{r}
-# FIXME
 
-p1 <- plot_grid(ggplot(MM, aes(Fat, Milk_energy)) + geom_point(),
-                ggplot(MM, aes(Lactose, Milk_energy)) + geom_point(),
-                ncol = 2)
-p1
 ```
 
 You will see that they vary inversely. As fat goes up, lactose goes down. Because there is a finite percentage (100%) of what milk can be made of. As one goes up the other goes down. The third component, protein (mostly casein), makes up the last component. We are ignoring protein.
@@ -858,9 +488,7 @@ You will see that they vary inversely. As fat goes up, lactose goes down. Becaus
 If you check the correlation between fat and lactose, you will see it's large ($r \approx$ -0.94). In a frequentist regression, you might be worried about multicollinearity in this case.
 
 ```{r}
-# FIXME
 
-cor(MM$Fat, MM$Lactose)
 ```
 
 ### Model specification
@@ -874,19 +502,7 @@ cor(MM$Fat, MM$Lactose)
 ### Prior specification and prior predictive check
 
 ```{r}
-# FIXME
 
-PP <- brm(Milk_energy ~ Fat + Lactose,
-          data = MM,
-          prior = c(prior(normal(0, 0.05), class = b),
-                    prior(normal(0, 5), class = Intercept),
-                    prior(normal(0, 5), class = sigma)),
-          sample_prior = "only",
-          refresh = 0)
-
-pp_check(PP, ndraws = 100)
-
-pp_check(PP, type = "stat", stat = "median", binwidth = 1)
 ```
 
 
@@ -895,54 +511,20 @@ pp_check(PP, type = "stat", stat = "median", binwidth = 1)
 \begin{align}
   \mathrm{Milk\_energy} & \sim Normal(\mu, \sigma) \\
   \mu & = b0 + b1 \mathrm{Fat} + b2 \mathrm{Lactose} \\
-  b0 & \sim Normal(0, 5) \\
-  b1 & \sim Normal(0, 0.05) \\
-  b2 & \sim Normal(0, 0.05) \\
-  sigma & \sim HalfNormal(0, 5)
 \end{align}
 
 
 ### Sampling
 
 ```{r}
-# FIXME
 
-fm <- brm(Milk_energy ~ Fat + Lactose,
-          data = MM,
-          prior = c(prior(normal(0, 0.05), class = b),
-                    prior(normal(0, 5), class = Intercept),
-                    prior(normal(0, 5), class = sigma)),
-          refresh = 0,
-          iter = 5e3)
-
-prior_summary(fm)
 ```
 
 
 ### Diagnostics
 
 ```{r}
-# FIXME
 
-mcmc_combo(fm, regex_pars = "^b")
-mcmc_rank_overlay(fm, regex_pars = "^b")
-
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = "b_Intercept")
-
-powerscale_plot_dens(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Fat", "b_Lactose"))
-
-powerscale_plot_quantities(
-  powerscale_sequence(fm),
-  quantities = c("mean", "sd"),
-  variables = c("b_Intercept", "b_Fat", "b_Lactose"))
-
-powerscale_sensitivity(fm)
 ```
 
 
@@ -951,9 +533,7 @@ powerscale_sensitivity(fm)
 Use `pp_check()` to make a density plot of the observed data superimposed on draws from the posterior.
 
 ```{r}
-# FIXME
 
-pp_check(fm, ndraws = 100)
 ```
 
 To visualize the effect of the two continuous predictors, we'll have to get creative. Here are the steps:
@@ -963,21 +543,7 @@ To visualize the effect of the two continuous predictors, we'll have to get crea
 - Calculate the median and 89% HDI intervals using `mutate()` like we did in the lecture slides.
 
 ```{r}
-# FIXME
 
-pred_values <- crossing(
-  Fat = seq(3, 56, length.out = 200),
-  Lactose = c(30, 50, 70)
-)
-
-p_pred <- posterior_epred(fm, newdata = pred_values)
-
-pred_values <- pred_values |> 
-  mutate(Q50 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.5),
-         Q5.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.055),
-         Q94.5 = apply(p_pred, MARGIN = 2, FUN = quantile, prob = 0.945),
-         Lactose = factor(Lactose))
-pred_values
 ```
 
 You should have a `tibble` of 600 x 5 columns, with columns for `Fat`, `Lactose`, `Q50`, `Q5.5`, and `Q94.5`.
@@ -989,20 +555,7 @@ It will take some staring at this plot to make sense of it. Pay particular atten
 If you make a composite plot with the pair of scatterplots from the first chunk in this example in one row and this new plot in row 2, it might help to make sense of the output.
 
 ```{r}
-# FIXME
 
-p2 <- ggplot() +
-  geom_ribbon(data = pred_values,
-              aes(x = Fat, ymin = Q5.5, ymax = Q94.5,
-                  fill = Lactose), alpha = 0.25) +
-  geom_line(data = pred_values,
-            aes(x = Fat, y = Q50, color = Lactose)) +
-  facet_grid(. ~ Lactose) +
-  scale_color_viridis_d(option = "D") +
-  scale_fill_viridis_d(option = "D") +
-  labs(x = "Fat Percentage", y = "Milk Energy")
-
-plot_grid(p1, p2, nrow = 2)
 ```
 
 
@@ -1011,8 +564,6 @@ plot_grid(p1, p2, nrow = 2)
 Summarize the posterior however you think is appropriate.
 
 ```{r}
-# FIXME
 
-summary(fm) |> print(digits = 4)
 ```
 
