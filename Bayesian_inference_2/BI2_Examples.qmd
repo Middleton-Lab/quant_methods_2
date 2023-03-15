@@ -1,0 +1,177 @@
+---
+title: "Examples"
+format: html
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(rethinking)
+library(priorsense)
+library(tidybayes)
+library(tidybayes.rethinking)
+library(bayesplot)
+
+library(emdbook)
+
+theme_set(cowplot::theme_cowplot(font_size = 10))
+
+```
+
+## Binomial: Reed frog predation
+
+Holling Type II
+
+$$y = \frac{ax}{(b + x)}$$
+
+```{r}
+RF <- ReedfrogPred |> 
+  as_tibble()
+
+ggplot() +
+  geom_point(data = RF, aes())
+
+```
+
+
+## Gamma likelihood: Myxomatosis data
+
+```{r}
+MT <- MyxoTiter_sum |> 
+  filter(grade == 1) |> 
+  as_tibble()
+
+ggplot(data = MT) +
+  geom_density(aes(titer)) +
+  geom_point(aes(x = titer, y = 0),
+             shape = 21, fill = "#9ECAE1", size = 3)
+
+(gm <- mean(MT$titer))
+(cv <- var(MT$titer) / mean(MT$titer))
+
+ggplot(tibble(x = seq(0, 10, length.out = 200),
+              y = dgamma(x, shape = 7 / 0.125, scale = 0.125)),
+       aes(x, y)) +
+  geom_line()
+
+# shape / scale
+# 1 / scale
+
+fm <- ulam(
+  alist(
+    titer ~ gamma(shape, scale),
+    shape ~ normal(7, 2),
+    scale ~ dhalfnorm(0.125, 0.05)
+  ),
+  data = MT,
+  chains = 4, cores = 4,
+  iter = 1e4,
+  refresh = 0
+)
+
+precis(fm)
+
+stancode(fm)
+traceplot(fm)
+
+post <- spread_draws(fm, shape, scale) |> 
+  slice_sample(n = 200)
+
+PP <- purrr::map(
+  .x = 1:nrow(post),
+  .f = function(.x, post) {
+    tibble(ID = .x,
+           x = seq(0, 15, length.out = 200),
+           y = dgamma(x,
+                      shape = post$shape[.x] / post$scale[.x],
+                      scale = post$scale[.x]))
+  }, post = post) |> 
+  list_rbind()
+
+ggplot() +
+  geom_line(data = PP, aes(x, y, group = ID), alpha = 0.1) +
+  geom_point(data = MT, aes(x = titer, y = 0),
+             shape = 21, fill = "#9ECAE1", size = 3)
+
+summary(fm)
+```
+
+
+## Ricker function: Myxomatosis data
+
+$$y = a x e^{-bx}$$
+
+```{r}
+MT <- MyxoTiter_sum |> 
+  as_tibble()
+
+ggplot() +
+  geom_point(data = MT, aes(x = day, y = titer))
+
+PP <- ulam(
+  alist(
+    titer ~ normal(mu, sigma),
+    mu <- a * day * exp(-1 * b * day),
+    a ~ normal(2, 0.5),
+    b ~ dhalfnorm(0, 0.5),
+    sigma ~ exponential(0.1)
+  ),
+  sample_prior = TRUE,
+  data = MT,
+  chains = 4, cores = 4,
+  iter = 1e4,
+  refresh = 0
+)
+
+PP_post <- spread_draws(PP, a, b, sigma) |> 
+  slice_sample(n = 200)
+
+PP_pred <- purrr::map(
+  .x = 1:nrow(post),
+  .f = function(.x, post) {
+    tibble(ID = .x,
+           day = seq(0, 30, length.out = 200),
+           y = post$a[.x] * day * exp(-1 * post$b[.x] * day))
+  }, post = PP_post) |> 
+  list_rbind()
+
+ggplot() +
+  geom_line(data = PP_pred, aes(x = day, y = y, group = ID), alpha = 0.2) +
+  geom_point(data = MT, aes(x = day, y = titer))
+
+## fitting
+fm <- ulam(
+  alist(
+    titer ~ normal(mu, sigma),
+    mu <- a * day * exp(-1 * b * day),
+    a ~ normal(2, 0.5),
+    b ~ dhalfnorm(0, 0.5),
+    sigma ~ exponential(0.1)
+  ),
+  data = MT,
+  chains = 4, cores = 4,
+  iter = 1e4,
+  refresh = 0
+)
+
+fm_post <- spread_draws(fm, a, b, sigma) |> 
+  slice_sample(n = 200)
+
+fm_pred <- purrr::map(
+  .x = 1:nrow(post),
+  .f = function(.x, post) {
+    tibble(ID = .x,
+           day = seq(0, 30, length.out = 200),
+           y = post$a[.x] * day * exp(-1 * post$b[.x] * day))
+  }, post = fm_post) |> 
+  list_rbind()
+
+ggplot() +
+  geom_line(data = fm_pred, aes(x = day, y = y, group = ID), alpha = 0.2) +
+  geom_point(data = MT, aes(x = day, y = titer))
+
+precis(fm)
+```
+
