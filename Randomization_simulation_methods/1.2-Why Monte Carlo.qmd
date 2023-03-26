@@ -1,6 +1,5 @@
 ---
 title: "Why Monte Carlo?"
-subtitle: "Introduction"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -23,13 +22,19 @@ format:
 #| message: false
 
 library(tidyverse)
+library(readxl)
 library(cowplot)
 ggplot2::theme_set(theme_cowplot())
+library(viridis)
+set.seed(478239)
 ```
 
-"Monte Carlo Methods" - a general broad term that includes all methods that involve any random sampling. 
+- a general broad term that includes any methods that involve random sampling of any kind 
 
-Named for the famous casino - how are we doing images?
+<center>
+<img src="https://lp-cms-production.imgix.net/2019-06/d6dbfeb4a839afa6e09adbe525674de3-casino-de-monte-carlo.jpg" width="65%" />
+</center>
+
 
 ## Random Sampling
 
@@ -47,18 +52,177 @@ ggplot(rand.vals, aes(Random)) +
 
 ```
 
+## Uncertainty is Inherent to Data
+
+- Our observations are finite samples from a larger population
+    - More uncertainty in smaller samples (law of large numbers)
+- Our measurements are imperfect 
+    - More uncertainty for less accurate & precise measurements
+    
+- **Understanding the properties of random sampling is how we can estimate and account for this uncertainty**
+
+## A real example 
+
+- From Quant Methods 1 & [Randomization, Bootstrap and Monte Carlo Methods in Biology](https://www.amazon.com/Randomization-Bootstrap-Methods-Biology-Statistical-dp-0367349949/dp/0367349949/)
+
+<center>
+<img src="https://i.imgur.com/OOYvufC.jpg" width="35%" />
+</center>
+
+
+## Are male and female jackal mandible lengths different?
+
+Mandible lengths of female and male jackals from the Natural History Museum (London).
+
+```{r, echo = FALSE, fig.height=3, fig.width=5}
+
+M <- read_excel("Data/Jackals.xlsx")
+M <- M |> mutate(Sex = factor(Sex)) |> as.data.frame()
+M |> ggplot(aes(Sex, Mandible, color = Sex)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  scale_color_viridis(discrete=TRUE)
+  
+
+obs <- mean(M$Mandible[M$Sex == "F"]) -
+   mean(M$Mandible[M$Sex == "M"])
+```
+Difference of means = `r obs`
+
+## Are male and female jackal mandible lengths different?
+
+```{r, echo=FALSE, fig.height=4}
+M.set <- M %>%
+  mutate("Original"= M$Sex)
+
+M.set |> ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_y_continuous(NULL, breaks = NULL) 
+
+```
+
+## How big of a difference can happen with random sampling in our dataset?
+
+```{r, echo=FALSE, fig.height=4}
+
+M.set |> ggplot(aes(Mandible)) + 
+  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_y_continuous(NULL, breaks = NULL) 
+
+```
+
+## How big of a difference can happen with random sampling in our dataset?
+
+```{r, echo=FALSE, fig.height=4}
+
+M.set$Sex <- sample(M.set$Sex)
+
+M.set |> ggplot(aes(Mandible, fill=Sex)) + 
+  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_y_continuous(NULL, breaks = NULL) 
+```
+
+## How big of a difference can happen with random sampling in our dataset?
+```{r, echo=FALSE, fig.height=4}
+
+M.set |>
+  ggplot(aes(Sex, Mandible, color = Sex)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  scale_color_viridis(discrete=TRUE)
+
+```
+
+Difference in means for this sample: `r mean(M.set$Mandible[M.set$Sex == "F"]) - mean(M.set$Mandible[M.set$Sex == "M"])`
+
+## Sample over and over
+
+```{r, echo=FALSE, fig.height=2.5}
+
+M.set$Sex <- sample(M.set$Sex)
+
+M.set |> ggplot(aes(Mandible)) + 
+  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_y_continuous(NULL, breaks = NULL)
+
+M.set |> ggplot(aes(Mandible, fill=Sex)) + 
+  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_y_continuous(NULL, breaks = NULL) 
+```
+
+
+## Sample over and over
+
+```{r, echo=FALSE}
+
+nreps <- 1e4
+diffs <- numeric(length = nreps)
+diffs[1] <- obs
+for (ii in 2:nreps) {
+  Rand_Sex <- sample(M$Sex)
+  diffs[ii] <- mean(M$Mandible[Rand_Sex == "F"]) -
+    mean(M$Mandible[Rand_Sex == "M"])
+}
+
+ggplot(data.frame(diffs), aes(diffs)) +
+  geom_histogram(bins = 25) +
+  geom_vline(xintercept = diffs[1], color = "red") +
+  labs(x = "Difference", y = "Count")
+
+```
+
+## Proportion of randomized differences more extreme than the observed
+
+Mean of the differences where the value is *less than or equal to* the observed mean difference.
+
+Empirically determined *P*-value is `r round(mean(diffs <= diffs[1]), 4)`.
+
+## The expectation from random sampling underlies our statistical tests
+
+```{r}
+#| echo: true
+t.test(Mandible ~ Sex, data = M)
+
+```
+
 ## Why would you need Monte Carlo Methods?
 
-## Your Dataset Violates the Assumption(s) of Parametric Tests
+## Your Data Set Violates the Assumption(s) of Parametric Tests
+
+- Very common issue
+- Many Monte Carlo methods are "distribution-free"
+- Monte Carlo almost always preferred to a "non-parametric test" 
+
+## There is not a standard way to estimate a confidence interval
+
+- Our method of estimating confidence intervals assumes a particular distribution
+    - e.g. what is the CI on a proportion?
+
+## You aren't sure the analysis you are doing is ok
+
+- You are using an analysis or the results in a non-typical way
+- You want to know the rate of decision errors
+    - false positives
+    - false negatives
 
 ## You want to ask how generalizable your results are
+
+FIXME
 
 ## Your question isn't answered by a typical statistical test
 
 - Groups can be different due to multiple causes only some of which are of interest
+    - Standard statistical tests account only for sampling error in the null
 
-## There is not a standard way to estimate a confidence interval
+## Why would you need Monte Carlo Methods?
 
+- Monte Carlo Methods provide a toolkit to ask very practical questions
+    - Do simulation experiments to find out what happens
+      
+    
 
 
 

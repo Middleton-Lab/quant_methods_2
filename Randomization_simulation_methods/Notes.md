@@ -15,13 +15,18 @@ Idea behind monte carlo
 Intro / Background / Prerequisites
 Resources
 Goals, concepts
+
 Motivations
-Example uses
+
+What questions do we ask when we use statistics?
+Null models
+
+Main applications & Example uses
+
 Cautionary tales
 ACF/CCF hummingbirds
-Null models
-What questions do we ask when we use statistics?
-Intro to power
+
+
 Problem set:
 Give a data set that was generated from a null & ask them to visualize and summarize.
 Some simple programming - pulling samples, assigning and tracking ids, loops and mapping
