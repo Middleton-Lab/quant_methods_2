@@ -29,7 +29,7 @@ library(viridis)
 set.seed(478239)
 ```
 
-- a general broad term that includes any methods that involve random sampling of any kind 
+A general term that includes any methods that involve random sampling of any kind 
 
 <center>
 <img src="https://lp-cms-production.imgix.net/2019-06/d6dbfeb4a839afa6e09adbe525674de3-casino-de-monte-carlo.jpg" width="65%" />
@@ -43,14 +43,16 @@ set.seed(478239)
 - Values from a set of possible parameters
 - A random order for a set of values
 
-```{r, echo=TRUE}
+```{r}
+#| echo: true
+#| output-location: slide
 
-rand.vals <- tibble("Random" = rnorm(1000))
+rand_vals <- tibble(Random = rnorm(1000))
 
-ggplot(rand.vals, aes(Random)) +
-  geom_histogram(bins=100)  
-
+ggplot(rand_vals, aes(Random)) +
+  geom_histogram(bins = 100)  
 ```
+
 
 ## Uncertainty is Inherent to Data
 
@@ -63,7 +65,7 @@ ggplot(rand.vals, aes(Random)) +
 
 ## A real example 
 
-- From Quant Methods 1 & [Randomization, Bootstrap and Monte Carlo Methods in Biology](https://www.amazon.com/Randomization-Bootstrap-Methods-Biology-Statistical-dp-0367349949/dp/0367349949/)
+- From QMLS 1 & [Randomization, Bootstrap and Monte Carlo Methods in Biology](https://www.amazon.com/Randomization-Bootstrap-Methods-Biology-Statistical-dp-0367349949/dp/0367349949/)
 
 <center>
 <img src="https://i.imgur.com/OOYvufC.jpg" width="35%" />
@@ -74,64 +76,76 @@ ggplot(rand.vals, aes(Random)) +
 
 Mandible lengths of female and male jackals from the Natural History Museum (London).
 
-```{r, echo = FALSE, fig.height=3, fig.width=5}
+```{r}
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
 
 M <- read_excel("Data/Jackals.xlsx")
-M <- M |> mutate(Sex = factor(Sex)) |> as.data.frame()
+M <- M |> mutate(Sex = factor(Sex))
 M |> ggplot(aes(Sex, Mandible, color = Sex)) +
   geom_point(position = position_jitter(0.2), size = 3) +
-  scale_color_viridis(discrete=TRUE)
+  scale_color_viridis_d()
   
-
-obs <- mean(M$Mandible[M$Sex == "F"]) -
-   mean(M$Mandible[M$Sex == "M"])
+obs <- M |> filter(Sex == "F") |> summarize(m = mean(Mandible)) |> pull(m) -
+  M |> filter(Sex == "M") |> summarize(m = mean(Mandible)) |> pull(m)
 ```
-Difference of means = `r obs`
+
+n = `r nrow(M)`; Difference of means = `r obs`
+
 
 ## Are male and female jackal mandible lengths different?
 
-```{r, echo=FALSE, fig.height=4}
+```{r}
+#| echo: false
+
 M.set <- M %>%
   mutate("Original"= M$Sex)
 
-M.set |> ggplot(aes(Mandible, fill = Sex)) + 
-  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
-  scale_fill_viridis(discrete=TRUE) +
+M.set |> 
+  ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis_d() +
   scale_y_continuous(NULL, breaks = NULL) 
+```
 
+
+## How big of a difference can happen with random sampling in our dataset?
+
+```{r}
+#| echo: false
+
+M.set |>
+  ggplot(aes(Mandible)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_color_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL) 
 ```
 
 ## How big of a difference can happen with random sampling in our dataset?
 
-```{r, echo=FALSE, fig.height=4}
-
-M.set |> ggplot(aes(Mandible)) + 
-  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
-  scale_fill_viridis(discrete=TRUE) +
-  scale_y_continuous(NULL, breaks = NULL) 
-
-```
-
-## How big of a difference can happen with random sampling in our dataset?
-
-```{r, echo=FALSE, fig.height=4}
+```{r}
+#| echo: false
 
 M.set$Sex <- sample(M.set$Sex)
 
-M.set |> ggplot(aes(Mandible, fill=Sex)) + 
-  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
-  scale_fill_viridis(discrete=TRUE) +
+M.set |>
+  ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis_d() +
   scale_y_continuous(NULL, breaks = NULL) 
 ```
 
+
 ## How big of a difference can happen with random sampling in our dataset?
-```{r, echo=FALSE, fig.height=4}
+
+```{r}
+#| echo: false
 
 M.set |>
   ggplot(aes(Sex, Mandible, color = Sex)) +
   geom_point(position = position_jitter(0.2), size = 3) +
-  scale_color_viridis(discrete=TRUE)
-
+  scale_color_viridis_d()
 ```
 
 Difference in means for this sample: `r mean(M.set$Mandible[M.set$Sex == "F"]) - mean(M.set$Mandible[M.set$Sex == "M"])`
@@ -143,13 +157,12 @@ Difference in means for this sample: `r mean(M.set$Mandible[M.set$Sex == "F"]) -
 M.set$Sex <- sample(M.set$Sex)
 
 M.set |> ggplot(aes(Mandible)) + 
-  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
-  scale_fill_viridis(discrete=TRUE) +
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
   scale_y_continuous(NULL, breaks = NULL)
 
-M.set |> ggplot(aes(Mandible, fill=Sex)) + 
-  geom_dotplot(method="histodot", binwidth = 0.5, stackgroups = TRUE) +
-  scale_fill_viridis(discrete=TRUE) +
+M.set |> ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis_d() +
   scale_y_continuous(NULL, breaks = NULL) 
 ```
 
@@ -168,11 +181,17 @@ for (ii in 2:nreps) {
 }
 
 ggplot(data.frame(diffs), aes(diffs)) +
-  geom_histogram(bins = 25) +
-  geom_vline(xintercept = diffs[1], color = "red") +
+  geom_histogram(bins = 25, fill = "gray75") +
+  geom_segment(x = diffs[1], xend = diffs[1],
+               y = 0, yend = Inf,
+               linewidth = 2,
+               color = "firebrick4") +
   labs(x = "Difference", y = "Count")
 
 ```
+
+Observed difference = `r diffs[1]`
+
 
 ## Proportion of randomized differences more extreme than the observed
 
@@ -180,54 +199,55 @@ Mean of the differences where the value is *less than or equal to* the observed 
 
 Empirically determined *P*-value is `r round(mean(diffs <= diffs[1]), 4)`.
 
+
 ## The expectation from random sampling underlies our statistical tests
 
 ```{r}
 #| echo: true
 t.test(Mandible ~ Sex, data = M)
-
 ```
 
+
 ## Why would you need Monte Carlo Methods?
+
 
 ## Your Data Set Violates the Assumption(s) of Parametric Tests
 
 - Very common issue
 - Many Monte Carlo methods are "distribution-free"
-- Monte Carlo almost always preferred to a "non-parametric test" 
+- Monte Carlo almost always preferred to a "non-parametric test"
+    - Sign test
+    - Mann-Whitney *U* (Wilcoxon rank-sum)
+    - Kruskal-Wallace
+
 
 ## There is not a standard way to estimate a confidence interval
 
 - Our method of estimating confidence intervals assumes a particular distribution
     - e.g. what is the CI on a proportion?
 
-## You aren't sure the analysis you are doing is ok
+
+## You aren't sure the analysis you are doing is OK
 
 - You are using an analysis or the results in a non-typical way
 - You want to know the rate of decision errors
     - false positives
     - false negatives
 
+
 ## You want to ask how generalizable your results are
 
 FIXME
+
 
 ## Your question isn't answered by a typical statistical test
 
 - Groups can be different due to multiple causes only some of which are of interest
     - Standard statistical tests account only for sampling error in the null
 
+
 ## Why would you need Monte Carlo Methods?
 
 - Monte Carlo Methods provide a toolkit to ask very practical questions
     - Do simulation experiments to find out what happens
-      
-    
-
-
-
-
-
-
-
 
