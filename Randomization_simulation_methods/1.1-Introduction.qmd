@@ -1,5 +1,5 @@
 ---
-title: "What does random mean?"
+title: "Randomization and Simulation Methods"
 subtitle: "Introduction"
 author:
   - Elizabeth King
@@ -27,11 +27,11 @@ library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 ```
 
-1. In what ways is random sampling useful?
-2. Random sampling 1
-3. Random sampling 2
-4. Simulations 1
-5. Simulations 2
+1. Core concepts: In what ways is random sampling useful for data analysis?
+2. Sampling from data sets: foundations
+3. Sampling from data sets: complex designs
+4. Sampling from data sets: decision errors and predicting new data
+5. Simulating data for inference
 
 ## Module prerequisites
 
@@ -43,8 +43,8 @@ ggplot2::theme_set(theme_cowplot())
 ## Relevant *Quantitative Methods I* course materials
 
 - Foundational Concepts in Probability & Statistics: Weeks 4, 5, 6, & 7
-- Week 10: Cross Validation
-- Week 12: Randomization
+- Unit 10: Cross Validation (10-4)
+- Unit 12: Randomization (12-3)
 - [Course files on Github](https://github.com/kmiddleton/quant_methods)
   - Clone to your computer for reference
 - [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
@@ -53,9 +53,13 @@ ggplot2::theme_set(theme_cowplot())
 
 - [R for Data Science](https://r4ds.had.co.nz/)
 - [Tidyverse style guide](https://style.tidyverse.org/)
-- [Computer-Intensive Methods of Data Analysis in Biology](https://www.amazon.com/Introduction-Computer-Intensive-Methods-Analysis-Biology-ebook/dp/B09TTKVSRM)
 - [Randomization, Bootstrap and Monte Carlo Methods in Biology](https://www.amazon.com/Randomization-Bootstrap-Methods-Biology-Statistical-dp-0367349949/dp/0367349949/)
+- [Computer-Intensive Methods of Data Analysis in Biology](https://www.amazon.com/Introduction-Computer-Intensive-Methods-Analysis-Biology-ebook/dp/B09TTKVSRM)
+- [Introduction to Modern Statistics](https://openintro-ims.netlify.app/index.html)
+
+FIXME
 - other cross validation & simulation resources
+- Bolker?
 
 ## What we cover and don't cover
 
@@ -63,27 +67,29 @@ Do:
 
 - Examples of many scenarios where random sampling is useful
 - Common cases you will encounter
+    - How to use these methods in place of other "standard" statistical analyses
 
 Don't:
 
 - Every possible use case
+    - These methods can be applied to endless possible questions and applications
 
-## Dual motivations for this module
+## Multiple motivations for this module
 
 1. Demystify the workings & philosophy of statistical tests
-2. Empower you to explore and simulate your datasets
+2. Empower you to explore and simulate your data sets
 3. Allow you to set up tests of the questions you might have about a method
 
-## Packages we will use often
-
-- [tidyverse](https://www.tidyverse.org/) Data wrangling
-  - tidyr
-  - dplyr
-  - etc.
-- ??
-
-## Useful Skillsets
+## Target Skillsets
 
 - Statistical understanding
 - Programming 
 - Methods for parallel processing
+
+## Useful Packages
+
+- [purrr](https://purrr.tidyverse.org/index.html) 
+    - part of [tidyverse](https://www.tidyverse.org/)
+- [boot](https://cran.r-project.org/web/packages/boot/boot.pdf)
+- [bootstrap](https://cran.r-project.org/web/packages/bootstrap/bootstrap.pdf)
+- [cvTools](https://cran.r-project.org/web/packages/cvTools/cvTools.pdf)
