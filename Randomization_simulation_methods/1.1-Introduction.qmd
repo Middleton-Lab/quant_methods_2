@@ -33,12 +33,14 @@ ggplot2::theme_set(theme_cowplot())
 4. Sampling from data sets: decision errors and predicting new data
 5. Simulating data for inference
 
+
 ## Module prerequisites
 
 - *Quantitative Methods in Life Sciences I*
 - Updated R and RStudio
 - Basics of probability and statistics
 - Basics of R programming methods
+
 
 ## Relevant *Quantitative Methods I* course materials
 
@@ -49,30 +51,30 @@ ggplot2::theme_set(theme_cowplot())
   - Clone to your computer for reference
 - [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
 
+
 ## Resources
 
 - [R for Data Science](https://r4ds.had.co.nz/)
 - [Tidyverse style guide](https://style.tidyverse.org/)
 - [Randomization, Bootstrap and Monte Carlo Methods in Biology](https://www.amazon.com/Randomization-Bootstrap-Methods-Biology-Statistical-dp-0367349949/dp/0367349949/)
-- [Computer-Intensive Methods of Data Analysis in Biology](https://www.amazon.com/Introduction-Computer-Intensive-Methods-Analysis-Biology-ebook/dp/B09TTKVSRM)
+- [Computer-Intensive Methods of Data Analysis in Biology](https://www.cambridge.org/core/books/introduction-to-computerintensive-methods-of-data-analysis-in-biology/4258A90A73B35675ECBAC6B57EDB0B5A)
 - [Introduction to Modern Statistics](https://openintro-ims.netlify.app/index.html)
+- [An Introduction to Statistical Learning](https://www.statlearning.com/)
 
-FIXME
-- other cross validation & simulation resources
-- Bolker?
 
 ## What we cover and don't cover
 
 Do:
 
-- Examples of many scenarios where random sampling is useful
+- Many scenarios where random sampling is useful
 - Common cases you will encounter
-    - How to use these methods in place of other "standard" statistical analyses
+    - How to use these methods in place of "standard" statistical analyses
 
 Don't:
 
 - Every possible use case
-    - These methods can be applied to endless possible questions and applications
+    - Endless possible questions and applications
+
 
 ## Multiple motivations for this module
 
@@ -80,11 +82,14 @@ Don't:
 2. Empower you to explore and simulate your data sets
 3. Allow you to set up tests of the questions you might have about a method
 
+
 ## Target Skillsets
 
 - Statistical understanding
-- Programming 
+- Programming
+- Simulating and evaluating data
 - Methods for parallel processing
+
 
 ## Useful Packages
 
@@ -93,3 +98,6 @@ Don't:
 - [boot](https://cran.r-project.org/web/packages/boot/boot.pdf)
 - [bootstrap](https://cran.r-project.org/web/packages/bootstrap/bootstrap.pdf)
 - [cvTools](https://cran.r-project.org/web/packages/cvTools/cvTools.pdf)
+- [caret](http://topepo.github.io/caret/index.html)
+- [future](https://future.futureverse.org/)
+    - [furrr](https://furrr.futureverse.org/)
