@@ -1,6 +1,6 @@
 ---
 title: "Goals in Data Analysis"
-subtitle: ""
+subtitle: "Sampling distributions, null hypotheses, etc."
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -14,6 +14,7 @@ format:
     show-slide-number: all
 ---
 
+## What questions do we ask when we use statistics? {.smaller}
 
 ```{r}
 #| label: setup
@@ -21,12 +22,14 @@ format:
 #| warning: false
 #| message: false
 
+set.seed(736902)
 library(tidyverse)
+library(readxl)
 library(cowplot)
-ggplot2::theme_set(theme_cowplot())
-```
+theme_set(theme_cowplot())
+library(viridis)
 
-## What questions do we ask when we use statistics?
+```
 
 Estimation and hypotheses (Quant Methods 1, Unit 7)
 
@@ -37,17 +40,154 @@ Estimation and hypotheses (Quant Methods 1, Unit 7)
 3. Hypothesis testing
     - How to test hypotheses about parameter estimates?
 
+## Mandible lengths of female and male jackals from the Natural History Museum (London).
 
-## Limitations of different methods
-- generalizable
-- cross validation vs randomization
-- list questions asked
+```{r, echo = FALSE, fig.height=3, fig.width=5}
 
-## what is a null model
+M <- read_excel("Data/Jackals.xlsx")
+M <- M |> mutate(Sex = factor(Sex)) |> as.data.frame()
+M |> ggplot(aes(Sex, Mandible, color = Sex)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  scale_color_viridis(discrete=TRUE)
+  
+```
 
-## simulating a null
+## Parameter (point) estimation
+
+- Mean or median for the population of jackals
+- Mean or median for females and/or males
+- Difference between males and females
+
+## Interval estimation
+
+- Confidence interval surrounding means
+    - e.g. How uncertain is our estimate of male mean mandible size?
+- Confidence interval for the difference
+
+## Hypothesis testing
+
+- Are male and female jackal mandible lengths different?
+
+## Hypothesis testing
+
+- Hypothesis testing requires comparing two or more hypotheses
+- Typically, comparison against some null hypothesis
+
+## Null hypothesis
+
+- The baseline expectation 
+- In statistics, often this is our expectation when only sampling and measurement error are causing variation
+- This is the default hypothesis: we require evidence against it to reject it in favor of an alternative
+- Hypotheses are never proven true
+    - Null is rejected or failed to be rejected
+
+## Null Distribution 
+
+- We can evaluate evidence in the context of the null hypothesis if we have a null distribution for some parameter of interest
+- How to get the null distribution
+    - Empirically
+    - Simulation
+    - From analytical solutions (mathematical formulas)
+
+## A Simple Case
+
+- Simulate two groups of alligators (reared at high and low temperature) that differ in their growth rate. 
+
+```{r fig.width = 3}
+#| echo: true
+muH <- 1
+muL <- 0.3
+sd_both <- 1
+nobs <- 20
+
+ DD <- tibble(
+    growthR = c(rnorm(nobs,muL,sd_both), rnorm(nobs,muH,sd_both)),
+    group = rep(c("L", "H"), each = nobs)
+  )
+
+```
+
+## A Simple Case
+
+- Simulate two groups of alligators (reared at high and low temperature) that differ in their growth rate. 
+
+```{r fig.height = 4, fig.width=6}
+DD |>
+  ggplot(aes(group, growthR, color= group)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  ylab("growth rate (m/yr)") +
+  scale_color_viridis(discrete=TRUE)
+
+```
+
+## Empirical Null Distribution
+
+```{r, echo=TRUE, fig.height=3, fig.width=5}
+
+nreps <- 1e4
+diffs.e <- numeric(length = nreps)
+diffs.e[1] <- mean(DD$growthR[DD$group=="L"]) - mean(DD$growthR[DD$group=="H"])
+for (ii in 2:nreps) {
+  Rand_G <- sample(DD$group)
+  diffs.e[ii] <- mean(DD$growthR[Rand_G == "L"]) -
+    mean(DD$growthR[Rand_G == "H"])
+}
+
+pe <- ggplot(data.frame(diffs.e), aes(diffs.e)) +
+  geom_histogram(binwidth = 0.1) +
+  ylim(c(0,2000)) +
+  labs(x = "Difference", y = "Count")
+pe
+```
+
+## Simulated Null Distribution
+
+```{r, echo=TRUE, fig.height=3, fig.width=5}
+
+mu_both <- mean(c(muL,muH))
+nreps <- 1e4
+diffs.s <- numeric(length = nreps)
+for (ii in 1:nreps) {
+  diffs.s[ii] <- mean(rnorm(nobs,mu_both,sd_both)) -
+    mean(rnorm(nobs,mu_both,sd_both))
+}
+
+ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
+  geom_histogram(binwidth = 0.1) +
+  ylim(c(0,2000)) +
+  labs(x = "Difference", y = "Count")
+ps
+```
+
+## Analytical Solution for Null Distribution
+
+```{r, echo=TRUE, fig.height=3, fig.width=5}
+scale_t <- sd_both*sqrt(2/(nobs*2))
+diffs.a <- scale_t*rt(nreps, nobs-2)
+
+pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
+  geom_histogram(binwidth = 0.1) +
+  ylim(c(0,2000)) +
+  labs(x = "Difference", y = "Count")
+
+pa
+```
+
+## Null Distributions
+```{r, fig.height= 4}
+
+plot_grid(pe,ps,pa, ncol=3, labels = c("empirical","simulated","analytical"), vjust=1, rel_widths = c(1,1,1))
 
 
+```
+
+## show n = 200
+
+## Null Distributions: Student's t
+
+<center>
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/720px-Student_t_pdf.svg.png?20130721054529" width="65%" />
+</center>
 
 
 
