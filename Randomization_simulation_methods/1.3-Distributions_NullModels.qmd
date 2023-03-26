@@ -1,5 +1,5 @@
 ---
-title: "Distributions and Null Models"
+title: "Goals in Data Analysis"
 subtitle: ""
 author:
   - Elizabeth King
@@ -14,7 +14,6 @@ format:
     show-slide-number: all
 ---
 
-## Monte Carlo Methods
 
 ```{r}
 #| label: setup
@@ -27,9 +26,17 @@ library(cowplot)
 ggplot2::theme_set(theme_cowplot())
 ```
 
-## Reminder of some terminology
-- parameter estimation
-- significance testing
+## What questions do we ask when we use statistics?
+
+Estimation and hypotheses (Quant Methods 1, Unit 7)
+
+1. Parameter (point) estimation
+    - Given a model, with unknown parameters ($\theta_0$, $\theta_1$, ..., $\theta_k$), how to estimate values of those parameters?
+2. Interval estimation
+    - How to quantify the uncertainty associated with parameter estimates?
+3. Hypothesis testing
+    - How to test hypotheses about parameter estimates?
+
 
 ## Limitations of different methods
 - generalizable
