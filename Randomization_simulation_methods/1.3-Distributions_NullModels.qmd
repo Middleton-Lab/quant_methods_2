@@ -22,7 +22,6 @@ format:
 #| warning: false
 #| message: false
 
-set.seed(736902)
 library(tidyverse)
 library(readxl)
 library(cowplot)
@@ -40,17 +39,19 @@ Estimation and hypotheses (Quant Methods 1, Unit 7)
 3. Hypothesis testing
     - How to test hypotheses about parameter estimates?
 
+
 ## Mandible lengths of female and male jackals from the Natural History Museum (London).
 
-```{r, echo = FALSE, fig.height=3, fig.width=5}
+```{r}
+#| echo: false
 
 M <- read_excel("Data/Jackals.xlsx")
-M <- M |> mutate(Sex = factor(Sex)) |> as.data.frame()
+M <- M |> mutate(Sex = factor(Sex))
 M |> ggplot(aes(Sex, Mandible, color = Sex)) +
   geom_point(position = position_jitter(0.2), size = 3) +
-  scale_color_viridis(discrete=TRUE)
-  
+  scale_color_viridis_d()
 ```
+
 
 ## Parameter (point) estimation
 
@@ -58,20 +59,25 @@ M |> ggplot(aes(Sex, Mandible, color = Sex)) +
 - Mean or median for females and/or males
 - Difference between males and females
 
+
 ## Interval estimation
 
 - Confidence interval surrounding means
     - e.g. How uncertain is our estimate of male mean mandible size?
 - Confidence interval for the difference
 
+
 ## Hypothesis testing
 
 - Are male and female average mandible lengths different?
+    - More different than by chance alone?
+
 
 ## Hypothesis testing
 
 - Hypothesis testing requires comparing two or more hypotheses
 - Typically, comparison against some null hypothesis
+
 
 ## Null hypothesis
 
@@ -81,6 +87,7 @@ M |> ggplot(aes(Sex, Mandible, color = Sex)) +
 - Hypotheses are never proven true
     - Null is rejected or failed to be rejected
 
+
 ## Null Distribution 
 
 - We can evaluate evidence in the context of the null hypothesis if we have a null distribution for some parameter of interest
@@ -89,105 +96,178 @@ M |> ggplot(aes(Sex, Mandible, color = Sex)) +
     - Simulation
     - From analytical solutions (mathematical formulas)
 
+
 ## A Simple Case
 
 - Simulate two groups of alligators (reared at high and low temperature) that differ in their growth rate. 
 
-```{r fig.width = 3}
+```{r}
 #| echo: true
+
+set.seed(736902)
 muH <- 1
-muL <- 0.3
-sd_both <- 1
-nobs <- 20
+muL <- 1 / 3
+sd1 <- sd2 <- 1
+n1 <- n2 <- 20
 
- DD <- tibble(
-    growthR = c(rnorm(nobs,muL,sd_both), rnorm(nobs,muH,sd_both)),
-    group = rep(c("L", "H"), each = nobs)
-  )
-
+DD <- tibble(
+  growthR = c(rnorm(n1, muL, sd1),
+              rnorm(n2, muH, sd2)),
+  Temperature = c(rep("Low", times = n1),
+                  rep("High", times = n2))
+)
 ```
+
 
 ## A Simple Case
 
 - Simulate two groups of alligators (reared at high and low temperature) that differ in their growth rate. 
 
-```{r fig.height = 4, fig.width=6}
-DD |>
-  ggplot(aes(group, growthR, color= group)) +
-  geom_point(position = position_jitter(0.2), size = 3) +
-  ylab("growth rate (m/yr)") +
-  scale_color_viridis(discrete=TRUE)
+```{r}
+#| echo: false
 
+DD |>
+  ggplot(aes(Temperature, growthR, color = Temperature)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  ylab("log Growth rate (cm/yr)") +
+  scale_color_viridis_d() +
+  theme(legend.position = "none")
 ```
+
 
 ## Empirical Null Distribution
 
-```{r, echo=TRUE, fig.height=3, fig.width=5}
+```{r}
+#| echo: true
+#| warning: false
+#| output-location: slide
+
+d <- DD |> group_by(Temperature) |> 
+  summarize(xbar = mean(growthR)) |> 
+  pivot_wider(names_from = Temperature, values_from = xbar) |> 
+  mutate(d = High - Low) |> 
+  pull(d)
 
 nreps <- 1e4
 diffs.e <- numeric(length = nreps)
-diffs.e[1] <- mean(DD$growthR[DD$group=="L"]) - mean(DD$growthR[DD$group=="H"])
+diffs.e[1] <- mean(DD$growthR[DD$Temperature=="Low"]) -
+  mean(DD$growthR[DD$Temperature=="High"])
+
 for (ii in 2:nreps) {
-  Rand_G <- sample(DD$group)
-  diffs.e[ii] <- mean(DD$growthR[Rand_G == "L"]) -
-    mean(DD$growthR[Rand_G == "H"])
+  Rand_G <- sample(DD$Temperature)
+  diffs.e[ii] <- mean(DD$growthR[Rand_G == "Low"]) -
+    mean(DD$growthR[Rand_G == "High"])
 }
 
 pe <- ggplot(data.frame(diffs.e), aes(diffs.e)) +
-  geom_histogram(binwidth = 0.1) +
-  ylim(c(0,1500)) +
-  labs(x = "Difference", y = "Count")
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  geom_segment(x = d, xend = d,
+               y = 0, yend = Inf,
+               linewidth = 2,
+               color = "firebrick4") +
+  ylim(c(0, 1500)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
 pe
 ```
 
+
 ## Simulated Null Distribution
 
-```{r, echo=TRUE, fig.height=3, fig.width=5}
+```{r}
+#| echo: true
+#| warning: false
+#| output-location: slide
 
-mu_both <- mean(c(muL,muH))
+mu_both <- mean(c(muL, muH))
 nreps <- 1e4
 diffs.s <- numeric(length = nreps)
 for (ii in 1:nreps) {
-  diffs.s[ii] <- mean(rnorm(nobs,mu_both,sd_both)) -
-    mean(rnorm(nobs,mu_both,sd_both))
+  diffs.s[ii] <- mean(rnorm(n1, mu_both, sd1)) -
+    mean(rnorm(n2, mu_both, sd2))
 }
 
 ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
-  geom_histogram(binwidth = 0.1) +
-  ylim(c(0,1500)) +
-  labs(x = "Difference", y = "Count")
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  geom_segment(x = d, xend = d,
+               y = 0, yend = Inf,
+               linewidth = 2,
+               color = "firebrick4") +
+  ylim(c(0, 1500)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
 ps
 ```
 
+
 ## Analytical Solution for Null Distribution
 
-```{r, echo=TRUE, fig.height=3, fig.width=5}
-scale_t <- sd_both*sqrt(2/(nobs))
-diffs.a <- scale_t*rt(nreps, nobs-2)
+```{r}
+#| echo: true
+#| warning: false
+#| output-location: slide
+
+sp <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / 
+             (n1 + n2 - 2))
+
+scale_t <- sp * sqrt(1 / n1 + 1 / n2)
+diffs.a <- scale_t * rt(nreps, df = n1 + n2 - 2)
 
 pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
-  geom_histogram(binwidth = 0.1) +
-  ylim(c(0,1500)) +
-  labs(x = "Difference", y = "Count")
-
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  geom_segment(x = d, xend = d,
+               y = 0, yend = Inf,
+               linewidth = 2,
+               color = "firebrick4") +
+  ylim(c(0, 1500)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
 pa
 ```
 
+
 ## Null Distributions
-```{r, fig.height= 4}
 
-plot_grid(pe,ps,pa, ncol=3, labels = c("empirical","simulated","analytical"), vjust=1, rel_widths = c(1,1,1))
+```{r}
+#| echo: false
 
-
+plot_grid(pe + labs(title = "Empirical"),
+          ps + labs(title = "Simulated"),
+          pa + labs(title = "Analytical"),
+          ncol = 3, vjust = 1, rel_widths = c(1, 1, 1))
 ```
+
 
 ## show n = 200
 
-## Null Distributions: Student's t
 
-<center>
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/720px-Student_t_pdf.svg.png?20130721054529" width="65%" />
-</center>
+## Null Distributions: Student's *t*
+
+```{r}
+#| echo: false
+x <- seq(-3, 3, by = 0.001)
+
+sim <- tibble(df = c(1, 2, 5, 10)) %>%
+  group_by(df) %>%
+  do(tibble(x = x, y = dt(x, .$df))) %>%
+  mutate(Parameters = paste0("df = ", df)) %>%
+  ungroup() %>%
+  mutate(Parameters = factor(Parameters, levels = unique(Parameters)))
+
+norm <- tibble(
+  x = x,
+  y = dnorm(x, 0, 1)
+)
+
+ggplot() +
+  geom_line(data = sim, aes(x, y, color = Parameters), linewidth = 1) +
+  geom_line(data = norm, aes(x, y), linewidth = 1, linetype = "dotted") +
+  scale_color_viridis_d(name = "Degrees of\nFreedom", option = "E") +
+  scale_x_continuous(breaks = seq(-2.5, 2.5, by = 0.5)) +
+  labs(x = "x", y = "Relative Probability") +
+  theme(legend.position = c(0.9, 0.75))
+```
+
 
 ## Null Distributions
 
