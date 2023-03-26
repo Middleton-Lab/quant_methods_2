@@ -66,7 +66,7 @@ M |> ggplot(aes(Sex, Mandible, color = Sex)) +
 
 ## Hypothesis testing
 
-- Are male and female jackal mandible lengths different?
+- Are male and female average mandible lengths different?
 
 ## Hypothesis testing
 
@@ -135,7 +135,7 @@ for (ii in 2:nreps) {
 
 pe <- ggplot(data.frame(diffs.e), aes(diffs.e)) +
   geom_histogram(binwidth = 0.1) +
-  ylim(c(0,2000)) +
+  ylim(c(0,1500)) +
   labs(x = "Difference", y = "Count")
 pe
 ```
@@ -154,7 +154,7 @@ for (ii in 1:nreps) {
 
 ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
   geom_histogram(binwidth = 0.1) +
-  ylim(c(0,2000)) +
+  ylim(c(0,1500)) +
   labs(x = "Difference", y = "Count")
 ps
 ```
@@ -162,12 +162,12 @@ ps
 ## Analytical Solution for Null Distribution
 
 ```{r, echo=TRUE, fig.height=3, fig.width=5}
-scale_t <- sd_both*sqrt(2/(nobs*2))
+scale_t <- sd_both*sqrt(2/(nobs))
 diffs.a <- scale_t*rt(nreps, nobs-2)
 
 pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
   geom_histogram(binwidth = 0.1) +
-  ylim(c(0,2000)) +
+  ylim(c(0,1500)) +
   labs(x = "Difference", y = "Count")
 
 pa
@@ -189,9 +189,7 @@ plot_grid(pe,ps,pa, ncol=3, labels = c("empirical","simulated","analytical"), vj
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Student_t_pdf.svg/720px-Student_t_pdf.svg.png?20130721054529" width="65%" />
 </center>
 
+## Null Distributions
 
-
-
-
-
+- Many Monte Carlo approaches will be different ways to get an empirical or simulated null distribution
 
