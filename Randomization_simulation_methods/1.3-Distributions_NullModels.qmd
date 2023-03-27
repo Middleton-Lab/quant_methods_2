@@ -200,6 +200,24 @@ ps
 ```
 
 
+## Two-sample *t*-test
+
+$$t = \frac{\bar{y}_1 - \bar{y}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
+
+Shared sample standard deviation:
+
+$$s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$$
+
+
+## Two-sample *t*-test
+
+$$s_p = \sqrt{\frac{(20 - 1) \cdot 1 + (20 - 1) \cdot 1}{20 + 20 - 2}} = \sqrt{\frac{19 + 19}{38}} = 1$$
+
+$$t = \frac{\bar{y}_1 - \bar{y}_2}{1 \cdot \sqrt{\frac{1}{20} + \frac{1}{20}}}$$
+
+$$t \cdot \sqrt{\frac{1}{20} + \frac{1}{20}} = \bar{y}_1 - \bar{y}_2$$
+
+
 ## Analytical Solution for Null Distribution
 
 ```{r}
