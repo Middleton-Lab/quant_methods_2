@@ -31,24 +31,58 @@ ggplot2::theme_set(theme_cowplot())
 - Few assumptions
 - Need to demonstrate validity for new applications
 
+
 ## Case Studies
 
 ![](Images/memojis.png){width=100%}
 
 > Taken directly from our own experiences
 
+
 ## Automated counting of fruit fly eggs
 
 ![](Images/IMG_1871.JPG){width=60%}
+
 
 ## Automated counting of fruit fly eggs
 
 ![](Images/flycount.jpeg){width=80%}
 
 
-## Hummingbird
+## Turning flight in hummingbirds
 
-## bird phylogeny
+![](https://i.imgur.com/Sacnb48.png){fig-align="center" width="100%}
+
+
+## Turning flight in hummingbirds
+
+![](https://i.imgur.com/Z144W14.png){fig-align="center" width="100%}
+
+
+## Turning flight in hummingbirds
+
+![](Images/HB_ACF_1.png){fig-align="center" width="100%}
+
+
+## Turning flight in hummingbirds
+
+![](Images/HB_ACF_2.png){fig-align="center" width="100%}
+
+
+## Mosaic evolution in Mesozoic birds
+
+![](Images/bird_1.png){fig-align="center" width="100%}
+
+
+## Mosaic evolution in Mesozoic birds
+
+![](Images/bird_2.png){fig-align="center" width="80%}
+
+
+## Mosaic evolution in Mesozoic birds
+
+![](Images/bird_3.png){fig-align="center" width="70%}
+
 
 ## Candidate Genetic Loci in the DSPR
 
