@@ -25,12 +25,12 @@ format:
 library(tidyverse)
 library(readxl)
 library(cowplot)
-theme_set(theme_cowplot())
+theme_set(theme_cowplot(font_size = 18))
 library(viridis)
 
 ```
 
-Estimation and hypotheses (Quant Methods 1, Unit 7)
+Estimation and hypotheses (QMLS 1, Unit 7)
 
 1. Parameter (point) estimation
     - Given a model, with unknown parameters ($\theta_0$, $\theta_1$, ..., $\theta_k$), how to estimate values of those parameters?
@@ -63,7 +63,7 @@ M |> ggplot(aes(Sex, Mandible, color = Sex)) +
 ## Interval estimation
 
 - Confidence interval surrounding means
-    - e.g. How uncertain is our estimate of male mean mandible size?
+    - e.g., How uncertain is our estimate of male mean mandible size?
 - Confidence interval for the difference
 
 

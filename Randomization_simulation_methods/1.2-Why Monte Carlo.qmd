@@ -224,7 +224,7 @@ t.test(Mandible ~ Sex, data = M)
 ## There is not a standard way to estimate a confidence interval
 
 - Our method of estimating confidence intervals assumes a particular distribution
-    - e.g. what is the CI on a proportion?
+    - e.g., what is the CI on a proportion?
 
 
 ## You aren't sure the analysis you are doing is OK
@@ -233,11 +233,6 @@ t.test(Mandible ~ Sex, data = M)
 - You want to know the rate of decision errors
     - false positives
     - false negatives
-
-
-## You want to ask how generalizable your results are
-
-FIXME
 
 
 ## Your question isn't answered by a typical statistical test
