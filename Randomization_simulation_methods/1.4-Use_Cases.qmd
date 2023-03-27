@@ -1,0 +1,73 @@
+---
+title: "Use Cases"
+subtitle: ""
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Potential & Limitations of Monte Carlo Methods
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+- Highly flexible
+- Few assumptions
+- Need to demonstrate validity for new applications
+
+## Case Studies
+
+![](Images/memojis.png){width=100%}
+
+> Taken directly from our own experiences
+
+## Automated counting of fruit fly eggs
+
+![](Images/IMG_1871.JPG){width=60%}
+
+## Automated counting of fruit fly eggs
+
+![](Images/flycount.jpeg){width=80%}
+
+
+## Hummingbird
+
+## bird phylogeny
+
+## Candidate Genetic Loci in the DSPR
+
+- Power analysis via simulation of genetic mapping (see Quant Methods 1, 11-3)
+- Detecting multiallelism
+- 
+
+
+number of alleles
+
+
+
+
+
+
+
+
+
+
+
+
+

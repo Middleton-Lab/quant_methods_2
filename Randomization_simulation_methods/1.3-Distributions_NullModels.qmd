@@ -204,7 +204,7 @@ ps
 
 $$t = \frac{\bar{y}_1 - \bar{y}_2}{s_p \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}$$
 
-Shared sample standard deviation:
+Pooled sample standard deviation:
 
 $$s_p = \sqrt{\frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2}}$$
 
@@ -256,7 +256,42 @@ plot_grid(pe + labs(title = "Empirical"),
 ```
 
 
-## show n = 200
+## What if our number of observations is 200?
+
+```{r}
+#| warning: false
+n1 <- 200
+n2 <- 200
+mu_both <- mean(c(muL, muH))
+nreps <- 1e4
+diffs.s <- numeric(length = nreps)
+for (ii in 1:nreps) {
+  diffs.s[ii] <- mean(rnorm(n1, mu_both, sd1)) -
+    mean(rnorm(n2, mu_both, sd2))
+}
+
+ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  ylim(c(0, 4000)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
+
+sp <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / 
+             (n1 + n2 - 2))
+
+scale_t <- sp * sqrt(1 / n1 + 1 / n2)
+diffs.a <- scale_t * rt(nreps, df = n1 + n2 - 2)
+
+pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  ylim(c(0, 4000)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
+
+plot_grid(ps + labs(title = "Simulated"),
+          pa + labs(title = "Analytical"), 
+          ncol=2, vjust = 1, rel_widths = c(1, 1))
+```
 
 
 ## Null Distributions: Student's *t*
@@ -291,3 +326,12 @@ ggplot() +
 
 - Many Monte Carlo approaches will be different ways to get an empirical or simulated null distribution
 
+- Consider our jackals data set again
+
+```{r}
+#| fig-height: 4
+#| fig-width: 6
+M |> ggplot(aes(Sex, Mandible, color = Sex)) +
+  geom_point(position = position_jitter(0.2), size = 3) +
+  scale_color_viridis_d()
+```
