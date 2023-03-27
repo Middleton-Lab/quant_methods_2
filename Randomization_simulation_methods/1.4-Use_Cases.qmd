@@ -41,7 +41,7 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Automated counting of fruit fly eggs
 
-![](Images/IMG_1871.JPG){width=60%}
+![](Images/IMG_1871.JPG){width=60% fig-align="center"}
 
 
 ## Automated counting of fruit fly eggs
@@ -51,49 +51,72 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Turning flight in hummingbirds
 
-![](https://i.imgur.com/Sacnb48.png){fig-align="center" width="100%}
+![](https://i.imgur.com/Sacnb48.png){fig-align="center" width=100%}
 
 
 ## Turning flight in hummingbirds
 
-![](https://i.imgur.com/Z144W14.png){fig-align="center" width="100%}
+![](https://i.imgur.com/Z144W14.png){fig-align="center" width=100%}
 
 
 ## Turning flight in hummingbirds
 
-![](Images/HB_ACF_1.png){fig-align="center" width="100%}
+![](Images/HB_ACF_1.png){fig-align="center" width=100%}
 
 
 ## Turning flight in hummingbirds
 
-![](Images/HB_ACF_2.png){fig-align="center" width="100%}
+![](Images/HB_ACF_2.png){fig-align="center" width=100%}
 
 
 ## Mosaic evolution in Mesozoic birds
 
-![](Images/bird_1.png){fig-align="center" width="100%}
+![](Images/bird_1.png){fig-align="center" width=100%}
 
 
 ## Mosaic evolution in Mesozoic birds
 
-![](Images/bird_2.png){fig-align="center" width="80%}
+![](Images/bird_2.png){fig-align="center" width=80%}
 
 
 ## Mosaic evolution in Mesozoic birds
 
-![](Images/bird_3.png){fig-align="center" width="70%}
+![](Images/bird_3.png){fig-align="center" width=70%}
 
 
-## Candidate Genetic Loci in the DSPR
+## Candidate Genetic Loci in the DSPR {.smaller}
 
 - Power analysis via simulation of genetic mapping (see Quant Methods 1, 11-3)
 - Detecting multiallelism
-- 
+- Simulating a null for differences between allele frequencies
+
+![](https://wfitch.bio.uci.edu/~dspr/RILs/files/crossing_design_final.png){fig-align="center" width=80%}
+
+## Multiallelism
+
+![](Images/multi_ex.jpeg){width=60% fig-align="center"}
+
+## Multiallelism 
+
+![](Images/multi_result.jpeg){width=55% fig-align="center"}
+
+## Allele Frequency Differences
+
+![](Images/allelef_surv.jpeg){width=90% fig-align="center"}
 
 
-number of alleles
+## Allele Frequency Differences
 
+![](Images/allelef_result.jpeg){width=100% fig-align="center"}
 
+## What questions do we ask when we use statistics? {.smaller}
+
+1. Parameter (point) estimation
+    - Given a model, with unknown parameters ($\theta_0$, $\theta_1$, ..., $\theta_k$), how to estimate values of those parameters?
+2. Interval estimation
+    - How to quantify the uncertainty associated with parameter estimates?
+3. Hypothesis testing
+    - How to test hypotheses about parameter estimates?
 
 
 

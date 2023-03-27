@@ -324,7 +324,7 @@ ggplot() +
 
 ## Null Distributions
 
-- Many Monte Carlo approaches will be different ways to get an empirical or simulated null distribution
+- Many (but not all) Monte Carlo approaches will be different ways to get an empirical or simulated null distribution
 
 - Consider our jackals data set again
 
