@@ -1,6 +1,6 @@
 ---
-title: "Distributions and Null Models"
-subtitle: ""
+title: "Sampling from Datasets: Foundations"
+subtitle: "Introduction"
 author:
   - Elizabeth King
   - Kevin Middleton

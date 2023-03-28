@@ -1,0 +1,130 @@
+---
+title: "The Jackknife"
+subtitle: ""
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## What is the jackknife?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+- Invented by Quenouille and proposed by Tukey as a way to estimate confidence intervals and perform hypothesis tests when other methods don't work
+- A way to generate many estimates of the parameter by removing one observation from your dataset at a time ("delete-one jackknife")
+
+<center>
+<img src="https://cdn.shopify.com/s/files/1/0258/3566/7561/products/vm_53381--91_sol_front_ax1000.jpg?v=1569295439" width="25%" />
+</center>
+
+## The General Procedure
+
+1. Begin with the full dataset
+1. Remove the first value
+1. Calculate the parameter of interest pseudovalue
+1. Put the first value back and remove the second
+1. Calculate the parameter of interest pseudovalue
+1. Repeat until each value has been removed exactly one time
+
+- The result is a set of pseudovalues the same length as the original dataset
+
+## An Example: Heritability
+
+- Heritability is the proportion of total phenotypic variance explained by variation in genetic factors 
+- Heritability is estimated by using a linear model to partition the phenotypic variance and estimate these quantities 
+- Several methods have been proposed as a standard error, but many have known problems
+
+## Thermal tolerance in a set of inbred lines
+
+```{r}
+#| echo: true
+TT <- read_csv("Data/thermtol.csv")
+TT$Line <- as.factor(TT$Line)
+TT$incapacitation_T <- sqrt(TT$incapacitation)
+glimpse(TT)
+
+```
+
+## Thermal tolerance in a set of inbred lines
+
+```{r}
+TT$Tname <- with(TT, reorder(Line, incapacitation, function(x) mean(x)))
+ThermTol_indi_points <- ggplot(TT, aes(x = Tname, y = incapacitation)) +
+  geom_point(size = 0.01, alpha = 1/8) +
+  stat_summary(fun = mean,
+               position = position_dodge(width = 0.5),
+               geom = "point",
+               color = "red",
+               size = 0.01, alpha = 1/2) +
+  stat_summary(fun.data = mean_se, 
+               geom = "errorbar", 
+               color = 'red', width=0, linewidth=0.3, alpha=1/2) +
+  theme_half_open() +
+  theme(legend.position = "none",axis.ticks.x=element_blank()) +
+  xlab("Line") +
+  ylab("Thermal tolerance") +
+  #ylim(c( -0.5, 601))+
+  theme(axis.text.x = element_blank())
+
+ThermTol_indi_points
+
+```
+
+## Estimating heritability
+
+```{r}
+
+#| echo: true
+
+afit <- aov(incapacitation_t ~ Line, data = TT)
+summary(afit)
+suma <- unlist(summary(afit))
+
+#get variance within groups
+sw <- suma['Mean Sq2']
+
+#get variance between groups SEE Lessels and Boag (1987)
+Ng <- length(unique(TT$Line))
+ns <- table(TT$Line)
+n0 <- (1/(Ng-1)) * (sum(ns)-(sum(ns^2)/sum(ns)))
+sa <- (suma['Mean Sq1']-suma['Mean Sq2'])/n0
+  
+#Observed Heritability
+H2.0 <- sa/(sa+sw)
+H2.0
+
+```
+
+
+
+
+## Notes
+
+- pseudovalues & distribution
+- turns it into a situation of just estimating a mean and SE from a normal
+
+- have to show it works for use cases
+- known bias - particular to each case
+
+
+
+
+
+
