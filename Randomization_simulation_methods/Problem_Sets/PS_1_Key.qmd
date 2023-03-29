@@ -16,6 +16,7 @@ format:
 
 library(tidyverse)
 library(cowplot)
+library(ggExtra)
 
 theme_set(theme_cowplot())
 
@@ -97,6 +98,106 @@ qnorm(0.975)
 ```
 
 
+## Brownian motion and why biological things are normal
+
+```{r}
+set.seed(3473897)
+
+markov_sim <- function(sim_num, nsteps) {
+  s <- replicate(nsteps, sample(c(-1, 1), 1))
+  y <- cumsum(s)
+  return(tibble(sim_num, step = seq_len(nsteps), y))
+}
+
+niter <- 1000
+steps <- 10
+sims <- map(.x = seq_len(niter),
+            markov_sim,
+            nsteps = steps) |> 
+  list_rbind()
+
+ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.25,
+            linewidth = 0.5) +
+  geom_path(data = sims |> filter(sim_num == 1), aes(x = y, y = step),
+            color = "red",
+            linewidth = 2.5)
+
+ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.25,
+            linewidth = 0.5) +
+  geom_path(data = sims |> filter(sim_num == 2), aes(x = y, y = step),
+            color = "red",
+            linewidth = 2.5)
+
+p <- ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.5,
+            linewidth = 1.5) +
+  geom_point(data = sims, aes(x = y, y = step), alpha = 0)
+P <- ggMarginal(p, margin = "x",
+           type = "histogram",
+           xparams = list(binwidth = 1, fill = "orange"))
+```
+
+```{r}
+grid::grid.newpage()
+grid::grid.draw(P)
+```
+
+Repeat the above but use rnorm
+
+```{r}
+set.seed(3473897)
+
+brownian_sim <- function(sim_num, nsteps) {
+  s <- replicate(nsteps, rnorm(1))
+  y <- cumsum(s)
+  return(tibble(sim_num, step = seq_len(nsteps), y))
+}
+
+niter <- 1000
+steps <- 10
+sims <- map(.x = seq_len(niter),
+            brownian_sim,
+            nsteps = steps) |> 
+  list_rbind()
+
+ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.25,
+            linewidth = 0.5) +
+  geom_path(data = sims |> filter(sim_num == 1), aes(x = y, y = step),
+            color = "red",
+            linewidth = 2.5)
+
+ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.25,
+            linewidth = 0.5) +
+  geom_path(data = sims |> filter(sim_num == 2), aes(x = y, y = step),
+            color = "red",
+            linewidth = 2.5)
+
+p <- ggplot() +
+  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
+            alpha = 0.25,
+            linewidth = 0.5) +
+  geom_point(data = sims, aes(x = y, y = step), alpha = 0)
+P <- ggMarginal(p, margin = "x",
+           type = "histogram",
+           xparams = list(binwidth = 0.5, fill = "orange"))
+
+```
+
+```{r}
+grid::grid.newpage()
+grid::grid.draw(P)
+```
+
+
 ## Prove the central limit theorem
 
 ```{r}
@@ -134,6 +235,4 @@ median(Mm)
 
 ```
 
-
-## Brownian motion and why biological things are normal
 
