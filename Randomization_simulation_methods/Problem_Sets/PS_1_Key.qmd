@@ -1,0 +1,139 @@
+---
+title: "Problem Set 1"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+
+theme_set(theme_cowplot())
+
+# Required files for this problem set:
+
+```
+
+- Give a data set that was generated from a null & ask them to visualize and summarize.
+- Some simple programming - pulling samples, assigning and tracking ids, loops and mapping
+
+## Sampling error with small sample
+
+```{r}
+#| echo: false
+set.seed(53451)
+nobs <- 5
+
+MM <- tibble(
+  y = c(rnorm(nobs, 15, 2),
+        rnorm(nobs, 17, 2)),
+  Tx = rep(c("G1", "G2"), each = nobs)
+)
+
+d_obs <- MM |> 
+    group_by(Tx) |> 
+    summarize(y_bar = mean(y)) |> 
+    pivot_wider(names_from = Tx, values_from = y_bar) |> 
+    mutate(d = G2 - G1) |> 
+    pull(d)
+
+ggplot(MM, aes(x = Tx, y = y)) +
+  geom_point()
+
+Tx_diff <- function(.x, MM) {
+  MM_resample <- MM |> 
+    mutate(Tx = sample(Tx))
+  d <- MM_resample |> 
+    group_by(Tx) |> 
+    summarize(y_bar = mean(y)) |> 
+    pivot_wider(names_from = Tx, values_from = y_bar) |> 
+    mutate(d = G2 - G1) |> 
+    pull(d)
+  return(d)
+}
+
+niter <- 1000
+d_resample <- map_dbl(.x = seq_len(niter),
+                      .f = Tx_diff,
+                      MM = MM)
+d_resample[1] <- d_obs
+
+ggplot(data = tibble(d_resample),
+       aes(d_resample)) +
+  geom_histogram(bins = 50, fill = "gray75") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_vline(xintercept = d_obs, color = "dodgerblue4", linewidth = 1)
+
+mean(d_resample >= d_obs)
+```
+
+
+## Law of large numbers pnorm vs. rnorm |> quantile
+
+```{r}
+set.seed(346264)
+r <- rnorm(1e5)
+r_sort <- sort(r)
+
+head(r_sort)
+tail(r_sort)
+
+r_sort[2500]
+r_sort[97500]
+
+quantile(r, probs = c(0.025, 0.975))
+
+qnorm(0.025)
+qnorm(0.975)
+```
+
+
+## Prove the central limit theorem
+
+```{r}
+SP <- abdData::SticklebackPlates
+
+ggplot(SP, aes(plates)) +
+  geom_histogram(bins = 30) +
+  facet_grid(genotype ~ .)
+
+SP |> 
+  group_by(genotype) |> 
+  summarize(Mean = mean(plates),
+            Median = median(plates))
+
+Mm <- SP |> 
+  filter(genotype == "Mm") |> 
+  pull(plates)
+
+resample_Mm <- function(ii, nsamp) {
+  ids <- sample(seq_len(length(Mm)), nsamp)
+  return(tibble(ii, bar = mean(Mm[ids])))
+}
+
+niter <- 1000
+resamples <- map(.x = seq_len(niter),
+                 .f = resample_Mm,
+                 nsamp = 20) |> 
+  list_rbind()
+
+ggplot(resamples, aes(bar)) +
+  geom_histogram(bins = 30)
+
+mean(resamples$bar)
+median(Mm)
+
+```
+
+
+## Brownian motion and why biological things are normal
+
