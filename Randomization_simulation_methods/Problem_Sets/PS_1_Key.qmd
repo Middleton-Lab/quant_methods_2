@@ -238,3 +238,17 @@ median(Mm)
 ```
 
 
+```{r}
+library(boot)
+
+mean_fun <- function(data, indices) {
+  data_sub <- data[indices]
+  return(mean(data_sub))
+}
+
+b <- boot(data = Mm, statistic = mean_fun, R = 2000, stype = "i")
+b
+plot(b)
+boot.ci(b, type="bca")
+```
+
