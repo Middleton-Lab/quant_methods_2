@@ -1,0 +1,51 @@
+---
+title: "The Bootstrap"
+subtitle: ""
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## What is the bootstrap?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+```
+
+- First formalized and named by Efron. The technique was named after "pulling yourself out of the mud by your bootstraps". 
+- A general way to take random samples from a dataset to approximate the true distribution
+    - Assumes the observed dataset is an adequate representation of the true distribution
+
+<center>
+<img src="https://chronicle.brightspotcdn.com/dims4/default/b7e180a/2147483647/strip/true/crop/544x382+0+0/resize/840x590!/quality/90/?url=http%3A%2F%2Fchronicle-brightspot.s3.amazonaws.com%2F73%2Ff2%2F9e84cc02055987e5f2aaaca55047%2Fdr-martens-black-old.jpg" width="25%" />
+</center>
+
+## The General Procedure
+
+1. Begin with the full dataset
+1. Take a random sample of size n from the dataset
+1. Calculate the parameter of interest 
+1. Replace the sampled values to the dataset and take another random sample
+1. Calculate the parameter of interest
+1. Repeat B times to get B bootstrapped values
+
+
+
+
+
+0.1036379 -1.3314651 -0.2892045  0.1020433
