@@ -143,6 +143,7 @@ P <- ggMarginal(p, margin = "x",
 ```
 
 ```{r}
+#| echo: false
 grid::grid.newpage()
 grid::grid.draw(P)
 ```
@@ -193,6 +194,7 @@ P <- ggMarginal(p, margin = "x",
 ```
 
 ```{r}
+#| echo: false
 grid::grid.newpage()
 grid::grid.draw(P)
 ```
