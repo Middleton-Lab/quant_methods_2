@@ -12,6 +12,7 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+code-annotations: hover
 ---
 
 ## What questions do we ask when we use statistics? {.smaller}
@@ -25,9 +26,9 @@ format:
 library(tidyverse)
 library(readxl)
 library(cowplot)
-theme_set(theme_cowplot(font_size = 18))
 library(viridis)
 
+theme_set(theme_cowplot(font_size = 18))
 ```
 
 Estimation and hypotheses (QMLS 1, Unit 7)
@@ -142,21 +143,20 @@ DD |>
 #| warning: false
 #| output-location: slide
 
-d <- DD |> group_by(Temperature) |> 
-  summarize(xbar = mean(growthR)) |> 
-  pivot_wider(names_from = Temperature, values_from = xbar) |> 
-  mutate(d = High - Low) |> 
-  pull(d)
+d <- DD |> group_by(Temperature) |>                             # <1>
+  summarize(xbar = mean(growthR)) |>                            # <1>
+  pivot_wider(names_from = Temperature, values_from = xbar) |>  # <1>
+  mutate(d = High - Low) |>                                     # <1>
+  pull(d)                                                       # <1>
 
 nreps <- 1e4
 diffs.e <- numeric(length = nreps)
-diffs.e[1] <- mean(DD$growthR[DD$Temperature=="Low"]) -
-  mean(DD$growthR[DD$Temperature=="High"])
+diffs.e[1] <- d                                                 # <2>
 
 for (ii in 2:nreps) {
-  Rand_G <- sample(DD$Temperature)
-  diffs.e[ii] <- mean(DD$growthR[Rand_G == "Low"]) -
-    mean(DD$growthR[Rand_G == "High"])
+  Rand_G <- sample(DD$Temperature)                              # <3>
+  diffs.e[ii] <- mean(DD$growthR[Rand_G == "High"]) -           # <4>
+    mean(DD$growthR[Rand_G == "Low"])                           # <4>
 }
 
 pe <- ggplot(data.frame(diffs.e), aes(diffs.e)) +
@@ -171,6 +171,11 @@ pe <- ggplot(data.frame(diffs.e), aes(diffs.e)) +
 pe
 ```
 
+1. Calculate the observed difference.
+2. Assign the observed difference to the 1st position of the `diffs.e` vector.
+3. Randomize the `Temperature` column
+4. Calculate the difference for the randomized data
+
 
 ## Simulated Null Distribution
 
@@ -179,7 +184,7 @@ pe
 #| warning: false
 #| output-location: slide
 
-mu_both <- mean(c(muL, muH))
+mu_both <- mean(c(muL, muH))                        # <1>
 nreps <- 1e4
 diffs.s <- numeric(length = nreps)
 for (ii in 1:nreps) {
@@ -198,6 +203,8 @@ ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
   labs(x = "Difference (High - Low)", y = "Count")
 ps
 ```
+
+1. Mean for both groups
 
 
 ## Two-sample *t*-test
@@ -225,11 +232,11 @@ $$t \cdot \sqrt{\frac{1}{20} + \frac{1}{20}} = \bar{y}_1 - \bar{y}_2$$
 #| warning: false
 #| output-location: slide
 
-sp <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / 
-             (n1 + n2 - 2))
+sp <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) /    # <1>
+             (n1 + n2 - 2))                           # <1>
 
-scale_t <- sp * sqrt(1 / n1 + 1 / n2)
-diffs.a <- scale_t * rt(nreps, df = n1 + n2 - 2)
+scale_t <- sp * sqrt(1 / n1 + 1 / n2)                 # <2>
+diffs.a <- scale_t * rt(nreps, df = n1 + n2 - 2)      # <3>
 
 pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
   geom_histogram(binwidth = 0.1, fill = "gray75") +
@@ -242,6 +249,10 @@ pa <- ggplot(data.frame(diffs.a), aes(diffs.a)) +
   labs(x = "Difference (High - Low)", y = "Count")
 pa
 ```
+
+1. Pooled sample standard deviation
+2. Scaling factor for *t* values based on `sp`
+3. Draw random numbers from a *t* distribution with *N* - 2 degrees of freedom and scale by `scale_t`.
 
 
 ## Null Distributions
