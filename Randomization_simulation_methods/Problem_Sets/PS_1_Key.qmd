@@ -62,6 +62,15 @@ Tx_diff <- function(.x, MM) {
   return(d)
 }
 
+# Show how to do this with a loop first
+
+
+
+
+
+
+
+# With map
 niter <- 1000
 d_resample <- map_dbl(.x = seq_len(niter),
                       .f = Tx_diff,
@@ -197,58 +206,5 @@ P <- ggMarginal(p, margin = "x",
 #| echo: false
 grid::grid.newpage()
 grid::grid.draw(P)
-```
-
-
-## Prove the central limit theorem
-
-```{r}
-SP <- abdData::SticklebackPlates
-
-ggplot(SP, aes(plates)) +
-  geom_histogram(bins = 30) +
-  facet_grid(genotype ~ .)
-
-SP |> 
-  group_by(genotype) |> 
-  summarize(Mean = mean(plates),
-            Median = median(plates))
-
-Mm <- SP |> 
-  filter(genotype == "Mm") |> 
-  pull(plates)
-
-resample_Mm <- function(ii, nsamp) {
-  ids <- sample(seq_len(length(Mm)), nsamp)
-  return(tibble(ii, bar = mean(Mm[ids])))
-}
-
-niter <- 1000
-resamples <- map(.x = seq_len(niter),
-                 .f = resample_Mm,
-                 nsamp = 20) |> 
-  list_rbind()
-
-ggplot(resamples, aes(bar)) +
-  geom_histogram(bins = 30)
-
-mean(resamples$bar)
-median(Mm)
-
-```
-
-
-```{r}
-library(boot)
-
-mean_fun <- function(data, indices) {
-  data_sub <- data[indices]
-  return(mean(data_sub))
-}
-
-b <- boot(data = Mm, statistic = mean_fun, R = 2000, stype = "i")
-b
-plot(b)
-boot.ci(b, type="bca")
 ```
 
