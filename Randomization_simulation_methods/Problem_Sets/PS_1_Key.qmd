@@ -8,122 +8,274 @@ format:
     toc: true
     toc-depth: 2
     toc-title: Contents
+code-annotations: hover
 ---
 
 ```{r}
 #| echo: false
 #| message: false
+#| warning: false
+#| results: "hide"
 
 library(tidyverse)
+library(broom)
 library(cowplot)
-library(ggExtra)
 
 theme_set(theme_cowplot())
 
-# Required files for this problem set:
 
-```
-
-- Give a data set that was generated from a null & ask them to visualize and summarize.
-- Some simple programming - pulling samples, assigning and tracking ids, loops and mapping
-
-## Sampling error with small sample
-
-```{r}
-#| echo: false
-set.seed(53451)
+set.seed(5311122)
 nobs <- 5
 
 MM <- tibble(
-  y = c(rnorm(nobs, 15, 2),
+  y = c(rnorm(nobs, 17, 2),
         rnorm(nobs, 17, 2)),
-  Tx = rep(c("G1", "G2"), each = nobs)
+  Group = rep(c("Group_1", "Group_2"), each = nobs)
 )
 
-d_obs <- MM |> 
-    group_by(Tx) |> 
-    summarize(y_bar = mean(y)) |> 
-    pivot_wider(names_from = Tx, values_from = y_bar) |> 
-    mutate(d = G2 - G1) |> 
-    pull(d)
+lm(y ~ Group, data = MM) |> summary()
 
-ggplot(MM, aes(x = Tx, y = y)) +
-  geom_point()
+write_csv(x = MM, file = "../Data/small_data.csv")
 
-Tx_diff <- function(.x, MM) {
-  MM_resample <- MM |> 
-    mutate(Tx = sample(Tx))
-  d <- MM_resample |> 
-    group_by(Tx) |> 
-    summarize(y_bar = mean(y)) |> 
-    pivot_wider(names_from = Tx, values_from = y_bar) |> 
-    mutate(d = G2 - G1) |> 
-    pull(d)
-  return(d)
-}
+set.seed(5374978)
+nobs <- 50
 
-# Show how to do this with a loop first
+MM <- tibble(
+  y = c(rnorm(nobs, 17, 2),
+        rnorm(nobs, 17, 2)),
+  Group = rep(c("Group_1", "Group_2"), each = nobs)
+)
 
+lm(y ~ Group, data = MM) |> summary()
 
+write_csv(x = MM, file = "../Data/large_data.csv")
 
-
-
-
-
-# With map
-niter <- 1000
-d_resample <- map_dbl(.x = seq_len(niter),
-                      .f = Tx_diff,
-                      MM = MM)
-d_resample[1] <- d_obs
-
-ggplot(data = tibble(d_resample),
-       aes(d_resample)) +
-  geom_histogram(bins = 50, fill = "gray75") +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
-  geom_vline(xintercept = d_obs, color = "dodgerblue4", linewidth = 1)
-
-mean(d_resample >= d_obs)
+# Required files for this problem set:
+#   - small_data.csv
+#   - large_data.csv
 ```
 
 
-## Law of large numbers pnorm vs. rnorm |> quantile
+## Exploring sampling error
+
+Small data sets are often problematic for analysis. The smaller that a data set is, the larger the effect that sampling error can have. A consequence is that, because hypothesis tests based on linear models (*t* and *F* tests, for example) rely on the assumptions of the models, such models can be biased or simply incorrect when sample sizes are small. There is no universally agreed upon measure of "small" when describing a data set.
+
+The data in `small_data.csv` has 10 observations split evenly between two groups (`Group_1` and `Group_2`). These data were generated using `rnorm()` with the means and standard deviations for each group equal. In other words, both sets of data were drawn from the same distribution.
+
+Load the data and visualize it however you would like to.
 
 ```{r}
+#| echo: true
+
+# FIXME
+MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
+
+ggplot(MM, aes(x = Group, y = y)) +
+  geom_point()
+```
+
+We will ultimately be interested in testing whether means of the two groups differ significantly from one another. Based on the plot you made, what is your intuition?
+
+> Maybe. There is a lot of variation in group 1, but its mean looks like it might be larger than group 1.
+
+Calculate the group means and standard deviations as well as the difference in the means.
+
+```{r}
+#| echo: true
+
+# FIXME
+MM |>
+    group_by(Group) |> 
+    summarize(y_mean = mean(y),
+              y_sd = sd(y))
+
+d_obs <- MM |> 
+    group_by(Group) |> 
+    summarize(y_mean = mean(y)) |> 
+    pivot_wider(names_from = Group, values_from = y_mean) |> 
+    mutate(d = Group_2 - Group_1) |> 
+    pull(d)
+d_obs
+```
+
+Do the group means and standard deviations provide any insight about whether the means are significantly different?
+
+> The means differ by 2.4, but that is about as much as the standard deviations.
+
+Use `lm()` to fit a linear model predicting `y` by `Group`. Then use `summary()` to check whether the group means differ.
+
+```{r}
+#| echo: true
+
+# FIXME
+
+fm <- lm(y ~ Group, data = MM)
+summary(fm)
+```
+
+What do you find?
+
+> The means are not significantly different, but only slightly (assuming $\alpha$ = 0.05). P = 0.08 for the difference.
+
+One of the assumptions of a linear model like this is that the residuals within each group are normally distributed. With only 5 points in each group that is pretty much impossible to determine. There are several different formal tests of normality (Shapiro-Wilk and Kolmogorov-Smirnov), but these tests are not that useful with so few observations. Both false negatives and false positives are common in these tests (particularly so for large and small samples). Similarly, you could look at a QQ plot of the residuals, but, again: only 10 points.
+
+It is important to remember that some parts of the linear model `summary()` are arithmetically determined by the observed data: the parameter estimates, their standard errors, the *t* and *F* statistics, and the R^2^ value. Only the *P*-values associated with the hypothesis tests of the parameter estimates vs. 0 (the `Pr(>|t|)` column) and of the overall *F* test (here `p-value: 0.07688`) rely on the asymptotic assumptions of the test. 
+
+Tests of significance based on randomization do not have the same assumptions, even though they might make use of the *t* or *F* statistics from a model summary as part of the analysis. Remember that these values are determined just from division of estimates by standard errors (for *t*) and of group mean squares by residual mean squares (for *F*).
+
+We will revisit to these data in Problem Set 2, where we will do the same analysis but use the *t* statistic to perform a randomization test.
+
+
+## Quantiles and `q` functions for distributions
+
+As discussed above, the *P*-values reported in `summary()` reflect the asymptotic nature of the *t* and *F* tests. Indeed, we can recover the *P*-values from the summary table using `pt()` and `pf()`:
+
+```{r}
+2 * pt(-2.03, df = 8, lower.tail = TRUE)
+pf(4.12, df1 = 1, df2 = 8, lower.tail = FALSE)
+```
+
+For the *t*-test, we have to double the resulting *P*-value to account for both tails (i.e., a two-sided test). These values are exact, except for rounding error. In this case, the *P*-values are equivalent for the two tests, because they are actually testing the same thing: the overall *F*-test is the same as the test for the difference in groups equaling 0.
+
+In this question we want to explore what it means when we say "asymptotic" and what happens when the assumptions aren't met.
+
+In the chunk below, set the random number seed and then generate 100,000 (`1e5`) random samples from a standard normal distribution^[This demonstration will work with any normal distribution, but choosing the standard normal allows us to not have to specify the mean and standard deviation each time we use a `norm` function.]. Next, sort the values (or do this in one step). You should end up with a vector of 100,000 values sorted from low to high.
+
+```{r}
+#| echo: true
+
+# FIXME
 set.seed(346264)
-r <- rnorm(1e5)
-r_sort <- sort(r)
+x <- sort(rnorm(1e5))
+```
 
-head(r_sort)
-tail(r_sort)
+Print the `head()` and `tail()` of the vector:
 
-r_sort[2500]
-r_sort[97500]
+```{r}
+#| echo: true
 
-quantile(r, probs = c(0.025, 0.975))
+# FIXME
+head(x)
+tail(x)
+```
+
+What are the maximum and minimum values? How likely would these values be if we had a smaller sample?
+
+> For our seed, the minimum is -4.30 and the maximum is 4.33. The probability of these values is fixed: they are equally likely (though the probability is low). However, taking a larger sample means that we have more chances to randomly select such extreme values.
+
+Now print then 2,500th and 97,500th values of the vector as well as the 0.025 and 0.975 quantiles.
+
+```{r}
+#| echo: true
+
+# FIXME
+x[2500]
+x[97500]
+
+quantile(x, probs = c(0.025, 0.975))
+```
+
+Do the values agree? Do they agree exactly? Look at the help for `quantile()` and see if you can find an option to make them agree exactly. R has 9 different types of quantiles.
+
+> They are very close with the default quantile (`type = 7`) but not exactly matching. Setting `type = 4` makes them match exactly.
+
+Now compare the values for the quantiles above to the theoretical quantiles for a standard normal distribution using `qnorm()`.
+
+```{r}
+#| echo: true
+
+# FIXME
+qnorm(0.025)
+qnorm(0.975)
+```
+
+How well do they agree?
+
+> Again they are very close. `qnorm()` gives $\pm$ 1.97, and our values (for this seed) are -1.968 and 1.95.
+
+Now think about what would happen if the data had actually been drawn from a *t* distribution (with 8 degrees of freedom) rather than from a standard normal.
+
+How do you think the 95% quantile interval would compare?
+
+> 
+
+Test your prediction below, following the same steps as above, but generating the data with `rt()` rather then `rnorm()`. You can just copy the code into a single chunk.
+
+```{r}
+#| echo: true
+
+# FIXME
+set.seed(782346)
+x <- sort(rt(1e5, df = 8))
+
+head(x)
+tail(x)
+
+x[2500]
+x[97500]
+
+quantile(x, probs = c(0.025, 0.975))
 
 qnorm(0.025)
 qnorm(0.975)
 ```
 
+How do the intervals compare?
 
-## Brownian motion and why biological things are normal
+> Normally derived intervals are much too narrow when the data actually follow a *t* distribution (*df* = 8). If there were a lot more data then the intervals would match pretty well.
+
+
+## Brownian motion and why biological traits are very often normally distributed
+
+Normal or Gaussian distributions (and their relatives like log-Normal) are extremely common distributions in biology, particularly so for phenotypic trait values. Here we want to explore how a simple process can lead to a normal distribution.
+
+The small function below generates a sequence of +1 or -1 for some number of steps (`nsteps`) and then adds the resulting values cumulatively. Think of this process as, at each step, adding or subtracting 1. Because this process doesn't know about its past and only works 1 step at a time, it's called a Markov process.
+
+Feel free to step through the code and see what the values for `s` and `y` are.
 
 ```{r}
+markov_sim <- function(sim_num, nsteps) {
+  s <- replicate(nsteps, sample(c(-1, 1), 1))        # <1>
+  y <- cumsum(s)                                     # <2>
+  return(tibble(sim_num, step = seq_len(nsteps), y)) # <3>
+}
+```
+
+1. Generate a sequence of `nsteps` of -1 or 1 by sampling. There are many ways to do this step.
+2. Add up the values of `s` cumulatively
+3. Return the simulation number (so we can keep track), the step number, and the value for `y`
+
+In the chunk below, we generate 1000 "lineages" using the function above where each lineage "evolves" for 10 generations. There are several ways to do this process. One is to use `purrr::map()`, passing the sequence `1:niter` as `.x` and 10 for `nsteps`. `purrr::map()` returns a list, but you can "stack" them together with `list_rbind()`. Using `map()` rather than a loop will make it easier to parallelize this code in the future using `furrr::future_map()`. We will get to that.
+
+```{r}
+#| echo: true
+
+# FIXME
 set.seed(3473897)
 
-markov_sim <- function(sim_num, nsteps) {
-  s <- replicate(nsteps, sample(c(-1, 1), 1))
-  y <- cumsum(s)
-  return(tibble(sim_num, step = seq_len(nsteps), y))
-}
-
 niter <- 1000
-steps <- 10
-sims <- map(.x = seq_len(niter),
-            markov_sim,
-            nsteps = steps) |> 
-  list_rbind()
+nsteps <- 10
+sims <- map(.x = seq_len(niter), # <1>
+            .f = markov_sim,     # <2>
+            nsteps = nsteps) |>  # <3>
+  list_rbind()                   # <4>
+```
+
+1. `.x` is passed as the first argument to the function, which is why we need to set `sim_num` as the first argument. `seq_len(niter)` is a shortcut for `1:niter`.
+2. `.f` is the function to call. Note no `()` here.
+3. `nsteps` is also required by the function, so we pass it as well.
+4. The `markov_sim()` function returns a list of 1-row tibbles. `list_rbind()` stacks them in sequence, like `bind_rows()` or `rbind()`.
+
+You will have a tibble with 3 columns and 10,000 rows. 
+
+```{r}
+head(sims)
+```
+
+We can visualize the paths for each of our simulated lineages and highlight a single lineage. There are a lot of overlapping lines, so it mostly just looks line an argyle pattern.
+
+```{r}
+#| echo: true
 
 ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
@@ -140,26 +292,29 @@ ggplot() +
   geom_path(data = sims |> filter(sim_num == 2), aes(x = y, y = step),
             color = "red",
             linewidth = 2.5)
+```
 
-p <- ggplot() +
+Finally, we plot the lineages and the resulting distribution:
+
+```{r}
+p1 <- ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
             alpha = 0.5,
             linewidth = 1.5) +
   geom_point(data = sims, aes(x = y, y = step), alpha = 0)
-P <- ggMarginal(p, margin = "x",
-           type = "histogram",
-           xparams = list(binwidth = 1, fill = "orange"))
+p2 <- ggplot(data = sims, aes(y)) +
+  geom_histogram(binwidth = 1)
+plot_grid(p2, p1, nrow = 2)
 ```
 
-```{r}
-#| echo: false
-grid::grid.newpage()
-grid::grid.draw(P)
-```
+You can see that even a relatively simple process of adding or subtracting 1 can, over a relatively short sequence, produce a viable normal distribution. Try changing the values of `niter` and `nsteps` and rerunning the simulation.
 
-Repeat the above but use rnorm
+In the chink below, rewrite the `markov_sim()` function to instead use values drawn from a standard normal distribution. This is more typically called Brownian motion, where at each step, a small amount is added (or subtracted).
 
 ```{r}
+#| echo: true
+
+# FIXME
 set.seed(3473897)
 
 brownian_sim <- function(sim_num, nsteps) {
@@ -191,20 +346,16 @@ ggplot() +
             color = "red",
             linewidth = 2.5)
 
-p <- ggplot() +
+p1 <- ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
             alpha = 0.25,
             linewidth = 0.5) +
   geom_point(data = sims, aes(x = y, y = step), alpha = 0)
-P <- ggMarginal(p, margin = "x",
-           type = "histogram",
-           xparams = list(binwidth = 0.5, fill = "orange"))
-
+p2 <- ggplot(data = sims, aes(y)) +
+  geom_histogram(binwidth = 0.25)
+plot_grid(p2, p1, nrow = 2)
 ```
 
-```{r}
-#| echo: false
-grid::grid.newpage()
-grid::grid.draw(P)
-```
+How do the results compare to the simpler $\pm$ 1 simulation?
 
+> Because we are adding non-integer values, the resulting distribution is much smoother. However, the range is pretty similar. 
