@@ -24,7 +24,9 @@ format:
 
 library(tidyverse)
 library(cowplot)
+library(viridis)
 ggplot2::theme_set(theme_cowplot())
+set.seed(8393824)
 ```
 
 - First formalized and named by Efron. The technique was named after "pulling yourself out of the mud by your bootstraps". 
@@ -37,15 +39,213 @@ ggplot2::theme_set(theme_cowplot())
 
 ## The General Procedure
 
-1. Begin with the full dataset
-1. Take a random sample of size n from the dataset
+1. Begin with the full dataset of size n
+1. Sample n values with replacement from the dataset
 1. Calculate the parameter of interest 
-1. Replace the sampled values to the dataset and take another random sample
-1. Calculate the parameter of interest
 1. Repeat B times to get B bootstrapped values
 
+## Bootstrap Sampling
+
+- Assumption: the observed distribution is representative of the true distribution
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+dd <- tibble("phenotype" = rnorm(15),
+             "id" = letters[1:15],
+             "set"= rep(1,15))
+p1 <- dd |>
+ggplot(aes(phenotype,set, label=id)) + 
+  geom_label(position = position_jitter(height = 0.3, seed = 34)) +
+  scale_y_continuous(NULL, breaks = NULL, limits = c(0.5,3.5))
+
+p1
+
+```
+
+## Bootstrap Sampling
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+
+boot1 <- dd[sample(seq(1,nrow(dd)),replace=T),] # <1>
+boot1$set <- 2 # <2>
+
+p2 <- p1 + # <3>
+  geom_label(data = boot1,position = position_jitter(height = 0.3, seed = 34),color="firebrick") 
+
+p2
+```
+1. sample the rows of dd with replacement to make a new dataset of the same n
+2. label this set 
+3. add it to our plot
+
+
+## Bootstrap Sampling
+
+```{r}
+boot2 <- dd[sample(seq(1,nrow(dd)),replace=T),]
+boot2$set <- 3 
+
+p2 + geom_label(data = boot2,position = position_jitter(height = 0.3, seed = 34),color="steelblue") 
+
+```
+
+## Example: Shannon's Diversity Index
+
+[Robinson et al. 2012. Butterfly community ecology: the influences of habitat type, weather patterns, and dominant species in a temperate ecosystem.](https://onlinelibrary.wiley.com/doi/10.1111/j.1570-7458.2012.01308.x)
+
+```{r}
+
+bb <- read_csv("Data/Butterflies.csv")
+bb <- bb |>
+  filter(N>0)
+glimpse(bb)
+
+```
+
+<center>
+<img src="https://inaturalist-open-data.s3.amazonaws.com/photos/32614/large.jpg" width="40%" />
+</center>
+
+## Example: Shannon's Diversity Index
+
+$$H = -\sum_{i=1}^{N_{species}}{p_i}\ln({p_i})$$
+*p* is the relative abundance of each species
+
+```{r}
+#| echo: true
+
+bb$relA <- bb$N/sum(bb$N)
+
+-sum(bb$relA*log(bb$relA))
+
+```
+
+## Example: Shannon's Diversity Index
+
+```{r}
+#| echo: true
+
+library(boot)
+
+bb_full <- rep(bb$Species,bb$N) # <1>
+
+shanH <- function(sp_list,indicies) # <2>
+{
+  sp_ab <- table(sp_list[indicies])/length(sp_list)
+  return(-sum(sp_ab*log(sp_ab)))
+}
+
+shan_bs <- boot(data = bb_full, # <3>
+                statistic = shanH,
+                R = 1000)
+
+```
+
+1. Create a vector with a list of all individual observations
+2. Make a function for calculating the diversity index from a bootstrapped sample
+3. Get 1000 bootstrap samples
+
+## Example: Shannon's Diversity Index
+
+```{r}
+
+bp <- as_tibble(shan_bs$t) |>
+  ggplot(aes(V1)) +
+  geom_histogram(bins = 50) +
+  xlab("Bootstrapped Diversity Indicies")
+bp
+```
+
+## Confidence Interval: Standard Method
+
+- Assume the bootstrapped samples are normally distributed
+
+```{r}
+#| echo: true
+
+mu_b <- mean(shan_bs$t)
+s_b <- sd(shan_bs$t)
+cis <- c(mu_b + qnorm(0.975)*s_b, 
+         mu_b - qnorm(0.975)*s_b)
+
+cis
+
+sum(shan_bs$t >= cis[1])
+sum(shan_bs$t <= cis[2])
+
+```
+
+## Confidence Interval: Standard Method
+
+- Assume the bootstrapped samples are normally distributed
+
+```{r}
+bp +
+  geom_vline(xintercept = cis, color="firebrick")
+```
+
+## Confidence Interval: Percentile Method
+
+```{r}
+#| echo: true
+
+cis <- c(quantile(shan_bs$t,0.975),
+         quantile(shan_bs$t,0.025))
+
+cis
+
+sum(shan_bs$t >= cis[1])
+sum(shan_bs$t <= cis[2])
+
+```
+
+## Confidence Interval: Percentile Method
+
+```{r}
+bp +
+  geom_vline(xintercept = cis, color="firebrick")
+```
+
+## Does bootstrapping work in this case?
+
+- Simulate populations with known true species compositions
+- Sample as you would in the field
+- Try this method
+- What percentage of time does the bootstrap confidence interval include the true Shannon index?
+
+## Does bootstrapping work in this case?
+
+![](Images/Shannon_perc.jpg){width=50% fig-align="center"}
+
+[Laura Pla. 2004. Bootstrap Confidence intervals for the Shannon biodiversity index: A simulation study.](https://link.springer.com/article/10.1198/1085711043136)
+
+
+## Does bootstrapping work in this case?
+
+![](Images/Shannon_table.jpg){width=100% fig-align="center"}
+
+[Palma et al. 2022. New confidence interval methods for Shannon index.](https://arxiv.org/abs/2204.10073)
+
+## General Considerations
+
+- Bootstrap methods assume your observed dataset approximates the true distribution
+    - This assumption is not likely for small samples
+- Every use case must be shown to be valid via simulation    
+- Decisions
+    - How many samples?
+    - What CI method?
+    - How to simulate data to test the method?
+
+## Common Use Cases
+
+- Confidence intervals (most common)
+- Hypothesis tests (less common)
+    - Support for branches on phylogenetic trees
 
 
 
-
-0.1036379 -1.3314651 -0.2892045  0.1020433

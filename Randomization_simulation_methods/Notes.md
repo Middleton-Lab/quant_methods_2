@@ -101,20 +101,6 @@ jk.h2<-function(pheno,geno)
 }
 
 
-ThermTol.h2 <- h2.lme(geno=as.factor(TT$patRIL), pheno=TT$ThermTolNorm)
-
-geno <- as.factor(TT$patRIL)
-pheno <- TT$ThermTolNorm
-
-afit<-lme(pheno ~ 1 , random= ~1 | geno, method="ML")
-afit.n <- lm(pheno ~ 1)
-anova.lme(afit.n, afit)
-
-#check
-x2val <- -2*logLik(afit.n, REML=FALSE) + 2* logLik(afit, REML=FALSE)
-pchisq(x2val, df=1, lower.tail=F, log.p = TRUE)
-
-ThermTol.jk <- jk.h2.lme(geno=as.factor(TT$patRIL), pheno=TT$ThermTolNorm)
 mean(ThermTol.jk, na.rm=TRUE)
 sd(ThermTol.jk, na.rm=TRUE)
 nn <- length(ThermTol.jk[is.na(ThermTol.jk)==FALSE])
@@ -142,7 +128,8 @@ Other methods
 Jackknife
 Bootstrap
 Problem set: skills needed - loops, mapping, functions, seeds, tracking ids. Pulling out test statistics, Perform test on a dataset violating assumptions - standard, nonparametric, randomization
-
+CI jackknife same as CI on mean
+hypoth test with jackknife
 
 ## Week 3	
 Sampling from data 2
@@ -158,6 +145,8 @@ Problem set - parallel stuff, seeds, lewis
 
 
 Simulations 1
+
+simulations to verify methods they have learned
 
 
 eddible package: https://emitanaka.org/edibble-book/index.html
