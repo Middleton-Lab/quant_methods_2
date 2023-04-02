@@ -346,7 +346,7 @@ bearmove |>
 ```{r}
 #| echo: true
 
-mod <- lm(log.move ~ hr, data = bearmove)
+mod <- lm(hr ~ log.move, data = bearmove)
 summary(mod)
 
 t_obs <- summary(mod)$coefficients[2,3]
@@ -354,7 +354,7 @@ t_obs
 ```
 
 - The slope estimate 
-- *t* statistic for `hr` 
+- *t* statistic for `log.move` 
 
 
 ## Randomly shuffle to generate an empirical null distribution
@@ -370,7 +370,7 @@ rand.out[1,] <- t_obs
 for (ii in 2:niter) {
   bear.s <- bearmove[,c("log.move","hr")]
   bear.s$log.move <- sample(bear.s$log.move)
-  mod <- lm(log.move ~ hr, data = bear.s)
+  mod <- lm(hr ~ log.move, data = bear.s)
   rand.out[ii,] <- summary(mod)$coefficients[2,3]
 }
 
@@ -397,6 +397,7 @@ rand.out |>
 sum(abs(rand.out$Tstat) >= abs(rand.out$Tstat[1]))/nrow(rand.out)
 
 ```
+
 
 ## Example 3: Paired *t*-test
 
