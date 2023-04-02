@@ -15,11 +15,13 @@ format:
 code-annotations: hover
 ---
 
+
 ## Sampling from data sets: foundations
 
 - Jackknife
 - Bootstrap
 - Randomization
+
 
 ## What is the jackknife?
 
@@ -42,6 +44,7 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 <img src="https://cdn.shopify.com/s/files/1/0258/3566/7561/products/vm_53381--91_sol_front_ax1000.jpg?v=1569295439" width="25%" />
 </center>
 
+
 ## The General Procedure
 
 1. Begin with the full dataset
@@ -51,47 +54,47 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 1. Calculate the parameter of interest pseudovalue
 1. Repeat until each value has been removed exactly one time
 
-- The result is a set of pseudovalues the same length as the original dataset
+The result is a set of pseudovalues the same length as the original dataset
+
 
 ## Jackknife Sampling
 
-$$S_i = n\hat{\theta_0} - (n-1)\hat{\theta_i}$$
+$$S_i = n \hat{\theta_0} - (n-1)\hat{\theta_i}$$
 
 ```{r}
-
 rr <- rnorm(15)
 mu_rr <- mean(rr)
-dd <- tibble("phenotype" = c(rr[2:15], rr[c(1,3:15)], rr[c(1:2,4:15)]),
-             "id" = rep(c(1,1,1),each=14),
-             "color" = c("steelblue","firebrick",
-                         rep("black",12),
-                         "purple","firebrick",
-                         rep("black",12),
-                         "purple","steelblue",rep("black",12)),
-             "facet" = rep(letters[1:3],each=14),
-             "ptz" = c(5,5,
-                         rep(2,12),
-                         5,5,
-                         rep(2,12),
-                         5,5,rep(2,12))
-             )
+dd <- tibble(phenotype = c(rr[2:15], rr[c(1, 3:15)], rr[c(1:2, 4:15)]),
+             id = rep(c(1, 1, 1), each = 14),
+             color = c("steelblue", "firebrick",
+                       rep("black", 12),
+                       "purple", "firebrick",
+                       rep("black", 12),
+                       "purple", "steelblue", rep("black", 12)),
+             facet = rep(letters[1:3],each=14),
+             ptz = c(5, 5,
+                     rep(2, 12),
+                     5, 5,
+                     rep(2, 12),
+                     5, 5, rep(2, 12))
+)
 
 pp <- dd |> 
   group_by(facet) |>
-  summarize("pseudo" = 15*mu_rr - 14*mean(phenotype))
+  summarize("pseudo" = 15 * mu_rr - 14 * mean(phenotype))
 pp$id <- 1
 
 dd |>
   ggplot(aes(id, phenotype)) + 
   geom_point(position = position_jitter(0.2, seed = 34), 
-             size=dd$ptz, color=dd$color) +
+             size=dd$ptz, color = dd$color) +
   stat_summary(fun = "mean", geom = "point", shape = 3, size = 5) +
   geom_point(data = pp, aes(id, pseudo), shape = 17, color = "coral", size=5) +
   facet_grid(. ~ facet) +
-  scale_x_continuous(NULL, breaks = NULL, limits = c(0.8,1.2)) 
-
-
+  scale_x_continuous(NULL, breaks = NULL, limits = c(0.8, 1.2)) +
+  labs(y = "Phenotype")
 ```
+
 
 ## Jackknife Sampling
 
@@ -100,6 +103,7 @@ $$S_i = n\hat{\theta_0} - (n-1)\hat{\theta_i}$$
 - Each jackknife sample is a partial estimate
 - Pseudovalues are assumed to be a random sample of independent estimates
 - Turns estimation into a simple estimation of a mean and SE
+
 
 ## An Example: Heritability
 
@@ -111,12 +115,13 @@ $$S_i = n\hat{\theta_0} - (n-1)\hat{\theta_i}$$
 
 ```{r}
 #| echo: true
-TT <- read_csv("Data/thermtol.csv")
-TT$Line <- as.factor(TT$Line)
-TT$incapacitation_T <- qqnorm(TT$incapacitation,plot.it = FALSE)$x
+#| 
+TT <- read_csv("Data/thermtol.csv", show_col_types = FALSE) |> 
+  mutate(Line = factor(Line))
+TT$incapacitation_T <- qqnorm(TT$incapacitation, plot.it = FALSE)$x
 glimpse(TT)
-
 ```
+
 
 ## Thermal tolerance in a set of inbred lines
 
@@ -133,24 +138,23 @@ ThermTol_indi_points <- ggplot(TT, aes(x = Tname, y = incapacitation)) +
                geom = "errorbar", 
                color = 'red', width=0, linewidth=0.5, alpha=1/2) +
   theme(legend.position = "none",axis.ticks.x=element_blank()) +
-  xlab("Line") +
-  ylab("Thermal tolerance") +
-  #ylim(c( -0.5, 601))+
+  labs(x = "Line", y = "Thermal tolerance") +
   theme(axis.text.x = element_blank())
-
 ThermTol_indi_points
-
 ```
+
 
 ## Estimating heritability
 
 ```{r}
 #| echo: true
 
-afit <- aov(incapacitation_T ~ Line, data = TT)
+afit <- aov(incapacitation_T ~ Line, data = TT) # <1>
 summary(afit)
-
 ```
+
+1. Fit ANOVA where `incapacitation_T` is predicted by `Line`
+
 
 ## Estimating heritability
 
@@ -159,47 +163,46 @@ summary(afit)
 
 suma <- unlist(summary(afit))
 
-#get variance within groups
+# Variance within groups
 sw <- suma['Mean Sq2']
 
-#get variance between groups SEE Lessels and Boag (1987)
+# Variance between groups; see Lessels and Boag (1987)
 Ng <- length(unique(TT$Line))
 ns <- table(TT$Line)
-n0 <- (1/(Ng-1)) * (sum(ns)-(sum(ns^2)/sum(ns)))
-sa <- (suma['Mean Sq1']-suma['Mean Sq2'])/n0
+n0 <- (1 / (Ng - 1)) * (sum(ns) - (sum(ns^2) / sum(ns)))
+sa <- (suma['Mean Sq1'] - suma['Mean Sq2']) / n0
   
 #Observed Heritability
-H2.0 <- sa/(sa+sw)
+H2.0 <- sa / (sa + sw)
 cat(H2.0)
-
 ```
+
 
 ## Calculate first pseudovalue 
 
 $$S_1 = n\hat{\theta_0} - (n-1)\hat{\theta_1}$$
 
 ```{r}
+#| echo: false
 
-estH2 <- function(pheno, geno)
-{
-afit <- aov(pheno ~ geno)
-summary(afit)
-suma <- unlist(summary(afit))
-
-#get variance within groups
-sw <- suma['Mean Sq2']
-
-#get variance between groups SEE Lessels and Boag (1987)
-Ng <- length(unique(geno))
-ns <- table(geno)
-n0 <- (1/(Ng-1)) * (sum(ns)-(sum(ns^2)/sum(ns)))
-sa <- (suma['Mean Sq1']-suma['Mean Sq2'])/n0
+estH2 <- function(pheno, geno) {
+  afit <- aov(pheno ~ geno)
+  summary(afit)
+  suma <- unlist(summary(afit))
   
-#Observed Heritability
-H2.0 <- sa/(sa+sw)
-return(as.numeric(H2.0))
+  #get variance within groups
+  sw <- suma['Mean Sq2']
+  
+  #get variance between groups SEE Lessels and Boag (1987)
+  Ng <- length(unique(geno))
+  ns <- table(geno)
+  n0 <- (1/(Ng-1)) * (sum(ns)-(sum(ns^2)/sum(ns)))
+  sa <- (suma['Mean Sq1']-suma['Mean Sq2'])/n0
+  
+  #Observed Heritability
+  H2.0 <- sa/(sa+sw)
+  return(as.numeric(H2.0))
 }
-
 ```
 
 ```{r}
@@ -212,13 +215,16 @@ TT.p <- TT |>
   filter(Line != LineIDs[1])
 
 # estimate heritability
-H2.p <- estH2(TT.p$incapacitation_T, TT.p$Line)
+H2.p <- estH2(TT.p$incapacitation_T, TT.p$Line) # <1>
 H2.p
 
 #calculate pseudovalue
 length(LineIDs)*H2.0 - (length(LineIDs) - 1)*H2.p
 
 ```
+
+1. `estH2()` is a function that calculates heritability and returns the value
+
 
 ## Repeat for each line
 
@@ -228,10 +234,8 @@ length(LineIDs)*H2.0 - (length(LineIDs) - 1)*H2.p
 
 pseudovals <- numeric(length=length(LineIDs))
 
-for(ii in 1:length(LineIDs))
-{
-  
-  # delete one line
+for(ii in 1:length(LineIDs)) {
+  # delete line ii
   TT.p <- TT |>
     filter(Line != LineIDs[ii])
   
@@ -240,41 +244,46 @@ for(ii in 1:length(LineIDs))
   H2.p
   
   #calculate pseudovalue
-  pseudovals[ii] <- length(LineIDs)*H2.0 - (length(LineIDs) - 1)*H2.p
+  pseudovals[ii] <- length(LineIDs) * H2.0 - (length(LineIDs) - 1) * H2.p
+}
 
-  }
-
-pseudovals <- tibble("ps"= pseudovals)
+pseudovals <- tibble(ps = pseudovals)
 write_csv(pseudovals, "Data/pseudovals.csv")
-
 ```
+
 
 ## Jackknife samples for heritability
 
 ```{r}
-
 ps <- read_csv("Data/pseudovals.csv")
 ps |>
   ggplot(aes(ps)) +
-  geom_histogram(fill = "grey75",bins = 50)
-
+  geom_histogram(fill = "grey75", bins = 50) +
+  labs(y = "Count", x = "Pseudovalue")
 ```
+
 
 ## Jackknife samples for heritability
 
 ```{r}
 mu_ps <- mean(ps$ps)
-ci_ps <- c(mu_ps + qt(0.975, length(LineIDs)-1)*sd(ps$ps)/sqrt(length(LineIDs)),
-           mu_ps - qt(0.975, length(LineIDs)-1)*sd(ps$ps)/sqrt(length(LineIDs)))
+ci_ps <- c(mu_ps + qt(0.975, length(LineIDs) - 1) * 
+             sd(ps$ps) / sqrt(length(LineIDs)),
+           mu_ps - qt(0.975, length(LineIDs) - 1) * 
+             sd(ps$ps) / sqrt(length(LineIDs)))
 
 ps |>
   ggplot(aes(ps)) +
-  geom_histogram(fill = "grey75",bins = 50) +
+  geom_histogram(fill = "grey75", bins = 50) +
   geom_vline(xintercept = mu_ps, color = "firebrick", linewidth = 2) +
   #geom_vline(xintercept = ci_ps) + 
-  annotate("text", x = 2, y = 120, label = paste0("Estimate: ",round(mu_ps,3)), size = 10) +
-  annotate("text", x = 2, y = 100, label = paste0("CI: ",round(ci_ps[2],3)," - ",round(ci_ps[1],3)), size = 10) 
-
+  annotate("text", x = 2, y = 120,
+           label = paste0("Estimate: ", round(mu_ps,3)),
+           size = 10) +
+  annotate("text", x = 2, y = 100,
+           label = paste0("CI: ", round(ci_ps[2],3)," - ", round(ci_ps[1],3)),
+           size = 10) +
+  labs(y = "Count", x = "Pseudovalue")
 ```
 
 
@@ -287,17 +296,20 @@ ps |>
     - Genotypic (mean of both)
 - Are the sire and dam estimates significantly different?
 
+
 ## Simulated Sire and Dam Heritabilities
 
 ![](Images/sire_dam.jpeg){width=80% fig-align="center"}
 
+
 ## Jackknife for hypothesis testing
 
 - Jackknife produces a paired set of sire and dam pseudovalues
-- Paired t-test
+- Paired *t*-test
 - Roff (2008)^[Roff, D.A. 2008. Comparing sire and dam estimates of heritability: jackknife and likelihood approaches. *Heredity* 100:32-38.] evaluated this method via simulation
     - Appropriate false positive rate
     - False negatives are too high (low power)
+
 
 ## Common Use Cases 
 
@@ -308,6 +320,3 @@ ps |>
     - Quantitative genetic parameters
     - Community ecology parameters
     - Estimates of proportions
-
-
-
