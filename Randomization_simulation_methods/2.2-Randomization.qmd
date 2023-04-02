@@ -1,0 +1,103 @@
+---
+title: "Foundations of Sampling"
+subtitle: "Randomization"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## Sampling from data sets: foundations
+
+- Jackknife
+- Bootstrap
+- Randomization
+
+## What is randomization?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(viridis)
+ggplot2::theme_set(theme_cowplot())
+set.seed(487622)
+```
+
+- A technique for generating an empirical null distribution by repeatedly putting the data in a random order
+- Primarily for hypothesis testing
+    - Wide applicability
+    - Limited to the focal hypothesis being tested
+
+**Assumption:** Under the null hypothesis, observations are random draws from a common population
+
+
+## The General Procedure
+
+1. Decide on a test statistic
+1. Calculate the test statistic for the *observed* data
+1. Randomly shuffle the observations
+1. Calculate the test statistic for that group
+1. Repeat many times to generate an empirical null distribution
+1. Determine the proportion of random combinations resulting in a test statistic more extreme than the observed value ("empirical *P*")
+
+## Are male and female jackal mandible lengths different?
+
+```{r}
+#| echo: false
+
+M <- read_excel("Data/Jackals.xlsx")
+M <- M |> mutate(Sex = factor(Sex))
+
+M.set |> 
+  ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL) 
+
+M.set |>
+  ggplot(aes(Mandible)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_color_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL) 
+
+M.set$Sex <- sample(M.set$Sex)
+
+M.set |>
+  ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5, stackgroups = TRUE) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL) 
+```
+
+
+## General Considerations
+
+- Bootstrap methods assume your observed dataset approximates the true distribution
+    - This assumption is not likely for small samples
+- Every use case must be shown to be valid via simulation    
+- Decisions
+    - How many samples?
+    - What CI method?
+    - How to simulate data to test the method?
+
+
+## Common Use Cases
+
+- Confidence intervals (most common)
+- Hypothesis tests (less common)
+    - Support for branches on phylogenetic trees (Felsenstein, J. 1985. Confidence Limits on Phylogenies: An Approach Using the Bootstrap. *Evolution* 39:783–791.)
+
