@@ -36,6 +36,15 @@ Sampling from data 1- better names
 
 Bootstrap
 
+## The General Procedure
+
+1. Decide on a test statistic
+1. Calculate the test statistic for the *observed* data
+1. Randomly shuffle the observations
+1. Calculate the test statistic for that group
+1. Repeat many times to generate an empirical null distribution
+1. Determine the proportion of random combinations resulting in a test statistic more extreme than the observed value ("empirical *P*")
+
 Randomization
 General workflow
 Simple designs & examples

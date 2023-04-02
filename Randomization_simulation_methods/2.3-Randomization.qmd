@@ -1,0 +1,572 @@
+---
+title: "Foundations of Sampling"
+subtitle: "Randomization"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## Sampling from data sets: foundations
+
+- Jackknife
+- Bootstrap
+- Randomization
+
+
+## What is randomization?
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(knitr)
+library(cowplot)
+library(readxl)
+library(viridis)
+library(Data4Ecologists)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(487622)
+```
+
+- A technique for generating an empirical null distribution by repeatedly putting the data in a random order
+- Primarily for hypothesis testing
+    - Wide applicability
+    - Few assumptions
+    - May not generalize to broader set of populations
+
+**Assumption:** Under the null hypothesis, observations are random draws from a common population
+
+
+## The General Procedure
+
+1. Decide on a test statistic
+1. Calculate the test statistic for the *observed* data
+1. Randomly shuffle the observations
+1. Calculate the test statistic for that group
+1. Repeat many times to generate an empirical null distribution
+1. Determine the proportion of random combinations resulting in a test statistic more extreme than the observed value ("empirical *P*")
+
+
+## Differences in jackal mandibles
+
+```{r fig.height = 1.75}
+#| echo: false
+
+M <- read_excel("Data/Jackals.xlsx")
+M <- M |> mutate(Sex = factor(Sex))
+M.set <- M |>
+  mutate("Original"= M$Sex)
+
+M.set |> 
+  ggplot(aes(Mandible, fill = Sex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5,
+               stackgroups = TRUE, dotsize = 0.7) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme(legend.position = "none")
+
+M.set |>
+  ggplot(aes(Mandible)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5,
+               stackgroups = TRUE, dotsize = 0.7) +
+  scale_y_continuous(NULL, breaks = NULL) 
+  
+M.set$RSex <- sample(M.set$Sex)
+
+M.set |>
+  ggplot(aes(Mandible, fill = RSex)) + 
+  geom_dotplot(method = "histodot", binwidth = 0.5,
+               stackgroups = TRUE, dotsize = 0.7) +
+  scale_fill_viridis_d() +
+  scale_y_continuous(NULL, breaks = NULL)  +
+  theme(legend.position = "none")
+```
+
+
+## Hierarchy of GLMs
+
+<center>
+<img src="https://i.imgur.com/sdx4fMz.png" width="80%" />
+</center>
+
+- Randomization can be applied to any of these and beyond
+
+
+## Example 1: One-way ANOVA
+
+- Does bright light treatment alleviate jet lag symptoms?
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+<center>
+<img src="https://i.imgur.com/X8kUEJq.jpg" width="80%" />
+</center>
+
+:::
+
+::: {.column width="50%"}
+
+- 3 groups
+    - No light (control)
+    - Bright light in eyes
+    - Bright light in knees
+- Outcome
+    - Shift in circadian pattern (hours)
+
+:::
+
+::::
+
+
+## Does bright light treatment alleviate jet lag symptoms?
+
+```{r message=FALSE}
+JL <- read_csv("Data/JetLag.csv") |> 
+  mutate(Treatment = factor(Treatment))
+
+ggplot(JL, aes(x = Treatment, y = Shift)) +
+  geom_point(position = position_jitter(width = 0.1), size = 2) +
+  xlab("Light Treatment") +
+  ylab("Shift in Circadian Rhythm (h)") +
+  stat_summary(fun.data = "mean_se",
+               position = position_dodge(width = 0.5),
+               colour = "red",
+               size = 1)
+```
+
+
+## Decide on a Test Statistic
+
+
+## Decide on a Test Statistic {.smaller}
+
+- Overall effect: *F*-statistic
+- Differences between groups: differences in means
+
+```{r}
+#| echo: true
+
+d_EK <- JL |> filter(Treatment == "eyes") |> summarize(m = mean(Shift)) |> pull(m) -
+   JL |> filter(Treatment == "knee") |> summarize(m = mean(Shift)) |> pull(m)
+
+d_EC <- JL |> filter(Treatment == "eyes") |> summarize(m = mean(Shift)) |> pull(m) -
+   JL |> filter(Treatment == "control") |> summarize(m = mean(Shift)) |> pull(m)
+
+d_CK <- JL |> filter(Treatment == "control") |> summarize(m = mean(Shift)) |> pull(m) -
+   JL |> filter(Treatment == "knee") |> summarize(m = mean(Shift)) |> pull(m)
+
+fm_lm <- anova(lm(Shift ~ Treatment, data = JL))
+obsF <- fm_lm$`F value`[1]
+
+obs <- tibble(Fstat = obsF, d_EK = d_EK, 
+              d_EC = d_EC, d_CK = d_CK)
+
+obs
+```
+
+
+## Randomly shuffle the observations
+
+```{r}
+
+glimpse(JL)
+
+```
+
+## Randomly shuffle the observations
+
+
+```{r}
+
+glimpse(JL)
+
+```
+
+- Shuffle `Shift` to randomly associate each value with one of our three treatment categories
+- Do this 1,000 times and calculate our 4 observed statistics
+
+
+## Repeat many times to generate an empirical null distribution
+
+```{r}
+#| echo: true
+
+set.seed(6445287)
+niter <- 1000
+rand.out <- tibble(Fstat = rep(NA,niter), d_EK = rep(NA,niter), # <1> 
+              d_EC = rep(NA,niter), d_CK = rep(NA,niter)) 
+rand.out[1,] <- obs # <2>
+
+for(ii in 2:niter) {
+  JL.s <- JL
+  JL.s$Shift <- sample(JL$Shift) # <3> 
+  d_EK <- JL.s |> filter(Treatment == "eyes") |> summarize(m = mean(Shift)) |> pull(m) -
+    JL.s |> filter(Treatment == "knee") |> summarize(m = mean(Shift)) |> pull(m)
+  
+  d_EC <- JL.s |> filter(Treatment == "eyes") |> summarize(m = mean(Shift)) |> pull(m) -
+    JL.s |> filter(Treatment == "control") |> summarize(m = mean(Shift)) |> pull(m)
+  
+  d_CK <- JL.s |> filter(Treatment == "control") |> summarize(m = mean(Shift)) |> pull(m) -
+    JL.s |> filter(Treatment == "knee") |> summarize(m = mean(Shift)) |> pull(m)
+  
+  fm_lm <- anova(lm(Shift ~ Treatment, data = JL.s))
+  obsF <- fm_lm$`F value`[1]
+  rand.out[ii,] <- tibble(Fstat = obsF, d_EK = d_EK, 
+              d_EC = d_EC, d_CK = d_CK)
+
+}
+
+```
+
+1. Set up a tibble for the output
+2. Add our observed data to the first row
+3. Shuffle `shift`
+
+
+## Repeat many times to generate an empirical null distribution
+
+```{r}
+
+rand.out |>
+  ggplot(aes(x = Fstat)) +
+  geom_histogram(fill = "grey75", bins = 50) +
+  geom_vline(xintercept = rand.out$Fstat[1],
+             color = "firebrick", linewidth = 2)
+
+```
+
+
+## Repeat many times to generate an empirical null distribution
+
+```{r}
+ps <- vector(mode="list", length = 3)
+labs <- c("eyes - knee",
+          "eyes - control",
+          "control - knee")
+
+for(pp in 1:length(ps)) {
+  ff <- colnames(rand.out)[(pp+1)]
+  ps[[pp]] <- rand.out |>
+  ggplot(aes(x = .data[[ff]])) +
+  geom_histogram(fill = "grey75", bins=50) +
+  geom_vline(xintercept = as.numeric(rand.out[1,ff]),
+             color = "firebrick", linewidth = 2) +
+  xlab(labs[pp])
+}
+
+plot_grid(plotlist = ps, nrow=1)
+
+```
+
+
+## Empirical *P*-Value
+
+- Determine the proportion of random combinations resulting in a test statistic more extreme than the observed value ("empirical *P*")^[North, BV, Curtis, D, Sham, PC. 2002. A Note on the Calculation of Empirical P Values from Monte Carlo Procedures. AJHG. 71: 439-441.]
+
+$$P_e = (r + 1)/(n + 1)$$
+$r$ is the number of estimates equal to or more extreme than the observed
+
+$n$ is the number of randomizations
+
+
+## Empirical *P*-Value
+
+- If your observed data is part of your set, you can calculate directly
+
+```{r}
+#| echo: true
+
+sum(rand.out$Fstat >= rand.out$Fstat[1])/nrow(rand.out)
+
+apply(rand.out, 2, function(x) sum(abs(x) >= abs(x[1]))/length(x)) # <1>
+
+```
+
+1. For a 2-sided test, use the absolute value of the difference
+
+- Stay tuned for using randomization to account for multiple testing
+
+
+## Example 2: Linear Regression
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+- Movement rates and heart rates of black bears in Minnesota (from the Data4Ecologists package)
+
+```{r}
+
+glimpse(bearmove |> select(log.move, hr))
+
+```
+
+:::
+
+::: {.column width="30%"}
+
+
+![](https://cdn.britannica.com/19/235819-050-4FBB01D1/American-black-bear-ursus-americanus-sow-mother-with-two-cubs-in-tree.jpg){width=80% fig-align="center"}
+
+:::
+
+::::
+
+
+## Does movement predict heart rate?
+
+```{r}
+bearmove |>
+  ggplot(aes(log.move, hr)) +
+  geom_point(size = 3, alpha = 1/6) +
+  geom_smooth(method = lm) +
+  xlab("ln(Movement)") +
+  ylab("Heart Rate")
+
+```
+
+
+## Decide on a test statistic {.smaller}
+
+```{r}
+#| echo: true
+
+mod <- lm(log.move ~ hr, data = bearmove)
+summary(mod)
+
+t_obs <- summary(mod)$coefficients[2,3]
+t_obs
+```
+
+- The slope estimate 
+- *t* statistic for `hr` 
+
+
+## Randomly shuffle to generate an empirical null distribution
+
+```{r}
+#| echo: true
+
+set.seed(746133)
+niter <- 1000
+rand.out <- tibble(Tstat = rep(NA,niter)) 
+rand.out[1,] <- t_obs
+
+for (ii in 2:niter) {
+  bear.s <- bearmove[,c("log.move","hr")]
+  bear.s$log.move <- sample(bear.s$log.move)
+  mod <- lm(log.move ~ hr, data = bear.s)
+  rand.out[ii,] <- summary(mod)$coefficients[2,3]
+}
+
+```
+
+
+## Repeat many times to generate an empirical null distribution
+
+```{r}
+#| fig-width: 5
+#| fig-height: 3
+
+rand.out |>
+  ggplot(aes(x = Tstat)) +
+  geom_histogram(fill = "grey75", bins=50) +
+  geom_vline(xintercept = rand.out$Tstat[1],
+             color = "firebrick", linewidth = 2)
+
+```
+
+```{r}
+#| echo: true
+
+sum(abs(rand.out$Tstat) >= abs(rand.out$Tstat[1]))/nrow(rand.out)
+
+```
+
+## Example 3: Paired *t*-test
+
+- Ovary sizes for pairs of sisters reared on two food types
+
+```{r}
+
+dd <- read_csv("Data/OvaryMass.csv")
+
+glimpse(dd)
+
+```
+
+![](Images/cricket.jpg){width=40% fig-align="center"}
+
+
+## Decide on a test statistic
+
+- *t* statistic
+- average of the differences between pairs 
+
+```{r}
+
+t.test(dd$TypeA, dd$TypeB, paired = TRUE)
+
+obs_D <- mean(dd$TypeA - dd$TypeB)
+obs_D
+
+```
+
+
+## Randomly shuffle the observations
+
+
+## Randomly shuffle the observations {.smaller}
+
+- Keep pairs together
+- For each pair, randomly assign type A or type B label
+- Get difference
+
+```{r}
+#| echo: true
+
+dd_diffs <- tibble(AB = dd$TypeA - dd$TypeB,
+                   BA = dd$TypeB - dd$TypeA)
+
+dd.s <- apply(dd_diffs, 1, function(x) sample(x,1))
+
+dd_diffs[1:5,]
+dd.s[1:5]
+
+```
+
+
+## Randomly shuffle the observations
+
+```{r}
+#| echo: true
+
+dd_diffs <- tibble(AB = dd$TypeA - dd$TypeB,
+                   BA = dd$TypeB - dd$TypeA)
+
+set.seed(765667)
+niter <- 1000
+rand.out <- tibble(Diffs = rep(NA,niter)) 
+rand.out[1,] <- obs_D
+
+for(ii in 1:niter) {
+  dd.s <- apply(dd_diffs, 1, function(x) sample(x,1))
+  rand.out[ii,] <- mean(dd.s)
+}
+
+```
+
+
+## Repeat many times to generate an empirical null distribution
+
+```{r}
+#| fig-width: 5
+#| fig-height: 3
+
+rand.out |>
+  ggplot(aes(x = Diffs)) +
+  geom_histogram(fill = "grey75", bins = 50) +
+  geom_vline(xintercept = rand.out$Diffs[1],
+             color = "firebrick", linewidth = 2)
+
+```
+
+```{r}
+#| echo: true
+
+sum(abs(rand.out$Diffs) >= abs(rand.out$Diffs[1]))/nrow(rand.out)
+
+```
+
+
+## General Considerations
+
+- Appropriate test statistic
+- How to randomize the order?
+- Number of permutations
+- Limits in small samples or few groups 
+    - Very small sets: do all possble permutations
+
+
+## Decide on a test statistic
+
+1. Mean difference
+2. *t*: *t*-test, linear model parameter estimate (slope, intercept)
+3. *F*: ANOVA-like
+4. $\chi^2$
+5. Any metric of your choice (*P*-value, Fst, heterozygosity, LOD score, etc.)
+
+
+## How to randomize the order?
+
+- What is the null hypothesis?
+- Are there relationships in the data that need to be maintained?
+
+
+## Empirical *P* & Iterations {.smaller}
+
+What is the minimal detectable *P* for *n* iterations?
+
+```{r echo=FALSE}
+logspace <- function(d1, d2, n) {
+  exp(log(10) * seq(d1, d2, length.out = n))
+}
+
+steps <- 20
+reps_list <- floor(logspace(1, 6.1, n = steps))
+reps_ex <- data.frame(nreps = reps_list)
+reps_ex$min_P <- 2 * (1 / reps_ex$nreps)
+kable(reps_ex[seq(2, nrow(reps_ex), by = 2),])
+```
+
+
+## Empirical *P* & Iterations
+
+- Randomization is for comparing competing hypotheses
+- For empirical *P*-values with few cases more extreme than the observed, do more iterations if you want an exact value
+- For empirical *P*-values near your critical value, do more iterations to increase confidence in your conclusion
+- In general, treat empirical *P*-values as measures of the strength of evidence (not all or nothing)
+
+
+## Non-parametric tests
+
+Non-parametric tests often used when data do not meet the assumptions of a traditional (parametric) test:
+
+- One-sample *t*-test $\rightarrow$ Sign test, Wilcoxon test
+- Two-sample *t*-test $\rightarrow$ Mann-Whitney test
+- ANOVA $\rightarrow$ Kruskal-Wallis
+
+Small sample size, non-normality, unequal variances
+
+**Dramatically lower power compared to a parametric test**
+
+
+## Randomization as an alternative
+
+For all practical cases, randomization is a better alternative
+
+- Increased power
+- No reliance on asymptotic properties of tests
+- More relaxed assumptions
+
+
+## Common Use Cases
+
+- Hypothesis tests (most common)
+    - Any scenario with a defined hypothesis and null hypothesis
+- Interval estimation (less common)
