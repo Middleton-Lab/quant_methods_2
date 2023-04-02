@@ -23,6 +23,97 @@ theme_set(theme_cowplot())
 
 ```
 
+# Randomization test
+
+We will set up a simple randomization test of the means below using a `for` loop. In Quant Methods 1, we did many similar for loops. We also showed how to search through the object returned by `summary()` to find the relevant test statistic. Instead, here we will use the simpler tibble returned by `broom::tidy()`. Set `eval` to `true` before you knit.
+
+```{r}
+#| eval: true
+#| echo: true
+
+# FIXME
+library(broom)
+
+iters <- 1000
+t_stats <- numeric(iters)
+t_stats[1] <- as.numeric(tidy(fm)[2, 4])
+
+for (ii in 2:iters) {
+  MM_rand <- MM |> mutate(Group = sample(Group))
+  fm_summary <- lm(y ~ Group, data = MM_rand) |> 
+    summary() |> 
+    tidy()
+  t_stats[ii] <- fm_summary[2, 4]
+}
+
+```
+
+
+
+```{r}
+#| echo: true
+
+MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
+
+ggplot(MM, aes(x = Group, y = y)) +
+  geom_point()
+
+# FIXME
+Group_diff <- function(.x, MM) {
+  MM_resample <- MM |> 
+    mutate(Group = sample(Group))
+  d <- MM_resample |> 
+    group_by(Group) |> 
+    summarize(y_bar = mean(y)) |> 
+    pivot_wider(names_from = Group, values_from = y_bar) |> 
+    mutate(d = Group_2 - Group_1) |> 
+    pull(d)
+  return(d)
+}
+
+
+# With map
+niter <- 1000
+d_resample <- map_dbl(.x = seq_len(niter),
+                      .f = Group_diff,
+                      MM = MM)
+d_resample[1] <- d_obs
+
+ggplot(data = tibble(d_resample),
+       aes(d_resample)) +
+  geom_histogram(bins = 50, fill = "gray75") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_vline(xintercept = d_obs, color = "dodgerblue4", linewidth = 1)
+
+mean(d_resample <= d_obs)
+```
+
+How many iterations?
+
+```{r}
+choose(3, 2)
+```
+
+1. 1 and 2
+2. 1 and 3
+3. 2 and 3
+
+```{r}
+choose(10, 5)
+
+1 / choose(10, 5)
+```
+
+Repeat for `large_data.csv`
+
+```{r}
+
+```
+
+```{r}
+choose(50, 25)
+```
+
 
 ## Prove the central limit theorem
 
