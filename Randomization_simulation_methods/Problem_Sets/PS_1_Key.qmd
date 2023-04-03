@@ -117,34 +117,35 @@ What do you find?
 
 > The means are not significantly different, but only slightly (assuming $\alpha$ = 0.05). P = 0.08 for the difference.
 
-The statistical test you just did is based on our expectations for random sampling of two groups producing a difference as big or bigger than that you observe in this set, assuming a normal distribution. Let's simulate a null distribution assuming the entire dataset is from a single distribution and the true distribution is normal. Get an overall mean and standard deviation and use those to generate 10,000 datasets in two groups of the same size as the small data. Then calculate the differences in the means for each iteration and plot them as a histogram. 
+The statistical test you just did is based on our expectations for random sampling of two groups producing a difference as big or bigger than that you observe in this set, assuming a normal distribution. Let's simulate a null distribution assuming the entire dataset is from a single distribution and the true distribution is normal. 
+
+Calculate the overall mean and standard deviation for the observed data and use those to generate 10,000 datasets in two groups of the same size as the small data. Then calculate the differences in the means for each iteration and plot them as a histogram. 
 
 ```{r}
+#| echo: true
 
+# FIXME
 grandmu <- mean(MM$y)
 grandsd <- sd(MM$y)
 
 niter <- 10000
-gdifs <- rep(NA,niter)
-for(ii in 1:niter)
-{
- grp1 <- rnorm(nrow(MM[MM$Group=="Group_1",]), grandmu, grandsd)
- grp2 <- rnorm(nrow(MM[MM$Group=="Group_2",]), grandmu, grandsd)
- gdifs[ii] <- mean(grp1) - mean(grp2)
- 
+gdifs <- rep(NA, niter)
+for (ii in 1:niter) {
+  grp1 <- rnorm(nrow(MM[MM$Group=="Group_1",]), grandmu, grandsd)
+  grp2 <- rnorm(nrow(MM[MM$Group=="Group_2",]), grandmu, grandsd)
+  gdifs[ii] <- mean(grp1) - mean(grp2)
 }
 
 as_tibble(gdifs) |>
   ggplot(aes(value)) +
   geom_histogram(fill = "grey75", bins = 50)
-  
 ```
 
 Based on your simulated null, what is the probability of getting a difference that is as big in magnitude as your observed difference? 
 
+> 
 
-
-One of the assumptions of a linear model like this (and in our simulated null) is that the residuals within each group are normally distributed. With only 5 points in each group that is pretty much impossible to determine. There are several different formal tests of normality (Shapiro-Wilk and Kolmogorov-Smirnov), but these tests are not that useful with so few observations. Both false negatives and false positives are common in these tests (particularly so for large and small samples). Similarly, you could look at a QQ plot of the residuals, but, again: only 10 points.
+One of the assumptions of a linear model like this (and in our simulated null) is that the residuals within each group are normally distributed. With only 5 points in each group that is pretty much impossible to determine. There are several different formal tests of normality (Shapiro-Wilk and Kolmogorov-Smirnov), but these tests are not that useful with so few observations. Both false negatives and false positives are common in these tests (particularly so for small *and* large samples). Similarly, you could look at a QQ plot of the residuals, but, again: only 10 points.
 
 It is important to remember that some parts of the linear model `summary()` are arithmetically determined by the observed data: the parameter estimates, their standard errors, the *t* and *F* statistics, and the R^2^ value. Only the *P*-values associated with the hypothesis tests of the parameter estimates vs. 0 (the `Pr(>|t|)` column) and of the overall *F* test (here `p-value: 0.07688`) rely on the asymptotic assumptions of the test. 
 
@@ -254,9 +255,9 @@ How do the intervals compare?
 
 ## Brownian motion and why biological traits are very often normally distributed
 
-Normal or Gaussian distributions (and their relatives like log-Normal) are extremely common distributions in biology, particularly so for phenotypic trait values. Here we want to explore how a simple process can lead to a normal distribution.
+Normal or Gaussian distributions (and their relatives like log-normal and gamma distributions) are extremely common distributions in biology, particularly so for phenotypic trait values. Here we want to explore how a simple process can lead to a normal distribution.
 
-The small function below generates a sequence of +1 or -1 for some number of steps (`nsteps`) and then adds the resulting values cumulatively. Think of this process as, at each step, adding or subtracting 1. Because this process doesn't know about its past and only works 1 step at a time, it's called a Markov process.
+The small function below generates a sequence of +1 or -1 for some number of steps (`nsteps`) and then adds the resulting values cumulatively. Think of this process as, at each step, adding or subtracting 1. Because this process doesn't know about its past and only works 1 step at a time, it's called a Markov process and when those steps happen in sequence, a Markov chain (the first "MC" in MCMC).
 
 Feel free to step through the code and see what the values for `s` and `y` are.
 
@@ -303,6 +304,7 @@ We can visualize the paths for each of our simulated lineages and highlight a si
 
 ```{r}
 #| echo: true
+#| warning: false
 
 ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
@@ -328,18 +330,21 @@ p1 <- ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
             alpha = 0.5,
             linewidth = 1.5) +
-  geom_point(data = sims, aes(x = y, y = step), alpha = 0)
+  geom_point(data = sims, aes(x = y, y = step), alpha = 0) +
+  scale_x_continuous(limits = c(-12, 12))
 p2 <- ggplot(data = sims, aes(y)) +
-  geom_histogram(binwidth = 1)
-plot_grid(p2, p1, nrow = 2)
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(limits = c(-12, 12))
+plot_grid(p2, p1, nrow = 2, align = "hv")
 ```
 
 You can see that even a relatively simple process of adding or subtracting 1 can, over a relatively short sequence, produce a viable normal distribution. Try changing the values of `niter` and `nsteps` and rerunning the simulation.
 
-In the chink below, rewrite the `markov_sim()` function to instead use values drawn from a standard normal distribution. This is more typically called Brownian motion, where at each step, a small amount is added (or subtracted).
+In the chunk below, rewrite the `markov_sim()` function to instead use values drawn from a standard normal distribution. This is more typically called Brownian motion, where at each step, a small amount is added (or subtracted).
 
 ```{r}
 #| echo: true
+#| warning: false
 
 # FIXME
 set.seed(3473897)
@@ -377,9 +382,11 @@ p1 <- ggplot() +
   geom_path(data = sims, aes(x = y, y = step, group = sim_num),
             alpha = 0.25,
             linewidth = 0.5) +
-  geom_point(data = sims, aes(x = y, y = step), alpha = 0)
+  geom_point(data = sims, aes(x = y, y = step), alpha = 0) +
+  scale_x_continuous(limits = c(-12, 12))
 p2 <- ggplot(data = sims, aes(y)) +
-  geom_histogram(binwidth = 0.25)
+  geom_histogram(binwidth = 0.25) +
+  scale_x_continuous(limits = c(-12, 12))
 plot_grid(p2, p1, nrow = 2)
 ```
 
@@ -405,8 +412,6 @@ glimpse(WolfPackSize)
 WolfPackSize |>
   ggplot(aes(Size)) +
   geom_histogram(bins = 20, fill = "grey75")
-
-
 ```
 
 > The distribution is right skewed. Most packs are around 5 individuals with a few with many members.
@@ -419,17 +424,14 @@ niter <- 1000
 
 mupack <- tibble("mu"= rep(NA,niter))
 
-for(ii in 1:niter)
-{
+for(ii in 1:niter) {
   pack.s <- sample(WolfPackSize$Size, 20)
   mupack[ii,] <- tibble("mu" = mean(pack.s))
-  
 }
 
 mupack |>
   ggplot(aes(mu)) +
   geom_histogram(bins = 30, fill = "grey75")
-
 
 ```
 
@@ -443,11 +445,9 @@ niter <- 1000
 
 mupack <- tibble("p5"= rep(NA,niter))
 
-for(ii in 1:niter)
-{
+for(ii in 1:niter) {
   pack.s <- sample(WolfPackSize$Size, 20)
-  mupack[ii,] <- tibble("p5" = length(which(pack.s <= 5))/length(pack.s))
-  
+  mupack[ii,] <- tibble("p5" = length(which(pack.s <= 5)) / length(pack.s))
 }
 
 mupack |>
@@ -456,9 +456,5 @@ mupack |>
 
 
 ```
-
-
-
-
 
 
