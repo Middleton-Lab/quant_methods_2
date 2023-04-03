@@ -117,7 +117,34 @@ What do you find?
 
 > The means are not significantly different, but only slightly (assuming $\alpha$ = 0.05). P = 0.08 for the difference.
 
-One of the assumptions of a linear model like this is that the residuals within each group are normally distributed. With only 5 points in each group that is pretty much impossible to determine. There are several different formal tests of normality (Shapiro-Wilk and Kolmogorov-Smirnov), but these tests are not that useful with so few observations. Both false negatives and false positives are common in these tests (particularly so for large and small samples). Similarly, you could look at a QQ plot of the residuals, but, again: only 10 points.
+The statistical test you just did is based on our expectations for random sampling of two groups producing a difference as big or bigger than that you observe in this set, assuming a normal distribution. Let's simulate a null distribution assuming the entire dataset is from a single distribution and the true distribution is normal. Get an overall mean and standard deviation and use those to generate 10,000 datasets in two groups of the same size as the small data. Then calculate the differences in the means for each iteration and plot them as a histogram. 
+
+```{r}
+
+grandmu <- mean(MM$y)
+grandsd <- sd(MM$y)
+
+niter <- 10000
+gdifs <- rep(NA,niter)
+for(ii in 1:niter)
+{
+ grp1 <- rnorm(nrow(MM[MM$Group=="Group_1",]), grandmu, grandsd)
+ grp2 <- rnorm(nrow(MM[MM$Group=="Group_2",]), grandmu, grandsd)
+ gdifs[ii] <- mean(grp1) - mean(grp2)
+ 
+}
+
+as_tibble(gdifs) |>
+  ggplot(aes(value)) +
+  geom_histogram(fill = "grey75", bins = 50)
+  
+```
+
+Based on your simulated null, what is the probability of getting a difference that is as big in magnitude as your observed difference? 
+
+
+
+One of the assumptions of a linear model like this (and in our simulated null) is that the residuals within each group are normally distributed. With only 5 points in each group that is pretty much impossible to determine. There are several different formal tests of normality (Shapiro-Wilk and Kolmogorov-Smirnov), but these tests are not that useful with so few observations. Both false negatives and false positives are common in these tests (particularly so for large and small samples). Similarly, you could look at a QQ plot of the residuals, but, again: only 10 points.
 
 It is important to remember that some parts of the linear model `summary()` are arithmetically determined by the observed data: the parameter estimates, their standard errors, the *t* and *F* statistics, and the R^2^ value. Only the *P*-values associated with the hypothesis tests of the parameter estimates vs. 0 (the `Pr(>|t|)` column) and of the overall *F* test (here `p-value: 0.07688`) rely on the asymptotic assumptions of the test. 
 
@@ -359,3 +386,79 @@ plot_grid(p2, p1, nrow = 2)
 How do the results compare to the simpler $\pm$ 1 simulation?
 
 > Because we are adding non-integer values, the resulting distribution is much smoother. However, the range is pretty similar. 
+
+
+FIXME
+
+This same phenomenon occurs when we repeatedly sample and summarize from a set of observations. Typically when we take a sample from some distribution and compute a summary of some kind, the resulting distribution of values will be normally distributed. Let's use a highly skewed real dataset to see how this works for a simple case, the mean. 
+
+In the Data4Ecologists package, there is a dataset of wolf pack sizes. Load the library and use glimpse to look at the `WolfPackSize` dataset. We'll focus on the `size` column, which is just the number of wolves in each pack that was observed in this study.
+
+Make a histogram, choosing an appropriate number of bins of wolf pack sizes and note your observations about its distribution. 
+
+```{r}
+
+library(Data4Ecologists)
+
+glimpse(WolfPackSize)
+
+WolfPackSize |>
+  ggplot(aes(Size)) +
+  geom_histogram(bins = 20, fill = "grey75")
+
+
+```
+
+> The distribution is right skewed. Most packs are around 5 individuals with a few with many members.
+
+Take 1000 samples from this distribution, sampling 20 packs each time and calculate the mean pack size. Keep these means in a tibble. Create a histogram of your computed means.
+
+```{r}
+
+niter <- 1000
+
+mupack <- tibble("mu"= rep(NA,niter))
+
+for(ii in 1:niter)
+{
+  pack.s <- sample(WolfPackSize$Size, 20)
+  mupack[ii,] <- tibble("mu" = mean(pack.s))
+  
+}
+
+mupack |>
+  ggplot(aes(mu)) +
+  geom_histogram(bins = 30, fill = "grey75")
+
+
+```
+
+
+Now do the same sampling this time calculating the proportion of packs that are smaller than or equal to 5 members. 
+
+
+```{r}
+
+niter <- 1000
+
+mupack <- tibble("p5"= rep(NA,niter))
+
+for(ii in 1:niter)
+{
+  pack.s <- sample(WolfPackSize$Size, 20)
+  mupack[ii,] <- tibble("p5" = length(which(pack.s <= 5))/length(pack.s))
+  
+}
+
+mupack |>
+  ggplot(aes(p5)) +
+  geom_histogram(bins = 15, fill = "grey75")
+
+
+```
+
+
+
+
+
+
