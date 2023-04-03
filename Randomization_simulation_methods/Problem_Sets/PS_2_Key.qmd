@@ -167,3 +167,13 @@ plot(b)
 boot.ci(b, type="bca")
 ```
 
+
+An example interval test
+
+jackknife
+bootstrap
+
+compare performance for simulated vals? - later?
+
+
+A few randomizations
