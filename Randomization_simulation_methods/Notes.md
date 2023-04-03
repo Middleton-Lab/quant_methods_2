@@ -38,12 +38,7 @@ Bootstrap
 
 ## The General Procedure
 
-1. Decide on a test statistic
-1. Calculate the test statistic for the *observed* data
-1. Randomly shuffle the observations
-1. Calculate the test statistic for that group
-1. Repeat many times to generate an empirical null distribution
-1. Determine the proportion of random combinations resulting in a test statistic more extreme than the observed value ("empirical *P*")
+
 
 Randomization
 General workflow
@@ -60,25 +55,37 @@ CI jackknife same as CI on mean
 hypoth test with jackknife
 
 ## Week 3	
+Sampling from data sets: complex designs
+
 Sampling from data 2
 Conservative vs. anti-conservative tests
 As a method to answer - is this ok?
 Ratios - as an example
 
 Complex designs
+2 way anova, multiple regression
+non
 Nesting, time series, levels, multivariate
 Multiple testing and how many permutations, empirical fdr
 Different ways to parallelize
 Base R
 furrr
 Scripts that accept parameters, calling R scripts from bash scripts
-Generality - cross validation
+
 Problem set - parallel stuff, seeds, lewis
+
+
+Sampling from data sets: decision errors and predicting new data
+
+Generality - cross validation
+False positive rate - empirical
+Power simulations
 
 
 Simulations 1
 
 simulations to verify methods they have learned
+simulating a biological null
 
 
 eddible package: https://emitanaka.org/edibble-book/index.html
