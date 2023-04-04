@@ -395,9 +395,9 @@ How do the results compare to the simpler $\pm$ 1 simulation?
 > Because we are adding non-integer values, the resulting distribution is much smoother. However, the range is pretty similar. 
 
 
-FIXME
+## Central Limit Theorem
 
-This same phenomenon occurs when we repeatedly sample and summarize from a set of observations. Typically when we take a sample from some distribution and compute a summary of some kind, the resulting distribution of values will be normally distributed. Let's use a highly skewed real dataset to see how this works for a simple case, the mean. 
+One of the reasons so much of our data analysis methods assume a normal distribution is because of what happens when we repeatedly sample and summarize from a set of observations. Typically when we take a sample from some distribution and compute a summary of some kind, the resulting distribution of values will be normally distributed, no matter what the original distribution is like. This fact is part of why so many analysis work so well across many different datasets. Let's use a highly skewed real dataset to see how this works for a simple case, the mean. 
 
 In the Data4Ecologists package (install with `remotes::install_github("jfieberg/Data4Ecologists")`), there is a dataset of wolf pack sizes. Load the library and use glimpse to look at the `WolfPackSize` dataset. We'll focus on the `size` column, which is just the number of wolves in each pack that was observed in this study.
 
@@ -455,5 +455,4 @@ mupack |>
   geom_histogram(bins = 15, fill = "grey75")
 
 ```
-
 
