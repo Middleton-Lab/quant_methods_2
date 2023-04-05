@@ -18,41 +18,12 @@ code-annotations: hover
 #| results: "hide"
 
 library(tidyverse)
-library(broom)
 library(cowplot)
 
 theme_set(theme_cowplot())
 
-
-set.seed(5311122)
-nobs <- 5
-
-MM <- tibble(
-  y = c(rnorm(nobs, 17, 2),
-        rnorm(nobs, 17, 2)),
-  Group = rep(c("Group_1", "Group_2"), each = nobs)
-)
-
-lm(y ~ Group, data = MM) |> summary()
-
-write_csv(x = MM, file = "../Data/small_data.csv")
-
-set.seed(5374978)
-nobs <- 50
-
-MM <- tibble(
-  y = c(rnorm(nobs, 17, 2),
-        rnorm(nobs, 17, 2)),
-  Group = rep(c("Group_1", "Group_2"), each = nobs)
-)
-
-lm(y ~ Group, data = MM) |> summary()
-
-write_csv(x = MM, file = "../Data/large_data.csv")
-
 # Required files for this problem set:
 #   - small_data.csv
-#   - large_data.csv
 ```
 
 
@@ -67,55 +38,33 @@ Load the data and visualize it however you would like to.
 ```{r}
 #| echo: true
 
-# FIXME
-MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
-
-ggplot(MM, aes(x = Group, y = y)) +
-  geom_point()
 ```
 
 We will ultimately be interested in testing whether means of the two groups differ significantly from one another. Based on the plot you made, what is your intuition?
 
-> Maybe. There is a lot of variation in group 1, but its mean looks like it might be larger than group 1.
+> 
 
 Calculate the group means and standard deviations as well as the difference in the means.
 
 ```{r}
 #| echo: true
 
-# FIXME
-MM |>
-    group_by(Group) |> 
-    summarize(y_mean = mean(y),
-              y_sd = sd(y))
-
-d_obs <- MM |> 
-    group_by(Group) |> 
-    summarize(y_mean = mean(y)) |> 
-    pivot_wider(names_from = Group, values_from = y_mean) |> 
-    mutate(d = Group_2 - Group_1) |> 
-    pull(d)
-d_obs
 ```
 
 Do the group means and standard deviations provide any insight about whether the means are significantly different?
 
-> The means differ by 2.4, but that is about as much as the standard deviations.
+> 
 
 Use `lm()` to fit a linear model predicting `y` by `Group`. Then use `summary()` to check whether the group means differ.
 
 ```{r}
 #| echo: true
 
-# FIXME
-
-fm <- lm(y ~ Group, data = MM)
-summary(fm)
 ```
 
 What do you find?
 
-> The means are not significantly different, but only slightly (assuming $\alpha$ = 0.05). P = 0.08 for the difference.
+> 
 
 The statistical test you just did is based on our expectations for random sampling of two groups producing a difference as big or bigger than that you observe in this set, assuming a normal distribution. Let's simulate a null distribution assuming the entire dataset is from a single distribution and the true distribution is normal. 
 
@@ -124,21 +73,6 @@ Calculate the overall mean and standard deviation for the observed data (both gr
 ```{r}
 #| echo: true
 
-# FIXME
-grandmu <- mean(MM$y)
-grandsd <- sd(MM$y)
-
-niter <- 10000
-gdifs <- rep(NA, niter)
-for (ii in 1:niter) {
-  grp1 <- rnorm(nrow(MM[MM$Group=="Group_1", ]), grandmu, grandsd)
-  grp2 <- rnorm(nrow(MM[MM$Group=="Group_2", ]), grandmu, grandsd)
-  gdifs[ii] <- mean(grp1) - mean(grp2)
-}
-
-as_tibble(gdifs) |>
-  ggplot(aes(value)) +
-  geom_histogram(fill = "grey75", bins = 50)
 ```
 
 Based on your simulated null, what is the probability of getting a difference that is as big in magnitude as your observed difference? 
@@ -172,9 +106,6 @@ In the chunk below, set the random number seed and then generate 100,000 (`1e5`)
 ```{r}
 #| echo: true
 
-# FIXME
-set.seed(346264)
-x <- sort(rnorm(1e5))
 ```
 
 Print the `head()` and `tail()` of the vector:
@@ -182,44 +113,32 @@ Print the `head()` and `tail()` of the vector:
 ```{r}
 #| echo: true
 
-# FIXME
-head(x)
-tail(x)
 ```
 
 What are the maximum and minimum values? How likely would these values be if we had a smaller sample?
 
-> For our seed, the minimum is -4.30 and the maximum is 4.33. The probability of these values is fixed: they are equally likely (though the probability is low). However, taking a larger sample means that we have more chances to randomly select such extreme values.
+> 
 
 Now print then 2,500th and 97,500th values of the vector as well as the 0.025 and 0.975 quantiles.
 
 ```{r}
 #| echo: true
 
-# FIXME
-x[2500]
-x[97500]
-
-quantile(x, probs = c(0.025, 0.975))
 ```
 
 Do the values agree? Do they agree exactly? Look at the help for `quantile()` and see if you can find an option to make them agree exactly. R has 9 different types of quantiles.
 
-> They are very close with the default quantile (`type = 7`) but not exactly matching. Setting `type = 4` makes them match exactly.
-
+> 
 Now compare the values for the quantiles above to the theoretical quantiles for a standard normal distribution using `qnorm()`.
 
 ```{r}
 #| echo: true
 
-# FIXME
-qnorm(0.025)
-qnorm(0.975)
 ```
 
 How well do they agree?
 
-> Again they are very close. `qnorm()` gives $\pm$ 1.97, and our values (for this seed) are -1.968 and 1.95.
+> 
 
 Now think about what would happen if the data had actually been drawn from a *t* distribution (with 8 degrees of freedom) rather than from a standard normal.
 
@@ -232,25 +151,11 @@ Test your prediction below, following the same steps as above, but generating th
 ```{r}
 #| echo: true
 
-# FIXME
-set.seed(782346)
-x <- sort(rt(1e5, df = 8))
-
-head(x)
-tail(x)
-
-x[2500]
-x[97500]
-
-quantile(x, probs = c(0.025, 0.975))
-
-qnorm(0.025)
-qnorm(0.975)
 ```
 
 How do the intervals compare?
 
-> Normally derived intervals are much too narrow when the data actually follow a *t* distribution (*df* = 8). If there were a lot more data then the intervals would match pretty well.
+> 
 
 
 ## Brownian motion and why biological traits are very often normally distributed
@@ -348,53 +253,12 @@ In the chunk below, rewrite the `markov_sim()` function to instead use values dr
 #| echo: true
 #| warning: false
 
-# FIXME
-set.seed(3473897)
 
-brownian_sim <- function(sim_num, nsteps) {
-  s <- replicate(nsteps, rnorm(1))
-  y <- cumsum(s)
-  return(tibble(sim_num, step = seq_len(nsteps), y))
-}
-
-niter <- 1000
-steps <- 10
-sims <- map(.x = seq_len(niter),
-            brownian_sim,
-            nsteps = steps) |> 
-  list_rbind()
-
-ggplot() +
-  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
-            alpha = 0.25,
-            linewidth = 0.5) +
-  geom_path(data = sims |> filter(sim_num == 1), aes(x = y, y = step),
-            color = "red",
-            linewidth = 2.5)
-
-ggplot() +
-  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
-            alpha = 0.25,
-            linewidth = 0.5) +
-  geom_path(data = sims |> filter(sim_num == 2), aes(x = y, y = step),
-            color = "red",
-            linewidth = 2.5)
-
-p1 <- ggplot() +
-  geom_path(data = sims, aes(x = y, y = step, group = sim_num),
-            alpha = 0.25,
-            linewidth = 0.5) +
-  geom_point(data = sims, aes(x = y, y = step), alpha = 0) +
-  scale_x_continuous(limits = c(-12, 12))
-p2 <- ggplot(data = sims, aes(y)) +
-  geom_histogram(binwidth = 0.25) +
-  scale_x_continuous(limits = c(-12, 12))
-cowplot::plot_grid(p2, p1, nrow = 2)
 ```
 
 How do the results compare to the simpler $\pm$ 1 simulation?
 
-> Because we are adding non-integer values, the resulting distribution is much smoother. However, the range is pretty similar. 
+> 
 
 
 ## Central Limit Theorem
@@ -408,36 +272,14 @@ Make a histogram, choosing an appropriate number of bins of wolf pack sizes and 
 ```{r}
 #| echo: true
 
-# FIXME
-library(Data4Ecologists)
-
-glimpse(WolfPackSize)
-
-WolfPackSize |>
-  ggplot(aes(Size)) +
-  geom_histogram(bins = 20, fill = "grey75")
 ```
 
-> The distribution is right skewed. Most packs are around 5 individuals with a few with many members.
+> 
 
 Take 1000 samples from this distribution, sampling 20 packs each time and calculate the mean pack size. Keep these means in a tibble. Create a histogram of your computed means.
 
 ```{r}
 #| echo: true
-
-# FIXME
-niter <- 1000
-
-mupack <- tibble("mu"= rep(NA,niter))
-
-for(ii in 1:niter) {
-  pack.s <- sample(WolfPackSize$Size, 20)
-  mupack[ii,] <- tibble("mu" = mean(pack.s))
-}
-
-mupack |>
-  ggplot(aes(mu)) +
-  geom_histogram(bins = 30, fill = "grey75")
 
 ```
 
@@ -448,19 +290,4 @@ Now do the same sampling this time calculating the proportion of packs that are 
 ```{r}
 #| echo: true
 
-# FIXME
-niter <- 1000
-
-mupack <- tibble("p5"= rep(NA,niter))
-
-for(ii in 1:niter) {
-  pack.s <- sample(WolfPackSize$Size, 20)
-  mupack[ii,] <- tibble("p5" = length(which(pack.s <= 5)) / length(pack.s))
-}
-
-mupack |>
-  ggplot(aes(p5)) +
-  geom_histogram(bins = 15, fill = "grey75")
-
 ```
-
