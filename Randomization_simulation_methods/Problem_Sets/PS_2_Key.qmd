@@ -31,6 +31,13 @@ We will set up a simple randomization test of the means below using a `for` loop
 #| eval: true
 #| echo: true
 
+MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
+
+ggplot(MM, aes(x = Group, y = y)) +
+  geom_point()
+
+fm <- lm(y ~ Group, data = MM)
+
 # FIXME
 library(broom)
 
@@ -43,9 +50,16 @@ for (ii in 2:iters) {
   fm_summary <- lm(y ~ Group, data = MM_rand) |> 
     summary() |> 
     tidy()
-  t_stats[ii] <- fm_summary[2, 4]
+  t_stats[ii] <- as.numeric(fm_summary[2, 4])
 }
 
+ggplot(data = tibble(t_stats),
+       aes(t_stats)) +
+  geom_histogram(bins = 50, fill = "gray75") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_vline(xintercept = t_stats[1], color = "dodgerblue4", linewidth = 1)
+
+mean(t_stats[1] >= t_stats)
 ```
 
 
@@ -53,10 +67,12 @@ for (ii in 2:iters) {
 ```{r}
 #| echo: true
 
-MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
-
-ggplot(MM, aes(x = Group, y = y)) +
-  geom_point()
+d_obs <- MM |> 
+    group_by(Group) |> 
+    summarize(y_mean = mean(y)) |> 
+    pivot_wider(names_from = Group, values_from = y_mean) |> 
+    mutate(d = Group_2 - Group_1) |> 
+    pull(d)
 
 # FIXME
 Group_diff <- function(.x, MM) {
@@ -102,6 +118,8 @@ choose(3, 2)
 choose(10, 5)
 
 1 / choose(10, 5)
+
+length(unique(d_resample))
 ```
 
 Repeat for `large_data.csv`
