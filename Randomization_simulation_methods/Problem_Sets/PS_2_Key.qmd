@@ -186,6 +186,30 @@ boot.ci(b, type="bca")
 ```
 
 
+Allele frequency
+
+```{r}
+
+freqs <- rbinom(20, 50, 0.2)/50
+
+SNP_A1 <- tibble("Allele" = rbinom(50*20, rep(1, 50*20), freqs),
+                 "Location" = paste0("L",rep(1:20, each=50)))
+
+pA1.obs <- mean(SNP_A1$Allele)
+
+jk.PA1 <- tibble("ps" = rep(NA, length=nrow(SNP_A1)))
+
+for(ii in 1:nrow(SNP_A1))
+{
+  
+  pA1.est <- mean(SNP_A1$Allele[-ii])
+  jk.PA1$ps[ii] <- nrow(SNP_A1)*pA1.obs - (nrow(SNP_A1)-1)*pA1.est
+}
+
+
+```
+
+
 An example interval test
 
 jackknife
