@@ -16,7 +16,7 @@ format:
 
 library(tidyverse)
 library(cowplot)
-
+library(boot)
 theme_set(theme_cowplot())
 
 # Required files for this problem set:
@@ -188,34 +188,172 @@ boot.ci(b, type="bca")
 
 Allele frequency
 
+[O'Malley et al.(2010)](https://doi.org/10.1098/rspb.2010.0762) performed a study of a set of different alleles for the *Clock* gene in salmon populations and found evidence that this gene is involved in seasonal adaptation and the timing of reproduction across different latitudes. You might imagine that it would be useful to estimate confidence intervals for the allele frequencies they measured in different populations and years. Let's consider one population where one allele has a frequency of 0.18 for a sample of 100 salmon. Load in the `salmon_pop.csv` file that holds the allele types for this set of fish. Look at the data and calculate the observed frequency for the clock allele and save it as an object.     
+
+
+```{r}
+set.seed(90843)
+Clock <- tibble("ID" = paste0("S",seq(1:100)),"Clock_Allele" = sample(c(rep(1,18),rep(0,82))))
+
+write_csv(Clock, file = "../Data/salmon_pop.csv")
+
+pA.obs <- mean(Clock$Clock_Allele)
+
+```
+
+Let's try applying the jackknife method to calculate the confidence interval. Use a loop or map to remove one salmon from the dataset and get a new estimate of the allele frequency and then calculate the pseudovalue. Save both your set of allele frequncies and your pseudovalues for each jackknife sample. 
+
 ```{r}
 
-freqs <- rbinom(20, 50, 0.2)/50
+jk.PA <- tibble("est" = rep(NA, length=nrow(Clock)),"ps" = rep(NA, length=nrow(Clock)))
 
-SNP_A1 <- tibble("Allele" = rbinom(50*20, rep(1, 50*20), freqs),
-                 "Location" = paste0("L",rep(1:20, each=50)))
-
-pA1.obs <- mean(SNP_A1$Allele)
-
-jk.PA1 <- tibble("ps" = rep(NA, length=nrow(SNP_A1)))
-
-for(ii in 1:nrow(SNP_A1))
+for(ii in 1:nrow(Clock))
 {
   
-  pA1.est <- mean(SNP_A1$Allele[-ii])
-  jk.PA1$ps[ii] <- nrow(SNP_A1)*pA1.obs - (nrow(SNP_A1)-1)*pA1.est
+  pA.est <- mean(Clock$Clock_Allele[-ii])
+  jk.PA$est[ii] <- pA.est
+  jk.PA$ps[ii] <- nrow(Clock)*pA.obs - (nrow(Clock)-1)*pA.est
 }
+
+```
+
+Plot a histogram of your estimates of allele frequency and of your pseudovalues. 
+
+```{r}
+
+jk.PA |>
+  ggplot(aes(est)) +
+  geom_histogram(fill = "grey75")
+
+jk.PA |>
+  ggplot(aes(ps)) +
+  geom_histogram(fill = "grey75")
 
 
 ```
 
+What do you notice about these estimates and pseudovalues? Give a brief explanation for your observations. Do you have any concerns about using the jackknife method in this application?
 
-An example interval test
+>
 
-jackknife
-bootstrap
 
-compare performance for simulated vals? - later?
+Get the jackknife estimate of the mean and confidence interval as we did in lecture.
+
+```{r}
+
+muj <- mean(jk.PA$ps)
+
+sej <- sd(jk.PA$ps)/sqrt(nrow(Clock))
+
+muj - qt(0.975,nrow(Clock)-1)*sej
+muj + qt(0.975,nrow(Clock)-1)*sej
+
+```
+
+Now let's try the bootstrap. Load the `boot` library and examine the help for the `boot` function. Write a function where the first argument is the data (your allele calls or the tibble that holds them) and the second is the new indices from sampling with replacement. Test out your function by passing it data and a new set of indices before using it in the `boot` function. Then use the `boot` function with 1000 bootstrap replicates and `stype = "i"` to tell it to use indices. 
+
+```{r}
+
+bootfreq <- function(data,indices)
+{
+  data_sub <- data[indices]
+  return(mean(data_sub))
+}
+
+bb <- boot(data = Clock$Clock_Allele, statistic = bootfreq, R = 1000,stype = "i")
+
+```
+
+Use `str()` to look at the output of `boot` and use the help to find the bootstrap replicates. Make a histogram of your bootstrap samples.
+
+```{r}
+
+breps <- tibble("breps" = bb$t[,1])
+breps |>
+  ggplot(aes(breps)) +
+  geom_histogram(fill = "grey75", bins= 25)
+  
+```
+
+What do you notice about your bootstrap replicates? Give a brief explanation for your observations. Do you have any concerns about using the bootstrap method in this application?
+
+>
+
+
+Use the `boot.ci` function to get a confidence interval specifying the percentile method and compare your results to the jackknife CI. 
+
+```{r}
+
+bbci <-boot.ci(bb, type="perc")
+
+```
+
+There are many examples in the literature using simulations to demonstrate the bootstrap or jackknife either does or does not perform well for different applications. Let's do a small simulation for the parameters in this example (frequency = 0.18, sample size = 100) to see how these methods do. 
+
+1. Set the true frequency to 0.18 and save this as an object
+2. Set your sample size to 100 and save this as an object
+3. Use `rbinom` to generate allele calls for your sample size and true frequency
+4. Perform the jackknife and obtain a CI
+5. Perform the bootstrap and obtain a CI
+6. Use your preferred iteration method (loop, map, apply, etc.) to perform these steps 10000 times and keep your jackknife and bootstrap CIs in a tibble. You probably want to start with few iterations while you get it working and then scale up. It will take a few minutes to run at 10000. 
+7. Calculate the percentage of times each CI includes the true frequency.
+
+
+```{r}
+set.seed(879371)
+
+ff <- 0.18
+Nsamp <- 100
+
+niter <- 10000
+
+output <- tibble("jlower"= rep(NA,niter),
+                 "jupper" = rep(NA,niter),
+                 "blower" = rep(NA,niter),
+                 "bupper" = rep(NA,niter))
+
+for(jj in 1:niter){
+
+AA <- tibble("Allele" = rbinom(Nsamp, 1, ff))
+
+pA.obs <- mean(AA$Allele)
+
+jk.PA <- tibble("ps" = rep(NA, length=nrow(AA)))
+
+for(ii in 1:nrow(AA))
+{
+  
+  pA.est <- mean(AA$Allele[-ii])
+  jk.PA$ps[ii] <- nrow(AA)*pA.obs - (nrow(AA)-1)*pA.est
+}
+
+muj <- mean(jk.PA$ps)
+
+sej <- sd(jk.PA$ps)/sqrt(nrow(AA))
+
+output$jlower[jj] <- muj - qt(0.975,nrow(AA)-1)*sej
+output$jupper[jj] <- muj + qt(0.975,nrow(AA)-1)*sej
+
+bb <- boot(data = AA$Allele, statistic = bootfreq, R = 1000,stype = "i")
+bbci <-boot.ci(bb, type="perc")
+output$blower[jj] <- bbci$percent[1,4]
+output$bupper[jj] <- bbci$percent[1,5]
+}
+
+jk.c <- mean(output$jlower <= ff & output$jupper >= ff)
+b.c <- mean(output$blower <= ff & output$bupper >= ff) 
+
+
+```
+
+Based on your simulation, do you think these methods would work well for calculating CIs for this salmon study and similar studies of allele frequencies? Why or why not?
+
+>
+
+What values should further simulations change to test the generality of these methods? (Try some out if you wish)
+
+>
+
 
 
 A few randomizations
