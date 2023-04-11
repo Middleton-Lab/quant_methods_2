@@ -332,6 +332,101 @@ SP |>
 
 ```
 
+Colosimo et al. 2004 fit a linear model at many different variants in the genome to test for an association between the marine vs benthic genotype and the number of armor plates. We will focus on this one locus and given the distribution of plate number, we will use a randomization test. Following the procedure from lecture, perform a randomization and collect the following test statistic: the 3 pairwise differences in mean plate number for the different genotypes and the 3 pairwise differences in median plate number for the different genotypes. Perform 10000 randomizations and plot histograms facetting by the pairwise difference and type. Place your observed values on your histograms with a vertical line. 
 
+```{r}
 
-# keep several stats - diff in means, diff in medians, ts?
+niter <- 10000
+output_r <- tibble("MM_Mm_mean" = rep(NA, niter),
+                   "MM_mm_mean" = rep(NA, niter),
+                   "Mm_mm_mean" = rep(NA, niter),
+                   "MM_Mm_median" = rep(NA, niter),
+                   "MM_mm_median" = rep(NA, niter),
+                   "Mm_mm_median" = rep(NA, niter))
+obs.st <- SP |> 
+  group_by(genotype) |>
+  summarize(Mean = mean(plates),
+            Median = median(plates))
+
+output_r$MM_Mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="MM"] -
+  obs.st$Mean[obs.st$genotype=="Mm"]
+output_r$MM_mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="MM"] -
+  obs.st$Mean[obs.st$genotype=="mm"]
+output_r$Mm_mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="Mm"] -
+  obs.st$Mean[obs.st$genotype=="mm"]
+
+output_r$MM_Mm_median[1] <-  obs.st$Median[obs.st$genotype=="MM"] -
+  obs.st$Median[obs.st$genotype=="Mm"]
+output_r$MM_mm_median[1] <-  obs.st$Median[obs.st$genotype=="MM"] -
+  obs.st$Median[obs.st$genotype=="mm"]
+output_r$Mm_mm_median[1] <-  obs.st$Median[obs.st$genotype=="Mm"] -
+  obs.st$Median[obs.st$genotype=="mm"]
+  
+for(ii in 2:niter)
+{
+  SP.s <- SP
+  SP.s$genotype <- sample(SP.s$genotype)
+  rand.st <- SP.s |> 
+  group_by(genotype) |>
+  summarize(Mean = mean(plates),
+            Median = median(plates))
+
+output_r$MM_Mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+  rand.st$Mean[rand.st$genotype=="Mm"]
+output_r$MM_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+  rand.st$Mean[rand.st$genotype=="mm"]
+output_r$Mm_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="Mm"] -
+  rand.st$Mean[rand.st$genotype=="mm"]
+
+output_r$MM_Mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+  rand.st$Median[rand.st$genotype=="Mm"]
+output_r$MM_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+  rand.st$Median[rand.st$genotype=="mm"]
+output_r$Mm_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="Mm"] -
+  rand.st$Median[rand.st$genotype=="mm"]
+  
+}
+
+out_plot <- output_r |>
+  pivot_longer(everything(), names_to = "Pair", 
+                       values_to = "Difference")
+
+obs_plot <- output_r[1,] |>
+  pivot_longer(everything(), names_to = "Pair", 
+                       values_to = "Difference")
+
+out_plot |>
+  ggplot(aes(Difference)) +
+  geom_histogram(fill = "grey75", bins = 50) +
+  geom_vline(data= obs_plot, aes(xintercept = Difference), color = "firebrick") +
+  facet_wrap(.~Pair, ncol = 3)
+
+```
+
+For each of your pairwise differences, calculate the two-sided empirical p-value. 
+
+```{r}
+emp.ps <- apply(output_r, 2, function(x) sum(abs(x) >= abs(x[1]))/length(x))
+
+```
+
+What do you conclude from this randomization test? Which set of test statistics do you think is most appropriate in this case? 
+
+>
+
+Here, we are not doing just one test. Let's consider the set of tests using the differences in the medians. There is a set of three differences. For the empirical null you have generated here, you can count the number of times you get a difference as extreme or more across all three of your differences. Pick a threshold difference to try and determine the number of times you get a pairwise difference (out of your set of 3) that equals or exceeds this threshold difference. Plot a histogram to visualize this across your 10000 iterations (your numbers should all be 0,1,2,or 3). Take the mean across all your iterations. You've now calculated the expected number of differences you'd expect to exceed your threshold value (or the expected number of false positives for this test at your threshold value). 
+
+```{r}
+
+th.d <- 4
+oo <- output_r[-1,4:6]
+
+fp <- apply(oo, 1, function(x) sum(abs(x) >= th.d))
+mean(fp)
+
+fp_t <- tibble(fp = fp)
+fp_t |>
+  ggplot(aes(fp)) +
+  geom_histogram(fill = "grey75")
+
+```
