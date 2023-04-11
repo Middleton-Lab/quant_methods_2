@@ -20,6 +20,8 @@ library(boot)
 theme_set(theme_cowplot())
 
 # Required files for this problem set:
+# small_data.csv
+# salmon_pop.csv
 
 ```
 
@@ -133,60 +135,8 @@ choose(50, 25)
 ```
 
 
-## Prove the central limit theorem
 
-```{r}
-SP <- abdData::SticklebackPlates
-
-ggplot(SP, aes(plates)) +
-  geom_histogram(bins = 30) +
-  facet_grid(genotype ~ .)
-
-SP |> 
-  group_by(genotype) |> 
-  summarize(Mean = mean(plates),
-            Median = median(plates))
-
-Mm <- SP |> 
-  filter(genotype == "Mm") |> 
-  pull(plates)
-
-resample_Mm <- function(ii, nsamp) {
-  ids <- sample(seq_len(length(Mm)), nsamp)
-  return(tibble(ii, bar = mean(Mm[ids])))
-}
-
-niter <- 1000
-resamples <- map(.x = seq_len(niter),
-                 .f = resample_Mm,
-                 nsamp = 20) |> 
-  list_rbind()
-
-ggplot(resamples, aes(bar)) +
-  geom_histogram(bins = 30)
-
-mean(resamples$bar)
-median(Mm)
-
-```
-
-
-```{r}
-library(boot)
-
-mean_fun <- function(data, indices) {
-  data_sub <- data[indices]
-  return(mean(data_sub))
-}
-
-b <- boot(data = Mm, statistic = mean_fun, R = 2000, stype = "i")
-b
-plot(b)
-boot.ci(b, type="bca")
-```
-
-
-Allele frequency
+# Allele frequencies at the *Clock* gene
 
 [O'Malley et al.(2010)](https://doi.org/10.1098/rspb.2010.0762) performed a study of a set of different alleles for the *Clock* gene in salmon populations and found evidence that this gene is involved in seasonal adaptation and the timing of reproduction across different latitudes. You might imagine that it would be useful to estimate confidence intervals for the allele frequencies they measured in different populations and years. Let's consider one population where one allele has a frequency of 0.18 for a sample of 100 salmon. Load in the `salmon_pop.csv` file that holds the allele types for this set of fish. Look at the data and calculate the observed frequency for the clock allele and save it as an object.     
 
@@ -310,7 +260,7 @@ set.seed(879371)
 ff <- 0.18
 Nsamp <- 100
 
-niter <- 10000
+niter <- 1000
 
 output <- tibble("jlower"= rep(NA,niter),
                  "jupper" = rep(NA,niter),
@@ -359,5 +309,29 @@ What values should further simulations change to test the generality of these me
 >
 
 
+# Sticklebacks 
 
-A few randomizations
+[Colosimo et al. 2004](https://doi.org/10.1371/journal.pbio.0020109) performed crosses of benthic and marine sticklebacks to investigate the genetic basis of armor plates (an anti-predator adaptation seen in marine sticklebacks). You have seen the data for one of these loci before in QMLS1. Load the stickleback plates data in the abdData package using `abdData::SticklebackPlates` and plot histograms for each genotype and get the mean and median for each genotype. 
+
+![](https://journals.plos.org/plosbiology/article/figure/image?size=large&id=10.1371/journal.pbio.0020109.g001){width=80% fig-align="center"}
+
+
+```{r}
+
+SP <- abdData::SticklebackPlates
+
+ggplot(SP, aes(plates)) +
+  geom_histogram(bins = 30) +
+  facet_grid(genotype ~ .)
+
+SP |> 
+  group_by(genotype) |> 
+  summarize(Mean = mean(plates),
+            Median = median(plates))
+
+
+```
+
+
+
+# keep several stats - diff in means, diff in medians, ts?
