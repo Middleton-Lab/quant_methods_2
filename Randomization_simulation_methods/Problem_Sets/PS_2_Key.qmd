@@ -192,24 +192,28 @@ Allele frequency
 
 
 ```{r}
+# FIXME
 set.seed(90843)
-Clock <- tibble("ID" = paste0("S",seq(1:100)),"Clock_Allele" = sample(c(rep(1,18),rep(0,82))))
+Clock <- tibble("ID" = paste0("S",seq(1:100)),
+                "Clock_Allele" = sample(c(rep(1,18),rep(0,82))))
 
 write_csv(Clock, file = "../Data/salmon_pop.csv")
 
+####
+
+Clock <- read_csv(file = "../Data/salmon_pop.csv", show_col_types = FALSE)
 pA.obs <- mean(Clock$Clock_Allele)
 
 ```
 
-Let's try applying the jackknife method to calculate the confidence interval. Use a loop or map to remove one salmon from the dataset and get a new estimate of the allele frequency and then calculate the pseudovalue. Save both your set of allele frequncies and your pseudovalues for each jackknife sample. 
+Let's try applying the jackknife method to calculate the confidence interval. Use a loop or `map()` to remove one salmon from the dataset and get a new estimate of the allele frequency and then calculate the pseudovalue. Save both your set of allele frequencies and your pseudovalues for each jackknife sample. 
 
 ```{r}
 
-jk.PA <- tibble("est" = rep(NA, length=nrow(Clock)),"ps" = rep(NA, length=nrow(Clock)))
+jk.PA <- tibble("est" = rep(NA, length = nrow(Clock)),
+                "ps" = rep(NA, length = nrow(Clock)))
 
-for(ii in 1:nrow(Clock))
-{
-  
+for(ii in 1:nrow(Clock)) {
   pA.est <- mean(Clock$Clock_Allele[-ii])
   jk.PA$est[ii] <- pA.est
   jk.PA$ps[ii] <- nrow(Clock)*pA.obs - (nrow(Clock)-1)*pA.est
@@ -254,13 +258,14 @@ Now let's try the bootstrap. Load the `boot` library and examine the help for th
 
 ```{r}
 
-bootfreq <- function(data,indices)
+bootfreq <- function(data, indices)
 {
   data_sub <- data[indices]
   return(mean(data_sub))
 }
 
-bb <- boot(data = Clock$Clock_Allele, statistic = bootfreq, R = 1000,stype = "i")
+bb <- boot(data = Clock$Clock_Allele, statistic = bootfreq, R = 1000,
+           stype = "i")
 
 ```
 
@@ -284,7 +289,7 @@ Use the `boot.ci` function to get a confidence interval specifying the percentil
 
 ```{r}
 
-bbci <-boot.ci(bb, type="perc")
+(bbci <-boot.ci(bb, type="perc"))
 
 ```
 
@@ -295,7 +300,7 @@ There are many examples in the literature using simulations to demonstrate the b
 3. Use `rbinom` to generate allele calls for your sample size and true frequency
 4. Perform the jackknife and obtain a CI
 5. Perform the bootstrap and obtain a CI
-6. Use your preferred iteration method (loop, map, apply, etc.) to perform these steps 10000 times and keep your jackknife and bootstrap CIs in a tibble. You probably want to start with few iterations while you get it working and then scale up. It will take a few minutes to run at 10000. 
+6. Use your preferred iteration method (loop, map, apply, etc.) to perform these steps 10,000 times and keep your jackknife and bootstrap CIs in a tibble. You probably want to start with few iterations while you get it working and then scale up. It will take a few minutes to run at 10,000. 
 7. Calculate the percentage of times each CI includes the true frequency.
 
 
@@ -313,31 +318,30 @@ output <- tibble("jlower"= rep(NA,niter),
                  "bupper" = rep(NA,niter))
 
 for(jj in 1:niter){
-
-AA <- tibble("Allele" = rbinom(Nsamp, 1, ff))
-
-pA.obs <- mean(AA$Allele)
-
-jk.PA <- tibble("ps" = rep(NA, length=nrow(AA)))
-
-for(ii in 1:nrow(AA))
-{
   
-  pA.est <- mean(AA$Allele[-ii])
-  jk.PA$ps[ii] <- nrow(AA)*pA.obs - (nrow(AA)-1)*pA.est
-}
-
-muj <- mean(jk.PA$ps)
-
-sej <- sd(jk.PA$ps)/sqrt(nrow(AA))
-
-output$jlower[jj] <- muj - qt(0.975,nrow(AA)-1)*sej
-output$jupper[jj] <- muj + qt(0.975,nrow(AA)-1)*sej
-
-bb <- boot(data = AA$Allele, statistic = bootfreq, R = 1000,stype = "i")
-bbci <-boot.ci(bb, type="perc")
-output$blower[jj] <- bbci$percent[1,4]
-output$bupper[jj] <- bbci$percent[1,5]
+  AA <- tibble("Allele" = rbinom(Nsamp, 1, ff))
+  
+  pA.obs <- mean(AA$Allele)
+  
+  jk.PA <- tibble("ps" = rep(NA, length=nrow(AA)))
+  
+  for(ii in 1:nrow(AA))
+  {
+    pA.est <- mean(AA$Allele[-ii])
+    jk.PA$ps[ii] <- nrow(AA)*pA.obs - (nrow(AA)-1)*pA.est
+  }
+  
+  muj <- mean(jk.PA$ps)
+  
+  sej <- sd(jk.PA$ps)/sqrt(nrow(AA))
+  
+  output$jlower[jj] <- muj - qt(0.975,nrow(AA)-1)*sej
+  output$jupper[jj] <- muj + qt(0.975,nrow(AA)-1)*sej
+  
+  bb <- boot(data = AA$Allele, statistic = bootfreq, R = 1000,stype = "i")
+  bbci <-boot.ci(bb, type="perc")
+  output$blower[jj] <- bbci$percent[1,4]
+  output$bupper[jj] <- bbci$percent[1,5]
 }
 
 jk.c <- mean(output$jlower <= ff & output$jupper >= ff)
