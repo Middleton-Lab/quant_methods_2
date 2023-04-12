@@ -27,11 +27,13 @@ theme_set(theme_cowplot())
 
 # Randomization test
 
-We will set up a simple randomization test of the means below using a `for` loop. In Quant Methods 1, we did many similar for loops. We also showed how to search through the object returned by `summary()` to find the relevant test statistic. Instead, here we will use the simpler tibble returned by `broom::tidy()`. Set `eval` to `true` before you knit.
+In problem set 1, you examined a simulated a null distribution for the `small_data.csv` dataset. Here, we will generate an empirical null distribution and set up a simple randomization test of the means below using a `for` loop. In Quant Methods 1, we did many similar for loops. We also showed how to search through the object returned by `summary()` to find the relevant test statistic. Instead, try to use the simpler tibble returned by `broom::tidy()` rather than digging through the summary object. Once you have your empirical null, calculate an empirical *P*-value for your observed difference in means (refer back to PS1 if you don't remember the details of this dataset).
 
 ```{r}
-#| eval: true
 #| echo: true
+
+#FIXME
+set.seed(38913)
 
 MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
 
@@ -40,7 +42,6 @@ ggplot(MM, aes(x = Group, y = y)) +
 
 fm <- lm(y ~ Group, data = MM)
 
-# FIXME
 library(broom)
 
 iters <- 1000
@@ -64,11 +65,12 @@ ggplot(data = tibble(t_stats),
 mean(t_stats[1] >= t_stats)
 ```
 
-
-
+Now, do the same randomization test, but this time, write a function to do each randomization and use `map_dbl` to iterate through 1000 randomizations.  
 ```{r}
 #| echo: true
 
+# FIXME
+set.seed(4574577)
 d_obs <- MM |> 
     group_by(Group) |> 
     summarize(y_mean = mean(y)) |> 
@@ -76,7 +78,6 @@ d_obs <- MM |>
     mutate(d = Group_2 - Group_1) |> 
     pull(d)
 
-# FIXME
 Group_diff <- function(.x, MM) {
   MM_resample <- MM |> 
     mutate(Group = sample(Group))
@@ -88,7 +89,6 @@ Group_diff <- function(.x, MM) {
     pull(d)
   return(d)
 }
-
 
 # With map
 niter <- 1000
@@ -106,7 +106,13 @@ ggplot(data = tibble(d_resample),
 mean(d_resample <= d_obs)
 ```
 
-How many iterations?
+We ran 1000 randomizations. However, for very small datasets like this one, a concern is having only a limited number of possible combinations. We don't want to be randomizing and getting the same combinations over and over again. Use unique to figure out how many unique differences you got in your randomization test. 
+
+```{r}
+length(unique(d_resample))
+```
+
+One way to figure out how many combinations are possible is with the binomial coefficient. For example, we can use the `choose` function to ask how many sets of two are possible with a list of three things, which we've done below. 
 
 ```{r}
 choose(3, 2)
@@ -116,24 +122,23 @@ choose(3, 2)
 2. 1 and 3
 3. 2 and 3
 
+Use `choose` to see how many ways there are to assign your 5 labels to a set of 10 data points, as you are doing in your randomization test of the small data. This should be close to the number of unique differences you saw in your test. If you calculate 1 divided by the number of unique combinations, you get the lowest possible empirical *P*-value you can observe.
+
 ```{r}
+#FIXME
 choose(10, 5)
 
 1 / choose(10, 5)
-
-length(unique(d_resample))
 ```
 
-Repeat for `large_data.csv`
+For larger datasets, you quickly get to many possible combinations. Try out the same example for a dataset with 20 datapoints in two groups of 10. 
 
 ```{r}
+#FIXME
+choose(20, 10)
 
+1 / choose(20, 10)
 ```
-
-```{r}
-choose(50, 25)
-```
-
 
 
 # Allele frequencies at the *Clock* gene
@@ -151,7 +156,8 @@ write_csv(Clock, file = "../Data/salmon_pop.csv")
 
 ####
 
-Clock <- read_csv(file = "../Data/salmon_pop.csv", show_col_types = FALSE)
+Clock <- read_csv(file = "../Data/salmon_pop.csv",
+                  show_col_types = FALSE)
 pA.obs <- mean(Clock$Clock_Allele)
 
 ```
@@ -260,7 +266,7 @@ set.seed(879371)
 ff <- 0.18
 Nsamp <- 100
 
-niter <- 1000
+niter <- 10000
 
 output <- tibble("jlower"= rep(NA,niter),
                  "jupper" = rep(NA,niter),
@@ -414,7 +420,12 @@ What do you conclude from this randomization test? Which set of test statistics 
 
 >
 
-Here, we are not doing just one test. Let's consider the set of tests using the differences in the medians. There is a set of three differences. For the empirical null you have generated here, you can count the number of times you get a difference as extreme or more across all three of your differences. Pick a threshold difference to try and determine the number of times you get a pairwise difference (out of your set of 3) that equals or exceeds this threshold difference. Plot a histogram to visualize this across your 10000 iterations (your numbers should all be 0,1,2,or 3). Take the mean across all your iterations. You've now calculated the expected number of differences you'd expect to exceed your threshold value (or the expected number of false positives for this test at your threshold value). 
+Here, we are not doing just one test. Let's consider the set of tests using the differences in the medians. For the empirical nulls you have generated here (a set of three pairwise differences in medians), you can count the number of times you get a difference as extreme or more across all three of your differences at various magnitudes. This quantity is the expected number of false positives across your three tests and will become useful when we use sampling methods to assess false positive and false discovery rates. Let's calculate this for one threshold value to see how this would work. 
+
+1. Pick a threshold difference to try (e.g., 20). You might base your choice on the observed data or your histograms of the empirical null to decide on a difference magnitude to try.
+2. For each of your 10,000 iterations, determine the number of times you get a pairwise difference (out of your set of 3) that equals or exceeds this threshold difference. These numbers should all be 0, 1, 2, or 3 (those are the only possible - either none, 1, 2, or all 3 will equal or exceed your threshold).
+3. Plot a histogram to visualize this across your 10,000 iterations. 
+4. Take the mean across all your iterations. You've now calculated the expected number of differences you'd expect to exceed your threshold value for a set of 3 tests here (or the expected number of false positives for this test at your threshold value). 
 
 ```{r}
 
