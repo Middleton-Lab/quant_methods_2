@@ -1,0 +1,53 @@
+---
+title: "Sampling from Data Sets"
+subtitle: "Complex Linear Models 1"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## This Week
+
+- Sampling from data sets: complex designs
+    - Complex Linear Models 1
+    - Complex Linear Models 2
+    - Beyond Traditional Models
+    - Parallel Processing Methods
+
+
+## Issues with Complex Models
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(knitr)
+library(cowplot)
+library(readxl)
+library(viridis)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(8689011)
+```
+
+- Appropriate Test Statistic?
+- Accounting for relationships among variables
+
+
+2-way with interaction
+
+- all obs
+- residuals
+- restricted

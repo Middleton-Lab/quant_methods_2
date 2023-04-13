@@ -66,7 +66,6 @@ Complex designs
 2 way anova, multiple regression
 non
 Nesting, time series, levels, multivariate
-Multiple testing and how many permutations, empirical fdr
 Different ways to parallelize
 Base R
 furrr
@@ -80,7 +79,7 @@ Sampling from data sets: decision errors and predicting new data
 Generality - cross validation
 False positive rate - empirical
 Power simulations
-
+Multiple testing and how many permutations, empirical fdr
 
 Simulations 1
 
