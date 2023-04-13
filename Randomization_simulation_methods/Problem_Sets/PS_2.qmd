@@ -1,0 +1,207 @@
+---
+title: "Problem Set 2"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+library(boot)
+theme_set(theme_cowplot())
+
+# Required files for this problem set:
+# small_data.csv
+# salmon_pop.csv
+
+```
+
+# Randomization test
+
+In problem set 1, you examined a simulated a null distribution for the `small_data.csv` dataset. Here, we will generate an empirical null distribution and set up a simple randomization test of the means below using a `for` loop. In Quant Methods 1, we did many similar for loops. We also showed how to search through the object returned by `summary()` to find the relevant test statistic. Instead, try to use the simpler tibble returned by `broom::tidy()` rather than digging through the summary object. Once you have your empirical null, calculate an empirical *P*-value for your observed difference in means (refer back to PS1 if you don't remember the details of this dataset).
+
+```{r}
+#| echo: true
+
+```
+
+Now, do the same randomization test, but this time, write a function to do each randomization and use `map_dbl` to iterate through 1000 randomizations. 
+
+```{r}
+#| echo: true
+
+
+```
+
+We ran 1000 randomizations. However, for very small datasets like this one, a concern is having only a limited number of possible combinations. We don't want to be randomizing and getting the same combinations over and over again. Use unique to figure out how many unique differences you got in your randomization test. 
+
+```{r}
+#| echo: true
+
+```
+
+One way to figure out how many combinations are possible is with the binomial coefficient. For example, we can use the `choose` function to ask how many sets of two are possible with a list of three things, which we've done below. 
+
+```{r}
+#| echo: true
+
+choose(3, 2)
+```
+
+1. 1 and 2
+2. 1 and 3
+3. 2 and 3
+
+Use `choose` to see how many ways there are to assign your 5 labels to a set of 10 data points, as you are doing in your randomization test of the small data. This should be close to the number of unique differences you saw in your test. If you calculate 1 divided by the number of unique combinations, you get the lowest possible empirical *P*-value you can observe.
+
+```{r}
+#| echo: true
+
+```
+
+For larger datasets, you quickly get to many possible combinations. Try out the same example for a dataset with 20 datapoints in two groups of 10. 
+
+```{r}
+#| echo: true
+
+```
+
+
+# Allele frequencies at the *Clock* gene
+
+[O'Malley et al.(2010)](https://doi.org/10.1098/rspb.2010.0762) performed a study of a set of different alleles for the *Clock* gene in salmon populations and found evidence that this gene is involved in seasonal adaptation and the timing of reproduction across different latitudes. You might imagine that it would be useful to estimate confidence intervals for the allele frequencies they measured in different populations and years. Let's consider one population where one allele has a frequency of 0.18 for a sample of 100 salmon. Load in the `salmon_pop.csv` file that holds the allele types for this set of fish. Look at the data and calculate the observed frequency for the clock allele and save it as an object.     
+
+
+```{r}
+#| echo: true
+
+```
+
+Let's try applying the jackknife method to calculate the confidence interval. Use a loop or `map()` to remove one salmon from the dataset and get a new estimate of the allele frequency and then calculate the pseudovalue. Save both your set of allele frequencies and your pseudovalues for each jackknife sample. 
+
+```{r}
+#| echo: true
+
+```
+
+Plot a histogram of your estimates of allele frequency and of your pseudovalues. 
+
+```{r}
+#| echo: true
+
+```
+
+What do you notice about these estimates and pseudovalues? Give a brief explanation for your observations. Do you have any concerns about using the jackknife method in this application?
+
+>
+
+
+Get the jackknife estimate of the mean and confidence interval as we did in lecture.
+
+```{r}
+#| echo: true
+
+```
+
+Now let's try the bootstrap. Load the `boot` library and examine the help for the `boot` function. Write a function where the first argument is the data (your allele calls or the tibble that holds them) and the second is the new indices from sampling with replacement. Test out your function by passing it data and a new set of indices before using it in the `boot` function. Then use the `boot` function with 1000 bootstrap replicates and `stype = "i"` to tell it to use indices. 
+
+```{r}
+#| echo: true
+
+```
+
+Use `str()` to look at the output of `boot` and use the help to find the bootstrap replicates. Make a histogram of your bootstrap samples.
+
+```{r}
+#| echo: true
+  
+```
+
+What do you notice about your bootstrap replicates? Give a brief explanation for your observations. Do you have any concerns about using the bootstrap method in this application?
+
+>
+
+
+Use the `boot.ci` function to get a confidence interval specifying the percentile method and compare your results to the jackknife CI. 
+
+```{r}
+#| echo: true
+
+```
+
+There are many examples in the literature using simulations to demonstrate the bootstrap or jackknife either does or does not perform well for different applications. Let's do a small simulation for the parameters in this example (frequency = 0.18, sample size = 100) to see how these methods do. 
+
+1. Set the true frequency to 0.18 and save this as an object
+2. Set your sample size to 100 and save this as an object
+3. Use `rbinom` to generate allele calls for your sample size and true frequency
+4. Perform the jackknife and obtain a CI
+5. Perform the bootstrap and obtain a CI
+6. Use your preferred iteration method (loop, map, apply, etc.) to perform these steps 10,000 times and keep your jackknife and bootstrap CIs in a tibble. You probably want to start with few iterations while you get it working and then scale up. It will take a few minutes to run at 10,000. 
+7. Calculate the percentage of times each CI includes the true frequency.
+
+
+```{r}
+#| echo: true
+
+```
+
+Based on your simulation, do you think these methods would work well for calculating CIs for this salmon study and similar studies of allele frequencies? Why or why not?
+
+>
+
+What values should further simulations change to test the generality of these methods? (Try some out if you wish)
+
+>
+
+
+# Sticklebacks 
+
+[Colosimo et al. 2004](https://doi.org/10.1371/journal.pbio.0020109) performed crosses of benthic and marine sticklebacks to investigate the genetic basis of armor plates (an anti-predator adaptation seen in marine sticklebacks). You have seen the data for one of these loci before in QMLS1. Load the stickleback plates data in the abdData package using `abdData::SticklebackPlates` and plot histograms for each genotype and get the mean and median for each genotype. 
+
+![](https://journals.plos.org/plosbiology/article/figure/image?size=large&id=10.1371/journal.pbio.0020109.g001){width=80% fig-align="center"}
+
+
+```{r}
+#| echo: true
+
+```
+
+Colosimo et al. 2004 fit a linear model at many different variants in the genome to test for an association between the marine vs benthic genotype and the number of armor plates. We will focus on this one locus and given the distribution of plate number, we will use a randomization test. Following the procedure from lecture, perform a randomization and collect the following test statistic: the 3 pairwise differences in mean plate number for the different genotypes and the 3 pairwise differences in median plate number for the different genotypes. Perform 10000 randomizations and plot histograms facetting by the pairwise difference and type. Place your observed values on your histograms with a vertical line. 
+
+```{r}
+#| echo: true
+
+```
+
+For each of your pairwise differences, calculate the two-sided empirical p-value. 
+
+```{r}
+#| echo: true
+
+```
+
+What do you conclude from this randomization test? Which set of test statistics do you think is most appropriate in this case? 
+
+>
+
+Here, we are not doing just one test. Let's consider the set of tests using the differences in the medians. For the empirical nulls you have generated here (a set of three pairwise differences in medians), you can count the number of times you get a difference as extreme or more across all three of your differences at various magnitudes. This quantity is the expected number of false positives across your three tests and will become useful when we use sampling methods to assess false positive and false discovery rates. Let's calculate this for one threshold value to see how this would work. 
+
+1. Pick a threshold difference to try (e.g., 20). You might base your choice on the observed data or your histograms of the empirical null to decide on a difference magnitude to try.
+2. For each of your 10,000 iterations, determine the number of times you get a pairwise difference (out of your set of 3) that equals or exceeds this threshold difference. These numbers should all be 0, 1, 2, or 3 (those are the only possible - either none, 1, 2, or all 3 will equal or exceed your threshold).
+3. Plot a histogram to visualize this across your 10,000 iterations. 
+4. Take the mean across all your iterations. You've now calculated the expected number of differences you'd expect to exceed your threshold value for a set of 3 tests here (or the expected number of false positives for this test at your threshold value). 
+
+```{r}
+#| echo: true
+
+```
