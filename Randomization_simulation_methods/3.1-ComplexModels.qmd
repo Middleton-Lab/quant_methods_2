@@ -1,0 +1,311 @@
+---
+title: "Complex Linear Models"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## This Week
+
+- Sampling from data sets: complex designs
+    - Complex Linear Models 
+    - Beyond Traditional Models
+    - Parallel Processing Methods: Within R
+    - Parallel Processing Methods: Rscript
+    
+
+
+## Issues with Complex Models
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(knitr)
+library(cowplot)
+library(readxl)
+library(viridis)
+library(nlme)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(465122)
+```
+
+$$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4$$
+
+- Appropriate test statistic
+- Accounting for relationships among variables
+
+## Energy expenditure in naked mole rats
+
+```{r}
+#| echo: false
+
+MM <- read_csv("Data/Molerats.csv", col_types = c("cdd")) %>% 
+  rename(Caste = caste,
+         Mass = ln.mass,
+         Energy= ln.energy) %>% 
+  mutate(Caste = if_else(Caste == "worker", "Worker", "Non-worker"),
+         Caste = factor(Caste))
+
+fm4 <- lm(Energy ~ Mass + Caste, data = MM)
+
+MM <- MM %>% mutate(pred4 = predict(fm4))
+
+ggplot(MM, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), lwd = 2) +
+  theme(legend.justification = c(0, 1), legend.position = c(0, 1)) +
+  labs(x = "ln Body Mass (g)", y = "ln Daily Energy Expenditure (kJ)") +
+  scale_color_viridis_d()
+
+```
+
+## Options for randomizing {.smaller}
+
+1. Randomize Y
+    - Randomize Y to all existing combinations of predictors
+    - Keeps relationships between predictors
+    - Accounts for any issues with distribution of Y
+    
+2. Restricted Randomization for each predictor 
+    - Only randomize one predictor at a time
+    - Keeps effect of the other predictors accounted for
+    - Isolates testing for the effect of the focal predictor
+
+3. Randomize Residuals     
+    - Replace observations with their corresponding residual
+    - Allows the effects of individual factors and interactions to be tested after removing the effects of other factors and interactions
+
+**Simulation shows #1 is best for most practical applications**
+
+
+## A single randomization 
+
+Randomize Y
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+
+MM.shuffle <- MM
+MM.shuffle$Energy <- sample(MM$Energy)
+
+fm4 <- lm(Energy ~ Mass + Caste, data = MM.shuffle)
+
+MM.shuffle <- MM.shuffle %>% mutate(pred4 = predict(fm4))
+
+ggplot(MM.shuffle, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), lwd = 2) +
+  theme(legend.justification = c(0, 1), legend.position = c(0, 1)) +
+  labs(x = "ln Body Mass (g)", y = "ln Daily Energy Expenditure (kJ)") +
+  scale_color_viridis_d()
+
+```
+
+## A single randomization 
+
+Randomize predictors together
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+
+MM.shuffle <- MM[sample(1:nrow(MM)),c("Caste","Mass")]
+MM.shuffle$Energy <- MM$Energy
+
+fm4 <- lm(Energy ~ Mass + Caste, data = MM.shuffle)
+
+MM.shuffle <- MM.shuffle %>% mutate(pred4 = predict(fm4))
+
+ggplot(MM.shuffle, aes(x = Mass, y = Energy, color = Caste)) +
+  geom_point(size = 4) +
+  geom_line(aes(x = Mass, y = pred4, color = Caste), lwd = 2) +
+  theme(legend.justification = c(0, 1), legend.position = c(0, 1)) +
+  labs(x = "ln Body Mass (g)", y = "ln Daily Energy Expenditure (kJ)") +
+  scale_color_viridis_d()
+
+```
+
+## Test statistics 
+
+```{r}
+#| echo: true
+
+fm4 <- lm(Energy ~ Mass + Caste, data = MM)
+broom::tidy(summary(fm4))
+
+obs <- broom::tidy(summary(fm4))[2:3,c(1,5)]
+
+obs
+
+```
+
+## Perform Randomization
+
+```{r}
+#| echo: true
+
+niter <- 1000
+MM.shuffle <- MM
+out.ps <- tibble("term" = rep(NA, niter*2), 
+                 "p.value" = rep(NA, niter*2))
+out.ps[1:2,] <- obs
+counter <- 3
+for(ii in 2:niter)
+{
+  
+MM.shuffle$Energy <- sample(MM$Energy)
+
+fm.s <- lm(Energy ~ Mass + Caste, data = MM.shuffle)
+
+out.ps[counter:(counter + 1),] <- broom::tidy(summary(fm.s))[2:3,c(1,5)]
+counter <- counter + 2
+}
+
+```
+
+## Visualize Randomizations
+
+```{r}
+
+out.ps |>
+  ggplot(aes(p.value)) +
+  geom_histogram(fill = "grey75", bins = 100) +
+  geom_vline(data=obs, aes(xintercept = p.value), color="firebrick4") +
+  facet_grid(term~.)
+
+```
+
+## Empirical P-Values
+
+```{r}
+#| echo: true
+
+
+out.ps |>
+  filter(term == "Mass") |>
+  summarize(mean(p.value <= obs$p.value[1]))
+
+out.ps |>
+  filter(term == "CasteWorker") |>
+  summarize(mean(p.value <= obs$p.value[2]))
+
+```
+
+## Multi-level Models & Exchangability
+
+Randomization assumes
+
+- IDD 
+- Exchangability of observations under the null hypothesis
+- Grouping variables will often change the unit of exchangability
+    - e.g. paired t-test has a multiple groupings: a treatment category and a pair id category
+
+See [Anderson & Ter Braak 2003](https://www.tandfonline.com/doi/abs/10.1080/00949650215733) on Canvas
+
+## Ethynylestradiol exposure in brown trout (*Salmo trutta*) 
+
+[Marques de Cunha et al. (2019)](https://onlinelibrary.wiley.com/doi/10.1111/eva.12767) split egg masses between a treatment exposed to ethynylestradoil (EE2) and one given a sham control (C_EE2).  
+
+Does EE2 exposure affect hatchling length?
+
+- Observations are not exchangable across sibling groups
+- Randomize treatment and control within sibling groups
+
+## Ethynylestradiol exposure in brown trout (*Salmo trutta*) {.smaller}
+
+
+```{r}
+#| echo: true
+
+RR <- read_excel("Data/Embryos_EE2.xlsx") |>
+  filter(Population.x == "Giesse") |>
+  mutate(Length1_mm = as.numeric(Length1_mm)) |>
+  drop_na()
+
+mod <- lme(Length1_mm ~ Treatment, random = ~ 1 | Sibgroup, data = RR)
+
+summary(mod)
+
+```
+
+## Randomize within sib groups {.smaller}
+```{r}
+set.seed(727383)
+
+```
+
+```{r}
+#| echo: true
+sibg <- unique(RR$Sibgroup)
+
+RR.s <- RR |> group_by(Sibgroup) |>
+  mutate(Treatment.s = sample(Treatment))
+
+#family 1
+RR.s[RR.s$Sibgroup==sibg[1],c(1,3,4,5)]
+
+#family 2
+RR.s[RR.s$Sibgroup==sibg[2],c(1,3,4,5)]
+
+```
+
+## Randomize within sib groups 
+
+- Limited combinations within sib groups but many possible across the dataset
+
+```{r}
+#| echo: true
+
+obs <- summary(mod)$tTable[2,4]
+
+niter <- 1000
+output <- tibble("ts" = rep(NA,niter))
+output$ts[1] <- obs
+for(ii in 2:niter)
+{
+  RR.s <- RR |> group_by(Sibgroup) |>
+    mutate(Treatment.s = sample(Treatment))
+  mod <- lme(Length1_mm ~ Treatment.s, random = ~ 1 | Sibgroup, data = RR.s)
+  output$ts[ii] <- summary(mod)$tTable[2,4]
+  
+}
+
+```
+
+## Visualize Randomizations
+
+```{r}
+empp <- mean(abs(output$ts) >= abs(obs))
+
+output |>
+  ggplot(aes(ts)) +
+  geom_histogram(fill = "grey75") +
+  geom_vline(xintercept = c(-obs,obs), color = "firebrick4", linewidth = 2) +
+  annotate("text", x = -2.5, y = 60, label = paste0("P = ",round(empp,4)), size = 6)
+
+```
+
+## General Considerations
+
+- Every randomization is testing against a particular null hypothesis 
+    - Define this hypothesis clearly
+- Randomization makes assumptions
+- Complex designs require thought about sampling strategy
+
