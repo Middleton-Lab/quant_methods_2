@@ -14,14 +14,10 @@ format:
 code-annotations: hover
 ---
 
-## Sampling from data sets: foundations
+## Randomization can apply to anything with a null hypothesis
 
-- Jackknife
-- Bootstrap
-- Randomization
-
-
-## What is randomization?
+- Questions not typical to standard statistical tests
+- Beyond a single response variable
 
 ```{r}
 #| label: setup
@@ -30,14 +26,136 @@ code-annotations: hover
 #| message: false
 
 library(tidyverse)
-library(knitr)
 library(cowplot)
 library(readxl)
 library(viridis)
-library(Data4Ecologists)
 
 ggplot2::theme_set(theme_cowplot(font_size = 18))
-set.seed(8689011)
+set.seed(579000)
 ```
 
-Ratios example
+## Example: Spatial Distribution
+
+Are species distributions clumped across the landscape?
+
+Possible Null Hypotheses:
+
+- Randomly distributed
+- Uniformly distributed
+
+![](https://www.google.com/url?sa=i&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FSpecies_distribution&psig=AOvVaw2OfzbyCaqx_egWeM-Rbnjq&ust=1681678200746000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCPi6kNDhrP4CFQAAAAAdAAAAABAE)
+
+
+## Sampling in quadrats^[Solow, AR & Smith W. 1991. Detecting Cluster in a Heterogeneous Community Sampled by Quadrats. Biometrics. 47:311-317.] 
+
+- Are species clustered in quadrats?
+    - i.e. do we observe more occurance than expected randomly in few quadrats?
+- Seabirds in the Anadyr Strait
+    
+
+```{r}
+
+sm <- function(quads, nsps, pres){
+  ms <- 1:quads
+  out <- rep(NA, length(ms))
+  for(mm in ms){
+    ss <- 0
+    for(ii in 1:length(nsps)){
+      ss <- ss+ (1- choose((quads - pres[ii]),mm)/choose(quads,mm))
+    }
+    out[mm] <- ss
+  }
+  return(out)
+}
+
+quads <- 10
+pres <- c(5,6,6,6)
+nsps <- c(7,17,12,8)
+
+out <- sm(quads, nsps, pres)
+
+oo <- tibble("quadrat" = 1:10,
+             "Sp" = out)
+
+oo |>
+  ggplot(aes(quadrat, Sp)) +
+  geom_point()
+
+```
+
+## Randomize 
+
+- Randomly assign observations to quatrats & recalculate the curve
+- Repeat many times and calculate a quantile curve
+
+## Randomize 
+
+```{r}
+birds <- tibble("quadrat" = c(rep(1,2),
+                              rep(2,2),
+                              rep(3,1),
+                              rep(4,4),
+                              rep(5,4),
+                              rep(6,1),
+                              rep(7,9),
+                              rep(8,5),
+                              rep(9,5),
+                              rep(10,11)),
+                "Species" = c("la","pu",
+                              rep("la",2),
+                              "pu",
+                              "mu","ca","ca","pu",
+                              "mu",rep("ca",3),
+                              "ca",
+                              rep("ca",5),"la",rep("pu",3),
+                              "mu",rep("la",3),"pu",
+                              "mu","ca","la","la","pu",
+                              rep("mu",3),rep("ca",5),rep("la",3)))
+
+nsps <- birds |> group_by(Species) |>
+  tally()
+
+pres <- birds |> group_by(Species) |>
+  summarise("pres" = length(unique(quadrat)))
+
+```
+
+```{r}
+#| echo: false
+
+niter <- 1000
+
+birds.s <- birds
+out.s <- matrix(data = NA, nrow = niter, ncol = quads)
+
+for(ii in 1:niter){
+  
+  birds.s$quadrat <- sample(1:quads, size = nrow(birds), replace = TRUE)
+  nsps <- birds.s |> group_by(Species) |>
+    tally()
+  pres <- birds.s |> group_by(Species) |>
+    summarise("pres" = length(unique(quadrat)))
+  out.s[ii,] <- sm(quads, nsps$n, pres$pres)
+  
+}
+
+
+```
+
+## Visualize the curves
+
+```{r}
+out.s <- t(out.s)
+out.s <- as.data.frame(out.s)
+out.s$quadrat <- 1:10
+out.tib <- pivot_longer(out.s, -quadrat,
+                        names_to = "Iter",
+                        values_to = "Sp")
+
+  ggplot() +
+  geom_line(data = out.tib, aes(quadrat, Sp, group = Iter), alpha = 1/16) +
+  geom_line(data = oo, aes(quadrat, Sp), color = "red") +
+  scale_x_continuous(breaks = 1:10) +
+  labs(x = "Quadrat Number", y = "Species")
+  
+```
