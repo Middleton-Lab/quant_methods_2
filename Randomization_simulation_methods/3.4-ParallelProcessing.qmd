@@ -15,14 +15,7 @@ format:
 code-annotations: hover
 ---
 
-## Sampling from data sets: foundations
-
-- Jackknife
-- Bootstrap
-- Randomization
-
-
-## What is randomization?
+## Parallel Processing
 
 ```{r}
 #| label: setup
@@ -31,12 +24,207 @@ code-annotations: hover
 #| message: false
 
 library(tidyverse)
-library(knitr)
 library(cowplot)
 library(readxl)
 library(viridis)
-library(Data4Ecologists)
 
 ggplot2::theme_set(theme_cowplot(font_size = 18))
-set.seed(8689011)
+
+```
+
+- Monte Carlo methods are often computationally intensive
+- Iterations are well suited to parallelization 
+    - Run sets of iterations on each core
+
+
+## Local and Remote Computers
+
+- Your computer likely has at least 4 cores
+- Clusters located elsewhere (remote) often have hundreds to thousands of compute cores
+    - e.g. the Hellbender cluster at Mizzou
+
+![](https://docs.rnet.missouri.edu/img/login-node.png)
+
+## Resources for Using Remote Computers
+
+- [Software Carpentry](https://software-carpentry.org/lessons/)
+- [RSS Help Pages](https://docs.rnet.missouri.edu/)
+- [High-Performance and Parallel Computing with R](https://cran.r-project.org/web/views/HighPerformanceComputing.html)
+- FIXME
+
+## Introduction to Parallelization in R
+
+- Within an R Script
+    - FIXME - list?
+    - Base R: (`Rmpi`, `snow`, `mclapply`)
+    - `parallely`
+    - `future`
+    - `furr`
+- Using bash to run many R scripts
+    
+
+## A Simple Script 
+
+```{r}
+#| echo: true
+
+MM <- read_excel("Data/Jackals.xlsx")
+
+obs <- MM |> filter(Sex == "F") |> summarize(m = mean(Mandible)) |> pull(m) -
+  MM |> filter(Sex == "M") |> summarize(m = mean(Mandible)) |> pull(m)
+
+set.seed(3850234) # <1>
+
+nreps <- 1e4
+diffs <- numeric(length = nreps)
+diffs[1] <- obs
+
+for (ii in 2:nreps) # <2>
+{
+  Rand_Sex <- sample(MM$Sex)
+  diffs[ii] <- mean(MM$Mandible[Rand_Sex == "F"]) -
+    mean(MM$Mandible[Rand_Sex == "M"])
+}
+
+#two-tailed test
+round(mean(abs(diffs) >= abs(diffs[1])), 4) # <3>
+
+```
+
+1. Setting different seeds for iterations
+2. Splitting up iterations
+3. Keeping and combining the output
+
+## OTHER METHODS HERE
+
+## Using bash to run many R scripts
+
+  - Use `.R` not `.Rmd`
+  - Run the script from the shell
+  - Pass inputs & collect outputs
+  - Sometimes base R will behave preferably compared to tidyverse 
+
+## Setting up the script
+
+```{r}
+#| echo: true
+#| eval: false
+
+args=(commandArgs(TRUE)) # <1>
+
+MM <- read_excel("Data/Jackals.xlsx")
+
+set.seed(args[1]) # <2> 
+iter_id <- args[2] # <3>
+
+nreps <- 100 # <4>
+diffs <- numeric(length = nreps)
+
+for (ii in 1:nreps) 
+{
+  Rand_Sex <- sample(MM$Sex)
+  diffs[ii] <- mean(MM$Mandible[Rand_Sex == "F"]) -
+    mean(MM$Mandible[Rand_Sex == "M"])
+}
+
+saveRDS(file = paste0("/Output/jackal_iters_", iter_id, ".Rds")) # <5>
+
+```
+
+1. take arguments from bash
+2. seed will be passed to script
+3. track which set this is
+4. do 100 iterations per core
+5. keep the output as a Rds file (keeps R attributes)
+
+## Setting up the bash commands
+
+```{r}
+#| echo: true
+#| eval: false
+
+set.seed(87239)
+ncores <- 10
+iter_ids <- 1:ncores
+seeds <- runif(ncores, 1, 10000000)
+
+cat("", file = "jackal_cmds.txt", append = FALSE)
+
+for(jj in 1:ncores)
+{
+  cat(paste0("Rscript Jackals_iter.R ", 
+             seeds[jj], " ",
+             iter_ids[jj], 
+             " >temp", jj,".txt",
+             " 2>error", jj,".txt",
+             " \n"), 
+      file = "jackal_cmds.txt",
+      append = TRUE)
+}
+
+```
+
+## Setting up the bash commands
+
+```{bash}
+#| echo: true
+#| eval: false
+
+head jackal_cmds.txt
+
+```
+
+```{r}
+#| echo: false
+#| eval: true
+
+set.seed(87239)
+ncores <- 10
+iter_ids <- 1:ncores
+seeds <- runif(ncores, 1, 10000000)
+
+for(jj in 1:ncores)
+{
+  cat(paste0("Rscript Jackals_iter.R ", 
+             seeds[jj], " ",
+             iter_ids[jj], 
+             " >temp", jj,".txt",
+             " 2>error", jj,".txt",
+             " \n"))
+}
+
+```
+
+## RUNNING THE COMMANDS
+
+## Processing the results
+
+```{r}
+#| echo: true
+#| eval: false
+
+MM <- read_excel("Data/Jackals.xlsx")
+
+obs <- MM |> filter(Sex == "F") |> summarize(m = mean(Mandible)) |> pull(m) -
+  MM |> filter(Sex == "M") |> summarize(m = mean(Mandible)) |> pull(m)
+
+ncores <- 10
+iter_ids <- 1:ncores
+nreps <- 100
+
+alldiffs <- rep(NA, ncores*nreps)
+counter <- 1  
+
+for(jj in 1:ncores)
+{
+  diffs <- readRDS(file = paste0("/Output/jackal_iters_", iter_ids[jj], ".Rds"))
+
+  alldiffs[counter:(counter + 99)] <- diffs
+
+  counter <- counter + 100
+  
+}
+
+empP <- mean(abs(alldiffs) >= abs(obs))
+
 ```
