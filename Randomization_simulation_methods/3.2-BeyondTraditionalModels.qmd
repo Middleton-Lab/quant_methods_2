@@ -1,6 +1,5 @@
 ---
-title: "Sampling from Data Sets"
-subtitle: "Complex Linear Models 2"
+title: "Beyond Traditional Models"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -40,3 +39,5 @@ library(Data4Ecologists)
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 set.seed(8689011)
 ```
+
+Ratios example

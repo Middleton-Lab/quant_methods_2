@@ -1,6 +1,6 @@
 ---
-title: "Sampling from Data Sets"
-subtitle: "Parallel Processing"
+title: "Parallel Processing Methods"
+subtitle: "Within R"
 author:
   - Elizabeth King
   - Kevin Middleton
