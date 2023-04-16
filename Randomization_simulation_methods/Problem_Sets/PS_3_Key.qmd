@@ -1,0 +1,25 @@
+---
+title: "Problem Set 3"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+theme_set(theme_cowplot())
+
+# Required files for this problem set:
+# 
+
+```
+
