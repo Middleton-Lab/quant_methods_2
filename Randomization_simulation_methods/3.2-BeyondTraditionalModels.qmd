@@ -49,9 +49,9 @@ Possible Null Hypotheses:
 ## Sampling in quadrats^[Solow, AR & Smith W. 1991. Detecting Cluster in a Heterogeneous Community Sampled by Quadrats. Biometrics. 47:311-317.] {.smaller}
 
 - Are species clustered in quadrats?
-    - i.e. do we observe more occurance than expected randomly in few quadrats?
+    - i.e., do we observe more occurrence than expected randomly in few quadrats?
 - Seabirds in the Anadyr Strait
-    
+
 
 ```{r}
 #| fig-height: 4
@@ -63,7 +63,7 @@ sm <- function(quads, nsps, pres){
   for(mm in ms){
     ss <- 0
     for(ii in 1:length(nsps)){
-      ss <- ss+ (1- choose((quads - pres[ii]),mm)/choose(quads,mm))
+      ss <- ss+ (1- choose((quads - pres[ii]), mm) / choose(quads, mm))
     }
     out[mm] <- ss
   }
@@ -71,8 +71,8 @@ sm <- function(quads, nsps, pres){
 }
 
 quads <- 10
-pres <- c(5,6,6,6)
-nsps <- c(7,17,12,8)
+pres <- c(5, 6, 6, 6)
+nsps <- c(7, 17, 12, 8)
 
 out <- sm(quads, nsps, pres)
 
@@ -87,6 +87,18 @@ oo |>
 
 ```
 
+
+## Clustering metric
+
+$$s^*(m) = \displaystyle\sum^{K}_{i=1} \left[ 1 - \frac{\binom{M - L_i}{m}}{\binom{M}{m}}  \right] $$
+
+where:
+
+- $M$ is the number of quadrats
+- $m$ is the number of species in quadrats
+- $L_i$ is the number of qua FIXME FIXME
+
+
 ## Randomize 
 
 - Randomly assign observations to quatrats & recalculate the curve
@@ -95,26 +107,26 @@ oo |>
 ## Randomize 
 
 ```{r}
-birds <- tibble("quadrat" = c(rep(1,2),
-                              rep(2,2),
-                              rep(3,1),
-                              rep(4,4),
-                              rep(5,4),
-                              rep(6,1),
-                              rep(7,9),
-                              rep(8,5),
-                              rep(9,5),
-                              rep(10,11)),
-                "Species" = c("la","pu",
-                              rep("la",2),
+birds <- tibble("quadrat" = c(rep(1, 2),
+                              rep(2, 2),
+                              rep(3, 1),
+                              rep(4, 4),
+                              rep(5, 4),
+                              rep(6, 1),
+                              rep(7, 9),
+                              rep(8, 5),
+                              rep(9, 5),
+                              rep(10, 11)),
+                "Species" = c("la", "pu",
+                              rep("la", 2),
                               "pu",
-                              "mu","ca","ca","pu",
-                              "mu",rep("ca",3),
+                              "mu", "ca", "ca", "pu",
+                              "mu", rep("ca", 3),
                               "ca",
-                              rep("ca",5),"la",rep("pu",3),
-                              "mu",rep("la",3),"pu",
-                              "mu","ca","la","la","pu",
-                              rep("mu",3),rep("ca",5),rep("la",3)))
+                              rep("ca", 5), "la", rep("pu", 3),
+                              "mu", rep("la", 3), "pu",
+                              "mu", "ca", "la", "la", "pu",
+                              rep("mu", 3), rep("ca", 5), rep("la", 3)))
 
 nsps <- birds |> group_by(Species) |>
   tally()
@@ -135,15 +147,14 @@ out.s <- matrix(data = NA, nrow = niter, ncol = quads)
 for(ii in 1:niter){
   
   birds.s$quadrat <- sample(1:quads, size = nrow(birds), replace = TRUE)
-  nsps <- birds.s |> group_by(Species) |>
-    tally()
-  pres <- birds.s |> group_by(Species) |>
+  nsps <- birds.s |> 
+    count(Species)
+  pres <- birds.s |> 
+    group_by(Species) |>
     summarise("pres" = length(unique(quadrat)))
   out.s[ii,] <- sm(quads, nsps$n, pres$pres)
   
 }
-
-
 ```
 
 ## Visualize the curves
@@ -183,10 +194,10 @@ rr <- tibble(pid = rep(letters[1:6],100),
 rr <- rr |>
   mutate(aa_cc = aa/cc, bb_cc = bb/cc)
 
-rr |> ggplot(aes(aa_cc,bb_cc)) +
+rr |> ggplot(aes(aa_cc, bb_cc)) +
   geom_point() + 
   geom_smooth(method = lm) +
-  facet_wrap(.~pid, ncol = 3)
+  facet_wrap(. ~ pid, ncol = 3)
 
 ```
 
@@ -204,10 +215,8 @@ rr |> ggplot(aes(aa_cc,bb_cc)) +
     - For each randomization, randomly choose 2 samples from each original diet to assign to each new diet (~800 possible combos)
     - 100 randomizations (limited by computation time)
 
+
 ## Randomizations
 
 ![](Images/FC_sim_cor.png){width=60% fig-align="center"}
-
-
-
 
