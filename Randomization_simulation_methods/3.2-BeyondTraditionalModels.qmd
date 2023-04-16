@@ -43,10 +43,10 @@ Possible Null Hypotheses:
 - Randomly distributed
 - Uniformly distributed
 
-![](https://www.google.com/url?sa=i&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FSpecies_distribution&psig=AOvVaw2OfzbyCaqx_egWeM-Rbnjq&ust=1681678200746000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCPi6kNDhrP4CFQAAAAAdAAAAABAE)
+![](https://cdn.kastatic.org/ka-perseus-images/0ee2b2f9ef46f4adb40dcbcd43655122e8b8b200.png)
 
 
-## Sampling in quadrats^[Solow, AR & Smith W. 1991. Detecting Cluster in a Heterogeneous Community Sampled by Quadrats. Biometrics. 47:311-317.] 
+## Sampling in quadrats^[Solow, AR & Smith W. 1991. Detecting Cluster in a Heterogeneous Community Sampled by Quadrats. Biometrics. 47:311-317.] {.smaller}
 
 - Are species clustered in quadrats?
     - i.e. do we observe more occurance than expected randomly in few quadrats?
@@ -54,6 +54,8 @@ Possible Null Hypotheses:
     
 
 ```{r}
+#| fig-height: 4
+#| fig-width: 6
 
 sm <- function(quads, nsps, pres){
   ms <- 1:quads
@@ -79,7 +81,9 @@ oo <- tibble("quadrat" = 1:10,
 
 oo |>
   ggplot(aes(quadrat, Sp)) +
-  geom_point()
+  geom_point() +
+  scale_x_continuous(breaks = 1:10) +
+  labs(x = "Quadrat Number", y = "Species")
 
 ```
 
@@ -121,7 +125,7 @@ pres <- birds |> group_by(Species) |>
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 
 niter <- 1000
 
@@ -159,3 +163,51 @@ out.tib <- pivot_longer(out.s, -quadrat,
   labs(x = "Quadrat Number", y = "Species")
   
 ```
+
+## Example: Comparing Fold Changes
+
+- Gene expression projects typically calculate $log_2$ fold changes to compare between groups
+- Ratios like this are problematic for analysis
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| fig.width: 7
+
+set.seed(12439)
+
+rr <- tibble(pid = rep(letters[1:6],100),
+             cc = rnorm(100*6,10),
+             aa = rnorm(100*6,10),
+             bb = rnorm(100*6,10))
+rr <- rr |>
+  mutate(aa_cc = aa/cc, bb_cc = bb/cc)
+
+rr |> ggplot(aes(aa_cc,bb_cc)) +
+  geom_point() + 
+  geom_smooth(method = lm) +
+  facet_wrap(.~pid, ncol = 3)
+
+```
+
+## Gene expression in different diets
+
+- 6 samples in each of 3 diets
+- 3 tissues
+
+![](Images/FC_all.png)
+
+## What is the null expectation for fold changes?
+
+- 6 samples in each of 3 diets
+    - Easy to get a random draw that mimics the observed set up
+    - For each randomization, randomly choose 2 samples from each original diet to assign to each new diet (~800 possible combos)
+    - 100 randomizations (limited by computation time)
+
+## Randomizations
+
+![](Images/FC_sim_cor.png){width=60% fig-align="center"}
+
+
+
+
