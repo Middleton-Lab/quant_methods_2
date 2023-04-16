@@ -204,7 +204,7 @@ out.ps |>
 
 Randomization assumes
 
-- IDD 
+- IID 
 - Exchangeability of observations under the null hypothesis
 - Grouping variables will often change the unit of exchangeability
     - e.g., paired *t*-test has a multiple groupings: a treatment category and a pair id category

@@ -42,6 +42,15 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 2. Using bash to run many R scripts via a scheduler (e.g., SLURM)
     
 
+
+## Using bash to run many R scripts
+
+- Use `.R` not `.Rmd`
+- Run the script from the shell
+- Pass inputs & collect outputs
+    - Consider number of files  
+- Sometimes base R will behave preferably compared to tidyverse 
+
 ## Non-parallel
 
 ```{r}
@@ -72,14 +81,6 @@ round(mean(abs(diffs) >= abs(diffs[1])), 4) # <3>
 1. Setting different seeds for iterations
 2. Splitting up iterations
 3. Keeping and combining the output
-
-## Using bash to run many R scripts
-
-- Use `.R` not `.Rmd`
-- Run the script from the shell
-- Pass inputs & collect outputs
-    - Consider number of files  
-- Sometimes base R will behave preferably compared to tidyverse 
 
 ## `Rscript`
 
