@@ -138,7 +138,7 @@ saveRDS(file = paste0("/Output/jackal_iters_", iter_id, ".Rds")) # <5>
 set.seed(87239)
 ncores <- 10
 iter_ids <- 1:ncores
-seeds <- runif(ncores, 1, 10000000)
+seeds <- sample(1:10000000, ncores)
 
 cat("", file = "jackal_cmds.txt", append = FALSE)
 
@@ -173,7 +173,7 @@ head jackal_cmds.txt
 set.seed(87239)
 ncores <- 10
 iter_ids <- 1:ncores
-seeds <- runif(ncores, 1, 10000000)
+seeds <- sample(1:10000000, ncores)
 
 for(jj in 1:ncores)
 {
