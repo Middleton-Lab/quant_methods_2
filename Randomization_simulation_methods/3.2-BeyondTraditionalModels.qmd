@@ -88,15 +88,16 @@ oo |>
 ```
 
 
-## Clustering metric
+## Species - quadrat curve
 
 $$s^*(m) = \displaystyle\sum^{K}_{i=1} \left[ 1 - \frac{\binom{M - L_i}{m}}{\binom{M}{m}}  \right] $$
 
 where:
 
 - $M$ is the number of quadrats
-- $m$ is the number of species in quadrats
-- $L_i$ is the number of qua FIXME FIXME
+- $m$ is the individual quadrat number
+- $L_i$ is the number of quadrats species *i* is found in
+- $K$ is the total number of species
 
 
 ## Randomize 

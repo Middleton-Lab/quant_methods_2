@@ -15,7 +15,7 @@ format:
 code-annotations: hover
 ---
 
-## Parallel Processing
+## Introduction to Parallelization in R
 
 ```{r}
 #| label: setup
@@ -33,32 +33,6 @@ library(furrr)
 
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 ```
-
-- Monte Carlo methods are often computationally intensive
-    - Many iterations
-    - Often low memory usage
-- Iterations are well suited to parallelization 
-    - Run sets of iterations on each core
-
-
-## Local and Remote Computers
-
-- Your computer likely has at least 4 cores
-- Clusters located elsewhere (remote) often have hundreds to thousands of compute cores
-    - e.g., the Lewis/Hellbender clusters at Mizzou
-
-![](https://docs.rnet.missouri.edu/img/login-node.png)
-
-
-## Resources for Using Remote Computers
-
-- [Software Carpentry](https://software-carpentry.org/lessons/)
-- [RSS Help Pages](https://docs.rnet.missouri.edu/)
-- [High-Performance and Parallel Computing with R](https://cran.r-project.org/web/views/HighPerformanceComputing.html)
-- Many packages have functions that can use parallelization
-
-
-## Introduction to Parallelization in R
 
 1. Within a single R script
     - Base R: `parallel`
@@ -99,229 +73,26 @@ round(mean(abs(diffs) >= abs(diffs[1])), 4) # <3>
 2. Splitting up iterations
 3. Keeping and combining the output
 
-
-## Timing code in R
-
-- `Sys.time()`
-  - `t0 <- Sys.time()`
-  - `Sys.time() - t0`
-- `tictoc` package
-  - `tic()`
-  - `toc()`
-- [bench](https://bench.r-lib.org/) and [microbenchmark](https://cran.r-project.org/web/packages/microbenchmark/index.html) packages
-
-
-## Is it worth parallelizing?
-
-```{r}
-#| label: tictoc
-#| echo: false
-
-eta <- tibble(nreps = c(1000, 5000, 10000, 25000, 50000, 75000, 100000),
-              eta = numeric(7))
-
-for (jj in 1:nrow(eta)) {
-  nreps <- eta$nreps[jj]
-  t0 <- Sys.time()
-  for (ii in 2:nreps) {
-    Rand_Sex <- sample(MM$Sex)
-    diffs[ii] <- mean(MM$Mandible[Rand_Sex == "F"]) -
-      mean(MM$Mandible[Rand_Sex == "M"])
-  }
-  eta$eta[jj] <- Sys.time() - t0
-}
-
-ggplot(eta, aes(nreps, eta)) +
-  geom_point(size = 3, color = "dodgerblue4") +
-  labs(x = "Iterations", y = "Time (s)")
-```
-
-
-## `parallely`
-
-```{r}
-#| echo: true
-
-library(parallel)
-library(parallelly)
-(ncores <- parallelly::availableCores(omit = 1))
-
-cl <- makeClusterPSOCK(rep("localhost", times = ncores),
-                       dryrun = FALSE)
-print(cl)
-# Other code goes here
-```
-
-Manually stop the cluster:
-
-```{r}
-#| echo: true
-stopCluster(cl)
-```
-
-
-## Converting a loop for parallelization
-
-Notice that we don't use `ii` in the function.
-
-```{r}
-#| echo: true
-
-rand_diffs <- function(ii, MM) {
-  Rand_Sex <- sample(MM$Sex)
-  diffs <- mean(MM$Mandible[Rand_Sex == "F"]) -
-    mean(MM$Mandible[Rand_Sex == "M"])
-  return(diffs)
-}
-
-rand_diffs(1, MM)
-rand_diffs(1, MM)
-rand_diffs(1, MM)
-```
-
-
-## `lapply()`: Apply a function to a list or vector
-
-The sequence 1 to 10 is passed as the first argument to the function
-
-```{r}
-#| echo: true
-lapply(seq_len(10), FUN = rand_diffs, MM = MM) |> 
-  as.numeric()
-```
-
-
-## `mclapply()`: `lapply()` in parallel
-
-```{r}
-#| echo: true
-
-RNGkind("L'Ecuyer-CMRG") # <1>
-set.seed(123, "L'Ecuyer")
-
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
-```
-
-1. Set up a parallel-friendly random number generator
-
-```{r}
-#| echo: true
-RNGkind("Mersenne-Twister") # <2>
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
-```
-
-2. Reset to the default R random number generator
-
-
-## Compare timings
-
-```{r}
-#| label: compare_lapply_mclapply
-#| echo: true
-
-library(tictoc)
-tic()
-x <- lapply(seq_len(1e6), FUN = rand_diffs, MM = MM) |> as.numeric()
-toc()
-
-tic()
-x <- mclapply(seq_len(1e6), FUN = rand_diffs, MM = MM,
-              mc.set.seed = TRUE,
-              mc.cores = ncores) |> as.numeric()
-toc()
-```
-
-
-## `purrr` and `furrr`
-
-- `purrr::map_` family of functions
-- `furrr::future_map_` analogues of `map_`
-- `plan()` to setup how to the analysis will run
-    - Easily switch back and forth between parallel and non-parallel (sequential)
-    - Defaults to sequential
-    - Works well with Windows (other parallelization methods often don't)
-
-
-## `purrr` and `furrr`
-
-```{r}
-#| echo: true
-
-map_dbl(.x = seq_len(10),
-        .f = rand_diffs,
-        MM = MM)
-future_map_dbl(.x = seq_len(10),
-               .f = rand_diffs,
-               MM = MM,
-               .options = furrr_options(seed = TRUE))
-
-```
-
-- `.options = furrr_options(seed = TRUE)` handles the random number generator
-
-
-## Parallelization with `furrr`
-
-```{r}
-#| echo: true
-
-plan(multisession, workers = ncores)
-
-future_map_dbl(.x = seq_len(10), .f = rand_diffs, MM = MM,
-               .options = furrr_options(seed = TRUE))
-```
-
-Back to sequential evaluation:
-
-```{r}
-#| echo: true
-
-plan(sequential)
-future_map_dbl(.x = seq_len(10), .f = rand_diffs, MM = MM,
-               .options = furrr_options(seed = TRUE))
-```
-
-
-## How much faster?
-
-```{r}
-#| label: furrr
-#| echo: true
-
-plan(multisession, workers = ncores)
-
-tic()
-x <- future_map_dbl(.x = seq_len(1e6), .f = rand_diffs, MM = MM,
-                    .options = furrr_options(seed = TRUE))
-toc()
-
-tic()
-plan(sequential)
-x <- future_map_dbl(.x = seq_len(1e6), .f = rand_diffs, MM = MM,
-                    .options = furrr_options(seed = TRUE))
-toc()
-```
-
-
-
 ## Using bash to run many R scripts
 
-  - Use `.R` not `.Rmd`
-  - Run the script from the shell
-  - Pass inputs & collect outputs
-  - Sometimes base R will behave preferably compared to tidyverse 
-
+- Use `.R` not `.Rmd`
+- Run the script from the shell
+- Pass inputs & collect outputs
+    - Consider number of files  
+- Sometimes base R will behave preferably compared to tidyverse 
 
 ## `Rscript`
 
-intro
+```{bash}
+#| echo: true
+
+Rscript my_R_file.R variables >console_output.txt 2>errors_and_warnings.txt &
+
+```
+- You can run R from the shell with the command `Rscript`
+- Any variables you pass come in as characters
+    - `as.numeric()` if you need numbers
+- Allows you to start many R processes 
 
 
 ## Setting up the script
@@ -334,7 +105,7 @@ args=(commandArgs(TRUE)) # <1>
 
 MM <- read_excel("Data/Jackals.xlsx")
 
-set.seed(args[1]) # <2> 
+set.seed(as.numeric(args[1])) # <2> 
 iter_id <- args[2] # <3>
 
 nreps <- 100 # <4>
@@ -415,7 +186,7 @@ for(jj in 1:ncores)
 
 ```
 
-## RUNNING THE COMMANDS
+## Running the commands
 
 ## Processing the results
 
@@ -448,3 +219,9 @@ for(jj in 1:ncores)
 empP <- mean(abs(alldiffs) >= abs(obs))
 
 ```
+
+## Learn more
+
+- [Software Carpentry](https://software-carpentry.org/lessons/)
+- [RSS Help Pages](https://docs.rnet.missouri.edu/)
+- [High-Performance and Parallel Computing with R](https://cran.r-project.org/web/views/HighPerformanceComputing.html)
