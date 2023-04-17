@@ -1,4 +1,4 @@
-qmds <- list.files(pattern = "^[1].[1-5].*qmd$",
+qmds <- list.files(pattern = "^[3].[1-5].*qmd$",
                    path = "Randomization_simulation_methods/",
                    full.names = TRUE)
 
