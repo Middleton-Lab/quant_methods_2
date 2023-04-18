@@ -23,3 +23,16 @@ theme_set(theme_cowplot())
 
 ```
 
+
+In problem set 10 in QMLS1, you 
+
+
+exchangeability
+- block design
+
+mow burned control block 
+
+furrr
+
+writing list of scripts?
+
