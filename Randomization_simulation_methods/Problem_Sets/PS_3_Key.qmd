@@ -21,7 +21,7 @@ theme_set(theme_cowplot())
 set.seed(7447023)
 
 # Required files for this problem set:
-# NeandertalBrainSize.csv
+#   - NeandertalBrainSize.csv
 
 ```
 
@@ -38,27 +38,28 @@ MM <- read_csv("../Data/NeandertalBrainSize.csv", col_types = "ddc") |>
   mutate(Species = fct_relevel(Species, "Recent"))
 ```
 
-One of the models we fit was: Brain size modeled by body mass and species. Fit this model and perform a randomization test for each of your predictors performing 10000 iterations. 
+One of the models we fit was: Brain size modeled by body mass and species (additive model only without the mass X species interaction). Fit this model and perform a randomization test for each of your predictors performing 10,000 iterations. 
 
 ```{r}
-
-#FIXME
+# FIXME
 niter <- 10000
+
 M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM)
 ss <- broom::tidy(summary(M.mod))
+
 rand.out <- tibble("Species" = rep(NA, niter),
                    "Mass" = rep(NA, niter))
-rand.out$Species <- ss |> 
+rand.out$Species[1] <- ss |> 
   filter(term == "SpeciesNeanderthal") |>
   pull(p.value)
 
-rand.out$Mass <- ss |> 
+rand.out$Mass[1] <- ss |> 
   filter(term == "ln_Mass") |>
   pull(p.value)
 
 MM.s <- MM
 
-for(ii in 2:niter){
+for (ii in 2:niter) {
   MM.s$ln_Brain <- sample(MM$ln_Brain)
   M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM.s)
   ss <- broom::tidy(summary(M.mod))
@@ -70,26 +71,28 @@ for(ii in 2:niter){
   rand.out$Mass[ii] <- ss |> 
   filter(term == "ln_Mass") |>
   pull(p.value)
-  
 }
 
 rand.out |>
   ggplot(aes(Species)) +
-  geom_histogram(fill="grey75", bins = 50) +
+  geom_histogram(fill = "grey75", bins = 50) +
   geom_vline(xintercept = rand.out$Species[1], color = "firebrick4")
 
 rand.out |>
   ggplot(aes(Mass)) +
-  geom_histogram(fill="grey75", bins = 50) +
+  geom_histogram(fill = "grey75", bins = 50) +
   geom_vline(xintercept = rand.out$Mass[1], color = "firebrick4")
 
-empp <- apply(rand.out, 2, function(x) mean(x <= x[1]))
+(empp <- apply(rand.out, 2, function(x) mean(x <= x[1])))
 
 ```
 
+
 ## Chi-Squared Test
 
-The chi-squared test is known to have problems when there are few for observations for a given category or more. Look at the help for `chisq.test` and the `simulate.p.value` option. Using the option to use a monte carlo simulation is recommended when sample size is low. Let's explore this for two backcross experiments designed to ask whether a trait is determined by a single gene with dominance. Garland et al. found that a "mini-muscle" phenotype evolved in two lines in an experiment selecting for high wheel running in mice. They then performed a backcross design (cross mini muscle mice to wild-type and then cross the offspring to mini muscle mice again). If the mini muscle phenotype is determined by a single gene and is recessive, you expect a 1:1 ratio in the offspring of the backcross. [Hannon et. al (2008)](https://academic.oup.com/jhered/article/99/4/349/2187936) found 201 offspring with the mini muscle phenotype and 203 without. 
+The Chi-squared test is known to have biases when there are relatively few observations for one or more categories. Look at the help for `chisq.test` and specifically read about the `simulate.p.value` option. Using the `simulate.p.value` option to use a Monte Carlo simulation is recommended when sample size is low.
+
+Let's explore this for two back-cross experiments designed to ask whether a trait is determined by a single gene with dominance. Garland et al. (2008) found that a "mini-muscle" phenotype was present in two lines in an experiment selecting for high wheel running in mice. They then performed a back-cross design (cross mini-muscle mice to wild-type and then cross the offspring to mini-muscle mice again). If the mini muscle phenotype is determined by a single gene and that gene is recessive, you expect a 1:1 ratio in the offspring of the backcross. [Hannon et. al (2008)](https://academic.oup.com/jhered/article/99/4/349/2187936) found 201 offspring with the mini muscle phenotype and 203 without. Feel free to work out the Punnett squares for yourself.
 
 Perform a chi-squared test with and without `simulate.p.value = TRUE`.
 
@@ -103,29 +106,30 @@ chisq.test(CC, simulate.p.value = TRUE)
 
 ```
 
-There is not a way to randomize these counts by shuffling because if you simply shuffle the genotypes, you will end up with the same counts. Instead, the monte carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2000 times and calculate an empirical p-value based on this simulation. 
+There is not a way to randomize these counts by shuffling, because, if you simply shuffle the genotypes, you will end up with the same counts (the Chi-squared test uses aggregated counts only). Instead, the Monte Carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2,000 times and calculate an empirical *P*-value based on this simulation. 
 
 ```{r}
-#FIXME
+# FIXME
 CC <- c(201,203)
 NN <- sum(CC)
 niter <- 2000
 out <- rep(NA, niter)
 out[1] <- chisq.test(CC)$p.value
-RR <- rbinom(niter,NN,0.5)
+
+RR <- rbinom(niter, NN, 0.5)
+
 for(ii in 2:2000){
   out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
 }
 
 mean(out <= out[1])
-
 ```
 
-Compare your results to the output of the `chisq.test` function with simulation you used above.
+Compare your results to the output of the `chisq.test()` function with simulation you used above.
 
 >
 
-Now consider another similar backcross experiment looking at a different phenotype, a white head fur blaze, with a much smaller sample size. Here, 12 individuals had the white blaze and 9 did not. Repeat all the steps above for this example.  
+Now consider another similar back-cross experiment looking at a different phenotype, a white head fur blaze, with a much smaller sample size. Here, 12 individuals had the white blaze and 9 did not. Repeat all the steps above for this example.  
 
 
 ```{r}
@@ -140,16 +144,18 @@ NN <- sum(CC)
 niter <- 2000
 out <- rep(NA, niter)
 out[1] <- chisq.test(CC)$p.value
-RR <- rbinom(niter,NN,0.5)
-for(ii in 2:2000){
+RR <- rbinom(niter, NN, 0.5)
+for (ii in 2:2000) {
   out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
 }
 
 mean(out <= out[1])
-
 ```
 
 Consider how the "null hypothesis" is being used statistically here. How well do you think this test supports a conclusion of a 1:1 ratio in the second example and how certain should you be about that conclusion? Do you have any ideas for a different simulation that might be more appropriate for making a conclusion about the inheritance mechanism of the white blaze?
+
+> 
+
 
 ## Restoration Treatments in Prairies in a Block Design
 
