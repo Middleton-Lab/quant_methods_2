@@ -15,6 +15,7 @@ format:
 #| message: false
 
 library(tidyverse)
+library(nlme)
 library(cowplot)
 theme_set(theme_cowplot())
 set.seed(7447023)
@@ -86,15 +87,112 @@ empp <- apply(rand.out, 2, function(x) mean(x <= x[1]))
 
 ```
 
-#chi goodness
+## Chi-Squared Test
 
+The chi-squared test is known to have problems when there are few for observations for a given category or more. Look at the help for `chisq.test` and the `simulate.p.value` option. Using the option to use a monte carlo simulation is recommended when sample size is low. Let's explore this for two backcross experiments designed to ask whether a trait is determined by a single gene with dominance. Garland et al. found that a "mini-muscle" phenotype evolved in two lines in an experiment selecting for high wheel running in mice. They then performed a backcross design (cross mini muscle mice to wild-type and then cross the offspring to mini muscle mice again). If the mini muscle phenotype is determined by a single gene and is recessive, you expect a 1:1 ratio in the offspring of the backcross. [Hannon et. al (2008)](https://academic.oup.com/jhered/article/99/4/349/2187936) found 201 offspring with the mini muscle phenotype and 203 without. 
+
+Perform a chi-squared test with and without `simulate.p.value = TRUE`.
 
 ```{r}
+#FIXME
+CC <- c(201,203)
 
+chisq.test(CC)
+
+chisq.test(CC, simulate.p.value = TRUE)
 
 ```
 
+There is not a way to randomize these counts by shuffling because if you simply shuffle the genotypes, you will end up with the same counts. Instead, the monte carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2000 times and calculate an empirical p-value based on this simulation. 
 
+```{r}
+#FIXME
+CC <- c(201,203)
+NN <- sum(CC)
+niter <- 2000
+out <- rep(NA, niter)
+out[1] <- chisq.test(CC)$p.value
+RR <- rbinom(niter,NN,0.5)
+for(ii in 2:2000){
+  out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
+}
+
+mean(out <= out[1])
+
+```
+
+Compare your results to the output of the `chisq.test` function with simulation you used above.
+
+>
+
+Now consider another similar backcross experiment looking at a different phenotype, a white head fur blaze, with a much smaller sample size. Here, 12 individuals had the white blaze and 9 did not. Repeat all the steps above for this example.  
+
+
+```{r}
+#FIXME
+CC <- c(12,9)
+
+chisq.test(CC)
+
+chisq.test(CC, simulate.p.value = TRUE)
+
+NN <- sum(CC)
+niter <- 2000
+out <- rep(NA, niter)
+out[1] <- chisq.test(CC)$p.value
+RR <- rbinom(niter,NN,0.5)
+for(ii in 2:2000){
+  out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
+}
+
+mean(out <= out[1])
+
+```
+
+Consider how the "null hypothesis" is being used statistically here. How well do you think this test supports a conclusion of a 1:1 ratio in the second example and how certain should you be about that conclusion? Do you have any ideas for a different simulation that might be more appropriate for making a conclusion about the inheritance mechanism of the white blaze?
+
+## Restoration Treatments in Prairies in a Block Design
+
+- decide whether preamble is block design at one site 
+OR
+- many experimental sites at many prairies across the world
+
+
+```{r}
+set.seed(374923749)
+#number of blocks
+blks <- 200
+
+#range of numbers of plots within each block
+ns.b <- rep(round(runif(blks, 5,100)))
+
+treats <- c("control","burn","mow")
+devs <- rep(rnorm(blks, 0, 2), ns.b*length(treats)) 
+mus <- rep(c(39,52,42), times = blks) 
+mus <- rep(mus, rep(ns.b, each = 3))
+mus <- mus + devs
+
+
+TT <- tibble("Treatment" = rep(rep(treats,times = blks),rep(ns.b, each = 3)),
+             "Site" = paste0("S", rep(1:blks,ns.b*length(treats))),
+             "Richness" = round(rnorm(length(mus),mus,1))) 
+
+```
+
+Fit a multilevel model using `lme` with Site as a random effect. Here, observations are not exchangeable between experimental units. Thus, we need to randomize treatment within each #FIXME site. Perform one shuffle within sites 
+
+
+
+```{r}
+t1 <- Sys.time()
+for(ii in 1:10){
+lme(Richness ~ Treatment, random = ~ 1 | Site, data = TT)
+  cat(ii, "\n")
+}
+t2 <- Sys.time()
+t2-t1
+
+```
 
 exchangeability
 - block design
