@@ -17,14 +17,83 @@ format:
 library(tidyverse)
 library(cowplot)
 theme_set(theme_cowplot())
+set.seed(7447023)
 
 # Required files for this problem set:
-# 
+# NeandertalBrainSize.csv
 
 ```
 
 
-In problem set 10 in QMLS1, you 
+## Neandertal Brains
+
+In problem set 10 in QMLS1, you used a dataset on modern humans and Neanderthals to ask about differences in brain size when adjusted for body size.^[Ruff, C.B., E. Trinkaus, and T.W. Holliday. 1997. Body mass and encephalization in Pleistocene *Homo*. *Nature* 387: 173-176.]
+  
+The file `NeandertalBrainSize.csv` contains data on estimated log body mass, log brain size, and `Species`. Load the file, and convert `Species` to a factor.
+
+```{r}
+# FIXME
+MM <- read_csv("../Data/NeandertalBrainSize.csv", col_types = "ddc") |> 
+  mutate(Species = fct_relevel(Species, "Recent"))
+```
+
+One of the models we fit was: Brain size modeled by body mass and species. Fit this model and perform a randomization test for each of your predictors performing 10000 iterations. 
+
+```{r}
+
+#FIXME
+niter <- 10000
+M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM)
+ss <- broom::tidy(summary(M.mod))
+rand.out <- tibble("Species" = rep(NA, niter),
+                   "Mass" = rep(NA, niter))
+rand.out$Species <- ss |> 
+  filter(term == "SpeciesNeanderthal") |>
+  pull(p.value)
+
+rand.out$Mass <- ss |> 
+  filter(term == "ln_Mass") |>
+  pull(p.value)
+
+MM.s <- MM
+
+for(ii in 2:niter){
+  MM.s$ln_Brain <- sample(MM$ln_Brain)
+  M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM.s)
+  ss <- broom::tidy(summary(M.mod))
+  
+  rand.out$Species[ii] <- ss |> 
+  filter(term == "SpeciesNeanderthal") |>
+  pull(p.value)
+
+  rand.out$Mass[ii] <- ss |> 
+  filter(term == "ln_Mass") |>
+  pull(p.value)
+  
+}
+
+rand.out |>
+  ggplot(aes(Species)) +
+  geom_histogram(fill="grey75", bins = 50) +
+  geom_vline(xintercept = rand.out$Species[1], color = "firebrick4")
+
+rand.out |>
+  ggplot(aes(Mass)) +
+  geom_histogram(fill="grey75", bins = 50) +
+  geom_vline(xintercept = rand.out$Mass[1], color = "firebrick4")
+
+empp <- apply(rand.out, 2, function(x) mean(x <= x[1]))
+
+```
+
+#chi goodness
+
+
+```{r}
+
+
+```
+
 
 
 exchangeability
@@ -34,5 +103,4 @@ mow burned control block
 
 furrr
 
-writing list of scripts?
 
