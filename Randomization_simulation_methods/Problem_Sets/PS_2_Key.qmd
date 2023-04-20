@@ -194,7 +194,7 @@ jk.PA |>
 
 What do you notice about these estimates and pseudovalues? Give a brief explanation for your observations. Do you have any concerns about using the jackknife method in this application?
 
->
+> The estimates and pseudovalues only take on two values. The estimates only have two values because you are deleting a 0 or a 1 so there are only two possible outcomes. The pseudovalues are basically the calculation of the value was left out because a proportion is a mean of a set of 0's and 1's and so they are always a 0 or a 1. The distributions are certainly not close to normal so it might not work well to use the jackknife. The standard error and confidence interval calculation we would use comes from expectations from a normal distribution. 
 
 
 Get the jackknife estimate of the mean and confidence interval as we did in lecture.
@@ -238,7 +238,7 @@ breps |>
 
 What do you notice about your bootstrap replicates? Give a brief explanation for your observations. Do you have any concerns about using the bootstrap method in this application?
 
->
+> The bootstrap replicates appear to be approximatley normally distributed. Given this, the bootstrap method could work well here. 
 
 
 Use the `boot.ci` function to get a confidence interval specifying the percentile method and compare your results to the jackknife CI. 
@@ -308,11 +308,11 @@ b.c <- mean(output$blower <= ff & output$bupper >= ff)
 
 Based on your simulation, do you think these methods would work well for calculating CIs for this salmon study and similar studies of allele frequencies? Why or why not?
 
->
+> Maybe. Both methods seem to do ok. The bootstrap has closer to the correct 95% coverage but the jackknife still performs surprisingly well given the distributions we observed. So if a study was of a similar size and similar proportions, it seems both method would do well, with a prefernece for the bootstrap.
 
 What values should further simulations change to test the generality of these methods? (Try some out if you wish)
 
->
+> We would want to try different sample sizes and different proportions to confirm that these methods perform well across a range of samples. 
 
 
 # Sticklebacks 
