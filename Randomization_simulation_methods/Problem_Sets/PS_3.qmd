@@ -39,57 +39,12 @@ In problem set 10 in QMLS1, you used a dataset on modern humans and Neanderthals
 The file `NeandertalBrainSize.csv` contains data on estimated log body mass, log brain size, and `Species`. Load the file, and convert `Species` to a factor.
 
 ```{r}
-# FIXME
-MM <- read_csv("../Data/NeandertalBrainSize.csv", col_types = "ddc") |> 
-  mutate(Species = fct_relevel(Species, "Recent"))
+
 ```
 
 One of the models we fit was: Brain size modeled by body mass and species (additive model only without the mass X species interaction). Fit this model and perform a randomization test for each of your predictors performing 10,000 iterations. 
 
 ```{r}
-# FIXME
-niter <- 10000
-
-M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM)
-ss <- broom::tidy(summary(M.mod))
-
-rand.out <- tibble("Species" = rep(NA, niter),
-                   "Mass" = rep(NA, niter))
-rand.out$Species[1] <- ss |> 
-  filter(term == "SpeciesNeanderthal") |>
-  pull(p.value)
-
-rand.out$Mass[1] <- ss |> 
-  filter(term == "ln_Mass") |>
-  pull(p.value)
-
-MM.s <- MM
-
-for (ii in 2:niter) {
-  MM.s$ln_Brain <- sample(MM$ln_Brain)
-  M.mod <- lm(ln_Brain ~ Species + ln_Mass, data = MM.s)
-  ss <- broom::tidy(summary(M.mod))
-  
-  rand.out$Species[ii] <- ss |> 
-  filter(term == "SpeciesNeanderthal") |>
-  pull(p.value)
-
-  rand.out$Mass[ii] <- ss |> 
-  filter(term == "ln_Mass") |>
-  pull(p.value)
-}
-
-rand.out |>
-  ggplot(aes(Species)) +
-  geom_histogram(fill = "grey75", bins = 50) +
-  geom_vline(xintercept = rand.out$Species[1], color = "firebrick4")
-
-rand.out |>
-  ggplot(aes(Mass)) +
-  geom_histogram(fill = "grey75", bins = 50) +
-  geom_vline(xintercept = rand.out$Mass[1], color = "firebrick4")
-
-(empp <- apply(rand.out, 2, function(x) mean(x <= x[1])))
 
 ```
 
@@ -103,32 +58,13 @@ Let's explore this for two back-cross experiments designed to ask whether a trai
 Perform a chi-squared test with and without `simulate.p.value = TRUE`.
 
 ```{r}
-#FIXME
-CC <- c(201,203)
-
-chisq.test(CC)
-
-chisq.test(CC, simulate.p.value = TRUE)
 
 ```
 
 There is not a way to randomize these counts by shuffling, because, if you simply shuffle the genotypes, you will end up with the same counts (the Chi-squared test uses aggregated counts only). Instead, the Monte Carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2,000 times and calculate a *P*-value based on this simulation. 
 
 ```{r}
-# FIXME
-CC <- c(201,203)
-NN <- sum(CC)
-niter <- 2000
-out <- rep(NA, niter)
-out[1] <- chisq.test(CC)$p.value
 
-RR <- rbinom(niter, NN, 0.5)
-
-for(ii in 2:2000){
-  out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
-}
-
-mean(out <= out[1])
 ```
 
 Compare your results to the output of the `chisq.test()` function with simulation you used above.
@@ -140,23 +76,7 @@ Now consider another similar back-cross experiment looking at a different phenot
 
 ```{r}
 
-#FIXME
-CC <- c(12,9)
 
-chisq.test(CC)
-
-chisq.test(CC, simulate.p.value = TRUE)
-
-NN <- sum(CC)
-niter <- 2000
-out <- rep(NA, niter)
-out[1] <- chisq.test(CC)$p.value
-RR <- rbinom(niter, NN, 0.5)
-for (ii in 2:2000) {
-  out[ii] <- chisq.test(c(RR[ii], (NN-RR[ii])))$p.value
-}
-
-mean(out <= out[1])
 ```
 
 Consider how the "null hypothesis" is being used statistically here. How well do you think this test supports a conclusion of a 1:1 ratio in the second example and how certain should you be about that conclusion? Do you have any ideas for a different simulation that might be more appropriate for making a conclusion about the inheritance mechanism of the white blaze?
@@ -166,32 +86,9 @@ Consider how the "null hypothesis" is being used statistically here. How well do
 
 ## Restoration Treatments in Prairies in a Block Design
 
-Block designs are used often to help isolate the effects of treatments. Consider a block design where there are three plots within each block in space in a prairie restoration. These three plots are a control (unmanipulated), burned annually in fall, and mowed every spring. Within these blocks, there are several quatrats where species richness was measured. Load in the prairie.csv file and examine the structure of the data, plotting, etc.
+Block designs are used often to help isolate the effects of treatments. Consider a block design where there are three plots within each block in space in a prairie restoration. These three plots are a control (unmanipulated), burned annually in fall, and mowed every spring. Within these blocks, there are several quadrants where species richness was measured. Load in the prairie.csv file and examine the structure of the data, plotting, etc.
 
 ```{r}
-
-#FIXME
-set.seed(374923749)
-
-#number of blocks
-blks <- 50
-
-#range of numbers of plots within each block
-ns.b <- rep(round(runif(blks, 5, 20)))
-
-treats <- c("control","burn","mow")
-devs <- rep(rnorm(blks, 0, 4), ns.b*length(treats)) 
-mus <- rep(c(40.5, 42, 43.25), times = blks) 
-mus <- rep(mus, rep(ns.b, each = 3))
-devs2 <- rep(truncnorm::rtruncnorm(length(mus), mean = 0, sd = 8, a = 0.01)) 
-mus <- mus + devs + devs2
-
-
-TT <- tibble("Treatment" = rep(rep(treats, times = blks), rep(ns.b, each = 3)),
-             "Block" = paste0("S", rep(1:blks, ns.b * length(treats))),
-             "Richness" = round(rnorm(length(mus), mus, 10))) 
-
-write_csv(TT, file = "../Data/prairie.csv")
 
 ```
 
@@ -199,37 +96,11 @@ Fit a multilevel model using `lme()` with Block as a random effect. To assess th
 
 ```{r}
 
-#FIXME
-
-m1 <- lme(Richness ~ Treatment, random = ~ 1 | Block, data = TT, method = "ML")
-m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT, method = "ML")
-
-lrtest(m2, m1)
-
-obs.lrt <- lrtest(m2, m1)$Chisq[2]
-
 ```
 
 Here, observations are not exchangeable between experimental units. Thus, we need to randomize treatment within each block. Perform a small set of just 100 shuffles within blocks and perform the same likelihood ratio test using the chi-squared statistic as your statistic of interest. Estimate the time it takes to run this set. Then calculate how long it would take to run 10,000 permutations.
 
 ```{r}
-#FIXME
-
-t1 <- Sys.time()
-for(ii in 1:100){
-  TT.s <- TT |> group_by(Block) |>
-    mutate(Treatment.s = sample(Treatment))
-  m1 <- lme(Richness ~ Treatment.s, random = ~ 1 | Block, data = TT.s, method = "ML")
-  m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT.s, method = "ML")
-  
-  lr <- lrtest(m2, m1)$Chisq[2]
-  
-  #cat(ii, "\n")
-}
-t2 <- Sys.time()
-t2-t1
-(t2-t1) / 100 * 10000
-
 
 ```
 
@@ -237,44 +108,17 @@ This would take a bit of time (estimated at about 200 seconds on this machine) s
 
 ```{r}
 
-rand_lrt <- function(ii, TT) {
-  TT.s <- TT |> group_by(Block) |>
-    mutate(Treatment.s = sample(Treatment))
-  m1 <- lme(Richness ~ Treatment.s, random = ~ 1 | Block, data = TT.s, method = "ML")
-  m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT.s, method = "ML")
-  lr <- lrtest(m2, m1)$Chisq[2]
-  return(lr)
-}
-
-rand_lrt(1, TT)  
-rand_lrt(1, TT)  
-rand_lrt(1, TT)  
 ```
 
 Figure out how many cores your local computer has using `availableCores()` and use `plan()` to set up a multisession. Make sure to omit 1 core for the OS to keep running. Then use `future_map_dbl` with your function to perform 10,000 permutations. Feel free to time this chunk of code to see what the realized speed increase is.
 
 ```{r}
-ncores <- parallelly::availableCores(omit = 1)
 
-plan(multisession, workers = ncores)
-
-t0 <- Sys.time()
-chis <- future_map_dbl(.x = seq_len(10000),
-                       .f = rand_lrt,
-                       TT = TT,
-                       .options = furrr_options(seed = 478244))
-t1 <- Sys.time()
-t1 - t0
 ```
 
 Make a histogram of your chi-squared test statistic and add a line for your observed. Calculate an empirical p-value. 
 
 ```{r}
-ggplot(tibble(chis), aes(chis)) +
-  geom_histogram(fill = "grey75", bins = 50) +
-  geom_vline(xintercept = obs.lrt, color = "firebrick4")
-
-(empp <- (length(which(chis >= obs.lrt)) + 1) / (length(chis) + 1))
 
 ```
 
