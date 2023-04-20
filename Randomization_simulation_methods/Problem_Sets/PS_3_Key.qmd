@@ -15,7 +15,12 @@ format:
 #| message: false
 
 library(tidyverse)
+library(furrr)
+library(purrr)
 library(nlme)
+library(lmtest)
+library(parallel)
+library(parallelly)
 library(cowplot)
 theme_set(theme_cowplot())
 set.seed(7447023)
@@ -106,7 +111,7 @@ chisq.test(CC, simulate.p.value = TRUE)
 
 ```
 
-There is not a way to randomize these counts by shuffling, because, if you simply shuffle the genotypes, you will end up with the same counts (the Chi-squared test uses aggregated counts only). Instead, the Monte Carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2,000 times and calculate an empirical *P*-value based on this simulation. 
+There is not a way to randomize these counts by shuffling, because, if you simply shuffle the genotypes, you will end up with the same counts (the Chi-squared test uses aggregated counts only). Instead, the Monte Carlo simulation used here produces a null expectation based on the total sample size and the null hypothesis. Here, the test is for a 1:1 ratio or equal proportions. Simulate a set of two counts with a 1:1 expectation. Then repeat this 2,000 times and calculate a *P*-value based on this simulation. 
 
 ```{r}
 # FIXME
@@ -133,6 +138,7 @@ Now consider another similar back-cross experiment looking at a different phenot
 
 
 ```{r}
+
 #FIXME
 CC <- c(12,9)
 
@@ -159,52 +165,117 @@ Consider how the "null hypothesis" is being used statistically here. How well do
 
 ## Restoration Treatments in Prairies in a Block Design
 
-- decide whether preamble is block design at one site 
-OR
-- many experimental sites at many prairies across the world
+Block designs are used often to help isolate the effects of treatments. Consider a block design where there are three plots within each block in space in a prairie restoration. These three plots are a control (unmanipulated), burned annually in fall, and mowed every spring. Within these blocks, there are several quatrats where species richness was measured. Load in the prairie.csv file and examine the structure of the data.    
 
 
 ```{r}
+
+#FIXME
 set.seed(374923749)
+
 #number of blocks
-blks <- 200
+blks <- 50
 
 #range of numbers of plots within each block
-ns.b <- rep(round(runif(blks, 5,100)))
+ns.b <- rep(round(runif(blks, 5, 20)))
 
 treats <- c("control","burn","mow")
-devs <- rep(rnorm(blks, 0, 2), ns.b*length(treats)) 
-mus <- rep(c(39,52,42), times = blks) 
+devs <- rep(rnorm(blks, 0, 4), ns.b*length(treats)) 
+mus <- rep(c(39, 42, 40), times = blks) 
 mus <- rep(mus, rep(ns.b, each = 3))
-mus <- mus + devs
+devs2 <- rep(rnorm(length(mus), 0, 4)) 
+mus <- mus + devs + devs2
 
 
 TT <- tibble("Treatment" = rep(rep(treats,times = blks),rep(ns.b, each = 3)),
-             "Site" = paste0("S", rep(1:blks,ns.b*length(treats))),
-             "Richness" = round(rnorm(length(mus),mus,1))) 
+             "Block" = paste0("S", rep(1:blks,ns.b*length(treats))),
+             "Richness" = round(rnorm(length(mus),mus,8))) 
+
+write_csv(TT, file = "../Data/prairie.csv")
 
 ```
 
-Fit a multilevel model using `lme` with Site as a random effect. Here, observations are not exchangeable between experimental units. Thus, we need to randomize treatment within each #FIXME site. Perform one shuffle within sites 
-
-
+Fit a multilevel model using `lme` with Block as a random effect. To assess the significance of the treatment effect overall, fit the model with `method = ML` to use maximum likelihood. Then fit a model without treatment and use `lrtest` in the `lmtest` library to perform a likelihood ratio test comparing the models with and without treatment. Unit 10 in QMLS 1 covered likelihood ratio tests.
 
 ```{r}
+
+#FIXME
+
+m1 <- lme(Richness ~ Treatment, random = ~ 1 | Block, data = TT, method = "ML")
+m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT, method = "ML")
+
+lrtest(m2, m1)
+
+obs.lrt <- lrtest(m2, m1)$Chisq[2]
+
+```
+
+Here, observations are not exchangeable between experimental units. Thus, we need to randomize treatment within each block. Perform a small set of shuffles within blocks and perform the same likelihood ratio test using the chi-squared statistic as your statistic of interest. Estimate the time it takes to run this set. Then calculate how long it will take to run 10,000 permutations.
+
+```{r}
+#FIXME
+
 t1 <- Sys.time()
-for(ii in 1:10){
-lme(Richness ~ Treatment, random = ~ 1 | Site, data = TT)
-  cat(ii, "\n")
+for(ii in 1:100){
+  TT.s <- TT |> group_by(Block) |>
+    mutate(Treatment.s = sample(Treatment))
+  m1 <- lme(Richness ~ Treatment.s, random = ~ 1 | Block, data = TT.s, method = "ML")
+  m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT.s, method = "ML")
+  
+  lr <- lrtest(m2, m1)$Chisq[2]
+  
+  #cat(ii, "\n")
 }
 t2 <- Sys.time()
 t2-t1
 
+
 ```
 
-exchangeability
-- block design
+This takes a bit of time so let's use the `future_map_dbl` approach. Convert your code into a function that will accept an iteration number and return your test statistic and test it a couple times to ensure you get the expected result.   
 
-mow burned control block 
+```{r}
 
-furrr
+rand_lrt <- function(ii, TT) {
+  TT.s <- TT |> group_by(Block) |>
+    mutate(Treatment.s = sample(Treatment))
+  m1 <- lme(Richness ~ Treatment.s, random = ~ 1 | Block, data = TT.s, method = "ML")
+  m2 <- lme(Richness ~ 1, random = ~ 1 | Block, data = TT.s, method = "ML")
+  lr <- lrtest(m2, m1)$Chisq[2]
+  return(lr)
+}
+
+rand_lrt(1, TT)  
+rand_lrt(1, TT)  
+rand_lrt(1, TT)  
+```
+
+Figure out how many cores your local computer has using `availableCores` and use `plan` to set up a multisession. Make sure to omit 1 core for the OS to keep running. Then use `future_map_dbl` with your function to perform 10,000 permutations. 
+
+
+```{r}
+ncores <- parallelly::availableCores(omit = 1)
+
+plan(multisession, workers = ncores)
+
+chis <- future_map_dbl(.x = seq_len(10000),
+                       .f = rand_lrt,
+                       TT = TT,
+                       .options = furrr_options(seed = 478244))
+
+```
+
+Make a histogram of your chi-squared test statistic and add a line for your observed. Calculate an empirical p-value. 
+
+```{r}
+ggplot(tibble(chis), aes(chis)) +
+  geom_histogram(fill = "grey75", bins = 50) +
+  geom_vline(xintercept = obs.lrt, color="firebrick4")
+
+empp <- (length(which(chis >= obs.lrt)) + 1)/(length(chis)+1)
+
+```
+
+
 
 
