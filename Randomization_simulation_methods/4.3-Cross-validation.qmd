@@ -109,7 +109,8 @@ ggplot(DD, aes(x, y)) +
   geom_smooth(formula = y ~ x, method = "lm", se = FALSE,
               color = "lightgoldenrod3",
               linewidth = 2) +
-  geom_point(size = 5, color = "mediumorchid4")
+  geom_point(size = 5, color = "mediumorchid4") +
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
@@ -132,7 +133,8 @@ ggplot(DD, aes(x, y, color = factor(k))) +
   geom_smooth(formula = y ~ x, method = "lm", se = FALSE, color = "lightgoldenrod3",
               linewidth = 2) +
   geom_point(size = 5) +
-  scale_color_viridis_d(guide = NULL)
+  scale_color_viridis_d(guide = NULL) +
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
@@ -153,9 +155,12 @@ lm1 <- lm(y ~ x, data = DD1)
 
 ```{r}
 ggplot() +
+  geom_smooth(data = DD, aes(x, y),
+              formula = y ~ x, method = "lm", se = FALSE, color = "lightgoldenrod3",
+              linewidth = 1) +
   geom_abline(intercept = coef(lm1)[1], slope = coef(lm1)[2], linewidth = 2) +
   geom_point(data = DD1, aes(x, y), size = 5) +
-  geom_point(data = DD |> filter(k == 1), aes(x, y), size = 5, color = "hotpink3")
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
@@ -166,7 +171,19 @@ ggplot() +
   geom_abline(intercept = coef(lm1)[1], slope = coef(lm1)[2], linewidth = 2) +
   geom_point(data = DD1, aes(x, y), size = 5) +
   geom_point(data = DD |> filter(k == 1), aes(x, y), size = 5, color = "hotpink3") +
-  geom_point(data = Pred1, aes(x, y_hat), size = 5, color = "hotpink")
+  scale_y_continuous(limits = c(8, 50))
+```
+
+
+## Fold 1
+
+```{r}
+ggplot() +
+  geom_abline(intercept = coef(lm1)[1], slope = coef(lm1)[2], linewidth = 2) +
+  geom_point(data = DD1, aes(x, y), size = 5) +
+  geom_point(data = DD |> filter(k == 1), aes(x, y), size = 5, color = "hotpink3") +
+  geom_point(data = Pred1, aes(x, y_hat), size = 5, color = "hotpink") +
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
@@ -179,7 +196,8 @@ ggplot() +
   geom_point(data = DD |> filter(k == 1), aes(x, y), size = 5, color = "hotpink3") +
   geom_point(data = Pred1, aes(x, y_hat), size = 5, color = "hotpink") +
   geom_segment(data = Pred1, aes(x = x, xend = x, y = y, yend = y_hat),
-               linewidth = 0.75, linetype = "dotted")
+               linewidth = 0.75, linetype = "dotted") +
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
@@ -249,7 +267,8 @@ ggplot(DD, aes(x, y, color = factor(k))) +
   geom_smooth(formula = y ~ 1, method = "lm", se = FALSE, color = "lightcyan3",
               linewidth = 2) +
   geom_point(size = 5) +
-  scale_color_viridis_d(guide = NULL)
+  scale_color_viridis_d(guide = NULL) +
+  scale_y_continuous(limits = c(8, 50))
 ```
 
 
