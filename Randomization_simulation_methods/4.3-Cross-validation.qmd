@@ -1,0 +1,85 @@
+---
+title: "Cross-validation"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## Models as learning
+
+
+## Resampling methods^[Also see bootstrap]
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(viridis)
+library(parallel)
+library(parallelly)
+library(furrr)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+```
+
+Model assessment
+
+- How good is a model at predicting out-of-sample data?
+
+Model selection
+
+- What model has the optimal "flexibility"?
+
+
+## Machine learning lingo
+
+- Error rates: Training, testing (validation)
+- Bias (underfitting)
+- Variance (overfitting)
+
+
+## Challenges of "small" data sets
+
+- Big data sets can be split (in half)
+- More error when data is trained on small data sets (underfitting)
+
+
+## Cross-validation
+
+- *k*-fold (*v*-fold)
+- Leave one out
+
+
+## Choice of error term
+
+- (R)MSE
+- MAE
+
+
+## Simple example of 5-fold CV tracking
+
+- show fits
+- show error
+- Compare RMSE and MAE
+
+
+## LOO CV
+
+- Fitting to the most points minus 1
+- Should have less underfitting
+
+
