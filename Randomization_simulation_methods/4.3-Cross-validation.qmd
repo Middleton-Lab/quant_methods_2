@@ -397,6 +397,14 @@ t2
 ## *k*-Fold or LOOCV?
 
 
+## LOOCV shortcut
+
+Leverage:
+
+$$h_i = \frac{1}{n} + \frac{(x_i - \bar{x})^2}{\sum^{n}_{i'=1}(x_{i'} - \bar{x})}$$
+
+$$CV_{(n)} = \frac{1}{n} \sum^{n}_{i=1} \left( \frac{y_i - \hat{y_i}}{1 - h_i} \right) ^2$$
+
 
 ## CV Logistic regression
 
