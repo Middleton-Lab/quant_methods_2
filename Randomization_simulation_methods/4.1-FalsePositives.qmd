@@ -1,0 +1,72 @@
+---
+title: "Decision errors: False Positives"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## This Week
+
+- Sampling from data sets: decision errors and predicting new data
+    - Decision errors: False Positives 
+    - Decision errors: False Negatives
+    - Prediction
+    - 
+    
+
+
+## Decision errors {.smaller}
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(viridis)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(6452730)
+```
+
+
+|               | Reject H~0~    | Fail to reject H~0~   |
+|--------------:|:--------------:|:---------------------:|
+|H~0~ is true   | Type I error   | *Correct*             |
+|H~0~ is false  | *Correct*      | Type II error         |
+
+False positive (Type I error):
+
+- You decide there is an effect when in reality there is not
+    - *P* is small by *random chance*, given that $\alpha$ is chosen ahead of the test
+
+False negative (Type II error) probability depends on:
+
+- You decide there is no effect when in reality there is
+    - Depends on the value of $\alpha$ & how "wrong" H~0~ is
+    - *Random chance* leads to the estimated effect being smaller than it is in reality
+
+## Uncertainty and Decisions
+
+- All decisions should be accompanied by estimates of uncertainty
+- Intervals
+- Decision error rates
+    - e.g. false positive rate, false discovery rate, false negative rate
+
+
+
+
+
+
+
+
