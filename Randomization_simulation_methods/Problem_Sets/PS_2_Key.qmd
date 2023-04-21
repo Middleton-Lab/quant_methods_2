@@ -35,7 +35,8 @@ In problem set 1, you examined a simulated a null distribution for the `small_da
 #FIXME
 set.seed(38913)
 
-MM <- read_csv("../Data/small_data.csv", show_col_types = FALSE)
+MM <- read_csv("../Data/small_data.csv",
+               show_col_types = FALSE)
 
 ggplot(MM, aes(x = Group, y = y)) +
   geom_point()
@@ -65,7 +66,8 @@ ggplot(data = tibble(t_stats),
 mean(t_stats[1] >= t_stats)
 ```
 
-Now, do the same randomization test, but this time, write a function to do each randomization and use `map_dbl` to iterate through 1000 randomizations.  
+Now, do the same randomization test, but this time, write a function to do each randomization and use `map_dbl()` to iterate through 1000 randomizations.  
+
 ```{r}
 #| echo: true
 
@@ -106,9 +108,12 @@ ggplot(data = tibble(d_resample),
 mean(d_resample <= d_obs)
 ```
 
-We ran 1000 randomizations. However, for very small datasets like this one, a concern is having only a limited number of possible combinations. We don't want to be randomizing and getting the same combinations over and over again. Use unique to figure out how many unique differences you got in your randomization test. 
+We ran 1000 randomizations. However, for very small datasets like this one, a concern is having only a limited number of possible combinations. We don't want to be randomizing and getting the same combinations over and over again. Use `unique()` to figure out how many unique differences you got in your randomization test. 
 
 ```{r}
+#| echo: true
+
+# FIXME
 length(unique(d_resample))
 ```
 
@@ -125,16 +130,20 @@ choose(3, 2)
 Use `choose` to see how many ways there are to assign your 5 labels to a set of 10 data points, as you are doing in your randomization test of the small data. This should be close to the number of unique differences you saw in your test. If you calculate 1 divided by the number of unique combinations, you get the lowest possible empirical *P*-value you can observe.
 
 ```{r}
-#FIXME
+#| echo: true
+
+# FIXME
 choose(10, 5)
 
 1 / choose(10, 5)
 ```
 
-For larger datasets, you quickly get to many possible combinations. Try out the same example for a dataset with 20 datapoints in two groups of 10. 
+For larger datasets, you quickly get to many possible combinations. Try out the same example for a dataset with 20 data points in two groups of 10. 
 
 ```{r}
-#FIXME
+#| echo: true
+
+# FIXME
 choose(20, 10)
 
 1 / choose(20, 10)
@@ -147,10 +156,12 @@ choose(20, 10)
 
 
 ```{r}
+#| echo: true
+
 # FIXME
 set.seed(90843)
-Clock <- tibble("ID" = paste0("S",seq(1:100)),
-                "Clock_Allele" = sample(c(rep(1,18),rep(0,82))))
+Clock <- tibble("ID" = paste0("S", seq(1:100)),
+                "Clock_Allele" = sample(c(rep(1, 18), rep(0, 82))))
 
 write_csv(Clock, file = "../Data/salmon_pop.csv")
 
@@ -165,6 +176,9 @@ pA.obs <- mean(Clock$Clock_Allele)
 Let's try applying the jackknife method to calculate the confidence interval. Use a loop or `map()` to remove one salmon from the dataset and get a new estimate of the allele frequency and then calculate the pseudovalue. Save both your set of allele frequencies and your pseudovalues for each jackknife sample. 
 
 ```{r}
+#| echo: true
+
+# FIXME
 
 jk.PA <- tibble("est" = rep(NA, length = nrow(Clock)),
                 "ps" = rep(NA, length = nrow(Clock)))
@@ -172,7 +186,7 @@ jk.PA <- tibble("est" = rep(NA, length = nrow(Clock)),
 for(ii in 1:nrow(Clock)) {
   pA.est <- mean(Clock$Clock_Allele[-ii])
   jk.PA$est[ii] <- pA.est
-  jk.PA$ps[ii] <- nrow(Clock)*pA.obs - (nrow(Clock)-1)*pA.est
+  jk.PA$ps[ii] <- nrow(Clock) * pA.obs - (nrow(Clock)-1) * pA.est
 }
 
 ```
@@ -180,7 +194,9 @@ for(ii in 1:nrow(Clock)) {
 Plot a histogram of your estimates of allele frequency and of your pseudovalues. 
 
 ```{r}
+#| echo: true
 
+# FIXME
 jk.PA |>
   ggplot(aes(est)) +
   geom_histogram(fill = "grey75")
@@ -188,7 +204,6 @@ jk.PA |>
 jk.PA |>
   ggplot(aes(ps)) +
   geom_histogram(fill = "grey75")
-
 
 ```
 
@@ -200,7 +215,9 @@ What do you notice about these estimates and pseudovalues? Give a brief explanat
 Get the jackknife estimate of the mean and confidence interval as we did in lecture.
 
 ```{r}
+#| echo: true
 
+# FIXME
 muj <- mean(jk.PA$ps)
 
 sej <- sd(jk.PA$ps)/sqrt(nrow(Clock))
@@ -213,9 +230,10 @@ muj + qt(0.975,nrow(Clock)-1)*sej
 Now let's try the bootstrap. Load the `boot` library and examine the help for the `boot` function. Write a function where the first argument is the data (your allele calls or the tibble that holds them) and the second is the new indices from sampling with replacement. Test out your function by passing it data and a new set of indices before using it in the `boot` function. Then use the `boot` function with 1000 bootstrap replicates and `stype = "i"` to tell it to use indices. 
 
 ```{r}
+#| echo: true
 
-bootfreq <- function(data, indices)
-{
+# FIXME
+bootfreq <- function(data, indices) {
   data_sub <- data[indices]
   return(mean(data_sub))
 }
@@ -228,11 +246,11 @@ bb <- boot(data = Clock$Clock_Allele, statistic = bootfreq, R = 1000,
 Use `str()` to look at the output of `boot` and use the help to find the bootstrap replicates. Make a histogram of your bootstrap samples.
 
 ```{r}
-
-breps <- tibble("breps" = bb$t[,1])
+# FIXME
+breps <- tibble("breps" = bb$t[ , 1])
 breps |>
   ggplot(aes(breps)) +
-  geom_histogram(fill = "grey75", bins= 25)
+  geom_histogram(fill = "grey75", bins = 25)
   
 ```
 
@@ -244,7 +262,7 @@ What do you notice about your bootstrap replicates? Give a brief explanation for
 Use the `boot.ci` function to get a confidence interval specifying the percentile method and compare your results to the jackknife CI. 
 
 ```{r}
-
+# FIXME
 (bbci <-boot.ci(bb, type="perc"))
 
 ```
@@ -261,6 +279,9 @@ There are many examples in the literature using simulations to demonstrate the b
 
 
 ```{r}
+#| echo: true
+
+# FIXME
 set.seed(879371)
 
 ff <- 0.18
@@ -303,7 +324,6 @@ for(jj in 1:niter){
 jk.c <- mean(output$jlower <= ff & output$jupper >= ff)
 b.c <- mean(output$blower <= ff & output$bupper >= ff) 
 
-
 ```
 
 Based on your simulation, do you think these methods would work well for calculating CIs for this salmon study and similar studies of allele frequencies? Why or why not?
@@ -317,13 +337,15 @@ What values should further simulations change to test the generality of these me
 
 # Sticklebacks 
 
-[Colosimo et al. 2004](https://doi.org/10.1371/journal.pbio.0020109) performed crosses of benthic and marine sticklebacks to investigate the genetic basis of armor plates (an anti-predator adaptation seen in marine sticklebacks). You have seen the data for one of these loci before in QMLS1. Load the stickleback plates data in the abdData package using `abdData::SticklebackPlates` and plot histograms for each genotype and get the mean and median for each genotype. 
+[Colosimo et al. 2004](https://doi.org/10.1371/journal.pbio.0020109) performed crosses of benthic and marine sticklebacks to investigate the genetic basis of armor plates (an anti-predator adaptation seen in marine sticklebacks). You have seen the data for one of these loci before in QMLS 1. Load the stickleback plates data in the abdData package using `abdData::SticklebackPlates` and plot histograms for each genotype and get the mean and median for each genotype. 
 
 ![](https://journals.plos.org/plosbiology/article/figure/image?size=large&id=10.1371/journal.pbio.0020109.g001){width=80% fig-align="center"}
 
 
 ```{r}
+#| echo: true
 
+# FIXME
 SP <- abdData::SticklebackPlates
 
 ggplot(SP, aes(plates)) +
@@ -335,13 +357,14 @@ SP |>
   summarize(Mean = mean(plates),
             Median = median(plates))
 
-
 ```
 
 Colosimo et al. 2004 fit a linear model at many different variants in the genome to test for an association between the marine vs benthic genotype and the number of armor plates. We will focus on this one locus and given the distribution of plate number, we will use a randomization test. Following the procedure from lecture, perform a randomization and collect the following test statistic: the 3 pairwise differences in mean plate number for the different genotypes and the 3 pairwise differences in median plate number for the different genotypes. Perform 10000 randomizations and plot histograms facetting by the pairwise difference and type. Place your observed values on your histograms with a vertical line. 
 
 ```{r}
+#| echo: true
 
+# FIXME
 niter <- 10000
 output_r <- tibble("MM_Mm_mean" = rep(NA, niter),
                    "MM_mm_mean" = rep(NA, niter),
@@ -368,29 +391,27 @@ output_r$MM_mm_median[1] <-  obs.st$Median[obs.st$genotype=="MM"] -
 output_r$Mm_mm_median[1] <-  obs.st$Median[obs.st$genotype=="Mm"] -
   obs.st$Median[obs.st$genotype=="mm"]
   
-for(ii in 2:niter)
-{
+for (ii in 2:niter) {
   SP.s <- SP
   SP.s$genotype <- sample(SP.s$genotype)
   rand.st <- SP.s |> 
-  group_by(genotype) |>
-  summarize(Mean = mean(plates),
-            Median = median(plates))
-
-output_r$MM_Mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
-  rand.st$Mean[rand.st$genotype=="Mm"]
-output_r$MM_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
-  rand.st$Mean[rand.st$genotype=="mm"]
-output_r$Mm_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="Mm"] -
-  rand.st$Mean[rand.st$genotype=="mm"]
-
-output_r$MM_Mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
-  rand.st$Median[rand.st$genotype=="Mm"]
-output_r$MM_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
-  rand.st$Median[rand.st$genotype=="mm"]
-output_r$Mm_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="Mm"] -
-  rand.st$Median[rand.st$genotype=="mm"]
+    group_by(genotype) |>
+    summarize(Mean = mean(plates),
+              Median = median(plates))
   
+  output_r$MM_Mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+    rand.st$Mean[rand.st$genotype=="Mm"]
+  output_r$MM_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+    rand.st$Mean[rand.st$genotype=="mm"]
+  output_r$Mm_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="Mm"] -
+    rand.st$Mean[rand.st$genotype=="mm"]
+  
+  output_r$MM_Mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+    rand.st$Median[rand.st$genotype=="Mm"]
+  output_r$MM_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+    rand.st$Median[rand.st$genotype=="mm"]
+  output_r$Mm_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="Mm"] -
+    rand.st$Median[rand.st$genotype=="mm"]
 }
 
 out_plot <- output_r |>
@@ -409,9 +430,12 @@ out_plot |>
 
 ```
 
-For each of your pairwise differences, calculate the two-sided empirical p-value. 
+For each of your pairwise differences, calculate the two-sided empirical *P*-value. 
 
 ```{r}
+#| echo: true
+
+# FIXME
 emp.ps <- apply(output_r, 2, function(x) sum(abs(x) >= abs(x[1]))/length(x))
 
 ```
@@ -428,9 +452,11 @@ Here, we are not doing just one test. Let's consider the set of tests using the 
 4. Take the mean across all your iterations. You've now calculated the expected number of differences you'd expect to exceed your threshold value for a set of 3 tests here (or the expected number of false positives for this test at your threshold value). 
 
 ```{r}
+#| echo: true
 
+# FIXME
 th.d <- 4
-oo <- output_r[-1,4:6]
+oo <- output_r[-1, 4:6]
 
 fp <- apply(oo, 1, function(x) sum(abs(x) >= th.d))
 mean(fp)
@@ -438,6 +464,6 @@ mean(fp)
 fp_t <- tibble(fp = fp)
 fp_t |>
   ggplot(aes(fp)) +
-  geom_histogram(fill = "grey75")
+  geom_histogram(fill = "grey75", bins = 30)
 
 ```
