@@ -263,6 +263,7 @@ sqrt(mean(CV5$Squared_error))
 mean(CV5$Absolute_error)
 ```
 
+
 ## Comparing models
 
 ```{r}
@@ -438,6 +439,7 @@ MM$Solea_solea <- factor(MM$Solea_solea)
 str(MM)
 ```
 
+
 ## Presence of sole
 
 ```{r echo=FALSE}
@@ -456,6 +458,7 @@ ggplot(MM, aes(x = salinity,
 
 ```
 
+
 ## DFA & Cross Validation
 
 ```{r}
@@ -467,8 +470,11 @@ table(list(predicted=fm$class, observed=MM$Solea_solea))
 
 ```
 
+
 ## More Resources
 
+[James, G., D. Witten, T. Hastie, and R. Tibshirani. 2013. *An Introduction to Statistical Learning*](https://www.statlearning.com/)
 
+![](https://images.squarespace-cdn.com/content/v1/5ff2adbe3fe4fe33db902812/1611294680091-25SIDM9AHA8ECIFFST23/Screen+Shot+2021-01-21+at+11.02.06+AM.png){width=35% fig-align="center"}
 
 
