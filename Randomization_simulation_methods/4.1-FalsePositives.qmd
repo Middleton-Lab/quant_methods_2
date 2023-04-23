@@ -12,7 +12,10 @@ format:
     slide-number: true
     show-slide-number: all
 code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
 ---
+
 
 ## This Week
 
@@ -20,6 +23,7 @@ code-annotations: hover
     - Decision errors: False Positives 
     - Decision errors: False Negatives
     - Prediction: Cross-validation
+
 
 ## Decision errors {.smaller}
 
@@ -53,12 +57,14 @@ False negative (Type II error) probability depends on:
     - Depends on the value of $\alpha$ & how "wrong" H~0~ is
     - *Random chance* leads to the estimated effect being smaller than it is in reality
 
+
 ## Uncertainty and Decisions
 
 - All decisions should be accompanied by estimates of your uncertainty in your decision
     - Intervals
     - Decision error rates
-        - e.g. false positive rate, false discovery rate, false negative rate
+        - e.g., false positive rate, false discovery rate, false negative rate
+
 
 ## Problems of Multiplicity
 
@@ -79,15 +85,15 @@ nn <- 10
 group1.mean <- 6
 group2.mean <- 6
 niter <- 1000
-ps<-data.frame('p1' = numeric(length = niter),
-               'p2' = numeric(length = niter))
+ps <- data.frame('p1' = numeric(length = niter),
+                 'p2' = numeric(length = niter))
 
 for(ii in 1:niter) {
-  yy1 <- c(rnorm(nn, group1.mean, 1),rnorm(nn, group2.mean, 1))
-  yy2 <- c(rnorm(nn, group1.mean, 1),rnorm(nn, group2.mean, 1))
-  gg <- c(rep('a',nn), rep('b',nn))
-  ps[ii,1] <- summary(lm(yy1 ~ gg))$coefficients[2,4]
-  ps[ii,2] <- summary(lm(yy2 ~ gg))$coefficients[2,4]
+  yy1 <- c(rnorm(nn, group1.mean, 1), rnorm(nn, group2.mean, 1))
+  yy2 <- c(rnorm(nn, group1.mean, 1), rnorm(nn, group2.mean, 1))
+  gg <- c(rep('a', nn), rep('b', nn))
+  ps[ii, 1] <- summary(lm(yy1 ~ gg))$coefficients[2, 4]
+  ps[ii, 2] <- summary(lm(yy2 ~ gg))$coefficients[2, 4]
 }
 ```
 
@@ -122,13 +128,13 @@ What is the probability of a false positive for yy1 or yy2?
 #| echo: true
 
 sm.set <- ps[c(8, 12, 13), ]
-sm.set$FP <- ifelse((sm.set[, 'p1'] < 0.05 | sm.set[, 'p2'] < 0.05),"Yes","No")
+sm.set$FP <- ifelse((sm.set[, 'p1'] < 0.05 | sm.set[, 'p2'] < 0.05), "Yes", "No")
 
 length(which(ps[, 'p1'] < 0.05 | ps[, 'p2'] < 0.05)) / niter
 ```
 
 The overall error rate = the family-wise error rate (FWER).
-
+ 
 ## FWER vs. False discovery rate
 
 Controlling FWER is appropriate when you want to guard against **any** false positives.
@@ -144,7 +150,7 @@ If so, the more relevant quantity to control is the false discovery rate (FDR).
 
 Proposed by Benjamini and Hochberg [-@Benjamini1995-cw].
 
-- Also see Curran-Everett (2000).
+- Also see Curran-Everett [-@Curran-Everett2000-qv] for discusion
 
 Controls FDR (i.e., rate of Type I errors), rather than FWER
 
@@ -153,6 +159,7 @@ $$\mbox{FDR} = \frac{\mbox{n False Positives}}{\mbox{n All Positives}}$$
 e.g., I'm OK with 5% false positives *among the tests I judge as significant*.
 
 Note: False Positive Rate = $\frac{\mbox{n False Positives}}{\mbox{n All Tests}}$
+
 
 ## A menu of MCPs {.smaller}
 
@@ -178,28 +185,26 @@ Note: False Positive Rate = $\frac{\mbox{n False Positives}}{\mbox{n All Tests}}
 ```{r}
 
 set.seed(47249)
-effs <- rep(0,900)
+effs <- rep(0, 900)
 effs <- c(effs, rexp(100))
 effs <- sample(effs)
 
 NN <- 100
-metaM <- matrix(NA,NN*2,1000)
+metaM <- matrix(NA, NN * 2, 1000)
 base <- 5
 
-for(ii in 1:1000)
-{
+for (ii in 1:1000) {
  metaM[,ii] <- c(rnorm(NN, base, 1),
-                 rnorm(NN, base+effs[ii], 1))
-                 
+                 rnorm(NN, base + effs[ii], 1))
 }
 
 metaM <- as.data.frame(metaM)
 colnames(metaM) <- paste0("M", 1:1000) 
 
-metaM <- cbind(rep(c("Y","O"),each=NN),metaM)
+metaM <- cbind(rep(c("Y", "O"),each = NN), metaM)
 colnames(metaM)[1] <- "Age"
 
-glimpse(metaM[,1:10])
+glimpse(metaM[ , 1:10])
 
 ```
 
@@ -215,7 +220,7 @@ getP <- function(fm) {
   return(unlist(p.set))
 }
 
-mods <- lm(as.matrix(metaM[,2:1001]) ~ metaM[,1])
+mods <- lm(as.matrix(metaM[ , 2:1001]) ~ metaM[ , 1])
 
 obsPs <- getP(mods)
 
@@ -224,12 +229,12 @@ ggplot(tibble(obsPs), aes(obsPs)) +
   xlab("Observed P-values") +
   geom_vline(xintercept = 0.05, color = "firebrick4", linewidth = 2)
   
-
 ```
+
 
 ## What is our empirical false postive rate?
 
-Choose a decision threshold (e.g. p < 0.05)
+Choose a decision threshold (e.g., p < 0.05)
 
 ```{r}
 #| echo: true
@@ -237,35 +242,42 @@ Choose a decision threshold (e.g. p < 0.05)
 
 d.th <- 0.05
 
-mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)),2:1001]) ~ metaM[,1])
+mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)), 2:1001]) ~ metaM[,1])
 sampPs <- getP(mods.s)
 
 ggplot(tibble(sampPs), aes(sampPs)) +
   geom_histogram(fill = "grey75") +
   xlab("P-values") +
   geom_vline(xintercept = d.th, color = "firebrick4", linewidth = 2) +
-  annotate(geom="text",x=0.2, y = 50, label = paste0(sum(sampPs < d.th)," False Positives"), color = "firebrick4", size = 7)
+  annotate(geom = "text", x = 0.2, y = 50, label = paste0(sum(sampPs < d.th),
+                                                          " False Positives"),
+           color = "firebrick4", size = 7)
 
 ```
+
 
 ## What is our empirical false postive rate?
 
 ```{r}
 
-mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)),2:1001]) ~ metaM[,1])
+mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)), 2:1001]) ~ metaM[,1])
 sampPs <- getP(mods.s)
 
 ggplot(tibble(sampPs), aes(sampPs)) +
   geom_histogram(fill = "grey75") +
   xlab("P-values") +
   geom_vline(xintercept = d.th, color = "firebrick4", linewidth = 2) +
-  annotate(geom="text",x=0.2, y = 50, label = paste0(sum(sampPs < d.th)," False Positives"), color = "firebrick4", size = 7)
+  annotate(geom = "text", x = 0.2, y = 50, label = paste0(sum(sampPs < d.th),
+                                                          " False Positives"),
+           color = "firebrick4", size = 7)
 
 ```
 
+
 ## Repeat 1000 times
 
-```{r loop1}
+```{r}
+#| label: loop1
 #| eval: false
 
 niter <- 1000
@@ -290,6 +302,7 @@ mean(ctPs)/1000
 
 ```
 
+
 ## Estimate the False Discovery Rate
 
 $$\mbox{FDR} = \frac{\mbox{n False Positives}}{\mbox{n All Positives}}$$
@@ -304,6 +317,7 @@ FPs/APs
 
 ```
 
+
 ## Vary the decision threshold
 
 ```{r loop2}
@@ -315,8 +329,8 @@ ths <- c(seq(1e-16, 0.001, length.out = 60),
 niter <- 1000
 ctPs <- matrix(NA, niter, length(ths))
 
-for(ii in 1:niter){
-  mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)),2:1001]) ~ metaM[,1])
+for (ii in 1:niter) {
+  mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)), 2:1001]) ~ metaM[ , 1])
   sampPs <- getP(mods.s)
   ctPs[ii,] <- sapply(ths, function(x) sum(sampPs < x))
 }
@@ -325,10 +339,10 @@ saveRDS(ctPs, file = "ctPs2.Rds")
 
 ```
 
+
 ## Vary the decision threshold
 
 ```{r}
-
 ctPs <- readRDS(file = "ctPs2.Rds")
 ths <- c(seq(1e-16, 0.001, length.out = 60),
          seq(0.002, 0.05, length.out = 40))
@@ -342,20 +356,23 @@ p1 <- fp.out |>
   ggplot(aes(thresholds, N.Positives, color = Type)) +
   geom_point() +
   geom_vline(xintercept = 0.003, color = "firebrick4", linewidth = 1.5) +
-  scale_color_viridis_d()
+  scale_color_viridis_d() +
+  labs(x = "Threshold")
 
-fp.out$FDR <- fp.out$False/fp.out$All
+fp.out$FDR <- fp.out$False / fp.out$All
 
 p2 <- fp.out |>
   ggplot(aes(thresholds, FDR)) +
   geom_point() +
-  geom_hline(yintercept = 0.05, color = "firebrick4", linewidth = 1.5)
+  geom_hline(yintercept = 0.05, color = "firebrick4", linewidth = 1.5) +
+  labs(x = "Threshold")
 
 plot_grid(p1, p2, ncol = 2, rel_widths = c(1.2,1))
 
 ```
 
 5% FDR Threshold ~ 0.003
+
 
 ## Vary the decision threshold
 
@@ -365,13 +382,14 @@ fp.out |>
                values_to = "N.Positives") |>
   ggplot(aes(as.factor(thresholds), N.Positives, fill = Type)) +
   geom_bar(stat = "identity") +
-  xlab("thresholds") +
+  xlab("Thresholds") +
   geom_vline(xintercept = as.character(fp.out$thresholds[62]),
              color = "firebrick4", linewidth = 1.5) +
   theme(axis.text.x = element_blank()) +
   scale_fill_viridis_d()
     
 ```
+
 
 ## Familywise Error Rate (FWER)
 
@@ -386,7 +404,8 @@ fp.out$FWs <- apply(ctPs, 2, function(x) sum(x > 0))
 fp.out |>
   ggplot(aes(thresholds, FWs)) +
   geom_point() +
-  geom_hline(yintercept = 50, color = "firebrick4", linewidth = 2)
+  geom_hline(yintercept = 50, color = "firebrick4", linewidth = 2) +
+  labs(x = "Thresholds")
 
 ```
 
@@ -400,7 +419,8 @@ fp.out |>
   geom_point() +
   xlim(c(0,0.001)) +
   geom_hline(yintercept = 50, color = "firebrick4", linewidth = 2) +
-  annotate(geom = "text", x = 0.0001, y = 500, label = "P ~ 0.00006")
+  annotate(geom = "text", x = 0.0001, y = 500, label = "P ~ 0.00006", size = 5) +
+  labs(x = "Thresholds")
 
 ```
 
@@ -411,6 +431,7 @@ fp.out |>
 fp.out[c(1:5,60:65),]
 
 ```
+
 
 ## Sampling for FWER
 
@@ -423,7 +444,7 @@ niter <- 1000
 minP <- rep(NA, niter)
 
 for(ii in 1:niter){
-  mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)),2:1001]) ~ metaM[,1])
+  mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)), 2:1001]) ~ metaM[ , 1])
   sampPs <- getP(mods.s)
   minP[ii] <- min(-log10(sampPs))
 }
@@ -431,6 +452,7 @@ for(ii in 1:niter){
 saveRDS(minP, file = "minP.Rds")
 
 ```
+
 
 ## Sampling for FWER
 
@@ -452,6 +474,7 @@ p2 <- ggplot(tibble(l.minP), aes(l.minP)) +
 plot_grid(p1, p2, ncol = 2)
 ```
 
+
 ## Sampling for FWER
 
 ```{r}
@@ -464,3 +487,10 @@ quantile(l.minP, 0.95)
 ```
 
 ## When to use Monte Carlo for Multiple Testing
+
+
+## References
+
+::: {#refs}
+:::
+
