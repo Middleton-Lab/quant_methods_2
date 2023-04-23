@@ -34,6 +34,8 @@ code-annotations: hover
 
 library(tidyverse)
 library(cowplot)
+library(readxl)
+library(MASS)
 library(furrr)
 
 ggplot2::theme_set(theme_cowplot(font_size = 18))
@@ -59,7 +61,7 @@ Model selection
 - Loss or Cost function: Measure of the prediction error
 
 
-## Challenges of "small" data sets
+## Challenges of low power designs (e.g. "small" data sets)
 
 - Big data sets can be split easily, 
     - Plenty to training
@@ -93,6 +95,9 @@ Model selection
     - Can be dominated by extreme values (e.g., outliers)
 - Mean Absolute Error (MAE)
     - Related to the median
+- Correlation 
+    - Observations & Predicted values
+    - Less common
 
 
 ## Laborious example of 5-fold CV
@@ -413,4 +418,57 @@ $$CV_{(n)} = \frac{1}{n} \sum^{n}_{i=1} \left( \frac{y_i - \hat{y_i}}{1 - h_i} \
 - Correct or incorrect classification
 - Percent correct
 - Confusion matrix
+
+
+## Presence of sole
+
+<center>
+<img src="https://i.imgur.com/tippc8A.jpg" width="100%" />
+</center>
+
+
+## Presence of sole
+
+Presence/absence of sole in the Tagus estuary of Portugal.
+
+```{r}
+MM <- read_excel("Data/Sole.xlsx")
+MM$Solea_solea <- factor(MM$Solea_solea)
+
+str(MM)
+```
+
+## Presence of sole
+
+```{r echo=FALSE}
+
+ggplot(MM, aes(x = salinity,
+              y = as.numeric(Solea_solea) - 1)) +
+  geom_hline(yintercept = 0.5, linetype = "dotted", size = 0.5) +
+  geom_smooth(formula = y ~ x,
+              method = "glm",
+              method.args = list(family = "binomial"),
+              se = FALSE, size = 2) +
+  geom_point(size = 3) +
+  ylab("Probability of Presence") +
+  xlab("Salinity") +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.1))
+
+```
+
+## DFA & Cross Validation
+
+```{r}
+#| echo: true
+
+fm <- lda(Solea_solea ~ salinity, data = MM, CV = TRUE)
+
+table(list(predicted=fm$class, observed=MM$Solea_solea))
+
+```
+
+## More Resources
+
+
+
 

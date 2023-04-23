@@ -76,3 +76,20 @@ Bouyoucos, I. A., S.-A. Watson, S. Planes, C. A. Simpfendorfer, G. D. Schwieterm
 
 https://cran.r-project.org/web/packages/NHANES/NHANES.pdf
 
+
+## Arabidopsis
+-filtered less than 10 total reads
+
+```{r}
+
+AA <- read_csv("Data/Arabidopsis_imprint.csv")
+AA <- AA |>
+  mutate(Col_reads_Col_Cvi = as.integer(Col_reads_Col_Cvi),
+         Cvi_reads_Col_Cvi = as.integer(Cvi_reads_Col_Cvi),
+         Col_reads_Cvi_Col = as.integer(Col_reads_Cvi_Col),
+         Cvi_reads_Cvi_Col = as.integer(Cvi_reads_Cvi_Col))
+
+fisher.test(matrix(AA[1,2:5],nrow=2))
+
+```
+
