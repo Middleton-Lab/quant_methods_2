@@ -180,7 +180,6 @@ Note: False Positive Rate = $\frac{\mbox{n False Positives}}{\mbox{n All Tests}}
 
 ## Metabolomics in old and young killifish
 
-![](https://upload.wikimedia.org/wikipedia/commons/2/22/Nothobranchius_furzeri_GRZ_thumb.jpg)
 
 ```{r}
 
@@ -446,7 +445,7 @@ minP <- rep(NA, niter)
 for(ii in 1:niter){
   mods.s <- lm(as.matrix(metaM[sample(1:nrow(metaM)), 2:1001]) ~ metaM[ , 1])
   sampPs <- getP(mods.s)
-  minP[ii] <- min(-log10(sampPs))
+  minP[ii] <- min(sampPs)
 }
 
 saveRDS(minP, file = "minP.Rds")
