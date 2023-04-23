@@ -1,0 +1,251 @@
+---
+title: "Decision errors: False Negatives"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+---
+
+## Decision errors {.smaller}
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(viridis)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(77954)
+```
+
+
+|               | Reject H~0~    | Fail to reject H~0~   |
+|--------------:|:--------------:|:---------------------:|
+|H~0~ is true   | Type I error   | *Correct*             |
+|H~0~ is false  | *Correct*      | Type II error         |
+
+False positive (Type I error):
+
+- You decide there is an effect when in reality there is not
+    - *P* is small by *random chance*, given that $\alpha$ is chosen ahead of the test
+
+False negative (Type II error) probability depends on:
+
+- You decide there is no effect when in reality there is
+    - Depends on the value of $\alpha$ & how "wrong" H~0~ is
+    - *Random chance* leads to the estimated effect being smaller than it is in reality
+
+## Uncertainty and Decisions
+
+- All decisions should be accompanied by estimates of your uncertainty in your decision
+    - Intervals
+    - Decision error rates
+        - e.g. false positive rate, false discovery rate, false negative rate
+
+## Power
+
+- Given a true effect, the probability that a random sample will lead to a rejection of H~0~
+    - The proportion of times you **DO NOT** make a Type II error
+- Dependent on how different the truth is from the null hypothesis
+- Inversely related to type II errors
+    - High power $\rightarrow$ low false negative rate
+    - Low power $\rightarrow$ high false negative rate
+
+## Power depends on effect size
+
+*Effect size*: The magnitude of the deviation from H~0~.
+
+If we can estimate effect size *before we do the study*, we can estimate the power.
+
+- Use previous information
+    - Your own pilot studies
+    - Other similar studies
+- Determine how big a difference we *wan*t to be able to detect
+    - How small of a difference is not biologically meaningful?
+
+
+## Monte Carlo approaches to estimating the false negative rate
+
+1. Simulate data mimicking your expected dataset many times
+2. Do your planned analysis on each simulated dataset 
+3. Ask how often you detect an effect when one is present
+
+## General Considerations
+
+- What distribution is appropriate for sampling?
+- What effect sizes are reasonable to consider? 
+- What are the sources and magnitudes of variation?
+
+## Power analysis via simulation
+
+Simulate data from a exponential process:
+
+$$\mbox{Femur Length} = a \mbox{Mass}^b$$
+
+$$\log \mbox{Femur Length} = \log a + b \log \mbox{Mass}$$
+
+What is the power to detect deviations from isometry?
+
+- Simulate across a range of *n*
+- Use a range of slopes from 1/3 - 0.2 to 1/3 + 0.2
+
+
+## Power analysis via simulation
+
+```{r}
+#| echo: true
+
+nsims <- 1e4
+alpha <- 0.05
+ns <- c(5, 10, 25, 50, 100, 200, 400)
+b_null <- 1/3
+b_devs <- seq(-0.2, 0.2, length.out = 100)
+
+# All combinations of ns and b_devs
+pwr_reg <- crossing(ns, b_devs)
+names(pwr_reg) <- c("n", "b_dev")
+pwr_reg$Power <- NA
+```
+
+
+## Power analysis via simulation  {.smaller}
+
+```{r pwr_sma}
+#| eval: false
+#| echo: true
+
+set.seed(912)
+# Iterate through the rows of `pwr_reg`
+for (i in 1:nrow(pwr_reg)) {
+  tic <- Sys.time()
+  message(i, " of ", nrow(pwr_reg))
+  n <- pwr_reg$n[i]
+  b_dev <- pwr_reg$b_dev[i]
+  sig <- logical(nsims)
+  
+  for (j in 1:nsims) {
+    log_Mass <- log(runif(n, 1, 1e3))
+    log_a <- rnorm(n, 1.31, 0.15)
+    log_Fem_Len <- log_a + (b_null + b_dev) * log_Mass
+    fm <- sma(log_Fem_Len ~ log_Mass, slope.test = b_null, method = "OLS")
+    sig[j] <- fm$slopetest[[1]]$p < alpha
+  }
+  pwr_reg$Power[i] <- mean(sig)
+  save(pwr_reg, file = "Data/pwr_reg_SMA.Rda")
+  message(Sys.time() - tic)
+}
+```
+
+- Mass uniformly distributed from 1 - 1000
+- $a$ normally distributed with a mean of 1.31
+- Calculate `log_Fem_Len`
+
+
+## Power analysis via simulation
+
+- 7,000,000 regressions
+- ~8 hours later...
+
+
+## Power analysis via simulation
+
+```{r}
+
+load("Data/pwr_reg_SMA.Rda")
+p <- ggplot(pwr_reg, aes(b_dev, Power, color = as.factor(n))) +
+  geom_line() +
+  geom_line(size = 2) +
+  ylim(c(0, 1)) +
+  geom_hline(yintercept = 0.8, color = "blue", linetype = "dotted") +
+  geom_hline(yintercept = 0.05, color = "red", linetype = "dotted") +
+  scale_color_discrete(name = "n") +
+  labs(x = "Slope Deviation") +
+  theme(legend.justification = c(1, 0), legend.position = c(1, 0))
+p + theme(legend.background = element_rect(fill = "gray85", 
+    linetype = "solid"))
+```
+
+## General Considerations
+
+- What distribution is appropriate for sampling?
+- What effect sizes are reasonable to consider? 
+- What are the sources and magnitudes of variation?
+
+
+## What distribution is appropriate for sampling?
+
+Examples:
+
+- Many phenotypes: Normal distribution
+- Presence/absence: Binomial
+- RNA Sequencing reads: Negative binomial
+- 
+
+## What effect sizes are reasonable to consider? 
+
+- Biologically realistic differences (Normal distribution)
+- Genetic effects: Exponential distribution
+- Presence/absence: Range from 0 - 1
+- RNA Sequencing reads?
+
+## What are the sources and magnitudes of variation? {.smaller}
+
+- Genetic effects:
+    - Genetic background
+    - Environmental variation
+    - Measurement error
+- Presence/absence
+    - Sampling error
+    - Observation errors
+- RNA Sequencing reads
+    - Batch effects
+    - Coverage
+
+## Power in multi-parent genetic mapping populations (MPPs)
+
+<center>
+<img src="https://i.imgur.com/592FXMW.png" width="100%" />
+</center>
+
+## Power in MPPs {.smaller}
+
+```{r echo=FALSE}
+genos <- rbinom(10, 1, 0.5)
+```
+
+```{r}
+#| echo: true
+
+eff <- 0.05
+envs <- rnorm(length(genos),0,sqrt(((1/eff)-1)*var(genos)))
+phenos <- genos + envs
+
+print(cbind(genos, phenos))
+print(c(mean(phenos[genos==0]),mean(phenos[genos==1])))
+```
+
+
+## Power in MPPs
+
+<center>
+<img src="https://i.imgur.com/czRpqAD.png" width="100%" />
+</center>
+
+
+## Power in MPPs
+
+<center>
+<img src="https://i.imgur.com/qHWfIa6.png" width="60%" />
+</center>
+
