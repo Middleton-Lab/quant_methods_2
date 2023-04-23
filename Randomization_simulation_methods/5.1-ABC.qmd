@@ -1,0 +1,49 @@
+---
+title: "Appriximate Bayesian Computation"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
+---
+
+
+## This Week
+
+- Sampling from data sets: decision errors and predicting new data
+    - Decision errors: False Positives 
+    - Decision errors: False Negatives
+    - Prediction: Cross-validation
+
+
+## Sampling for parameter estimation
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(viridis)
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(6452730)
+```
+
+
+
+## References
+
+::: {#refs}
+:::
+
