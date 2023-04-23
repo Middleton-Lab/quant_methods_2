@@ -486,7 +486,7 @@ quantile(l.minP, 0.95)
 
 ```
 
-## When to use Monte Carlo for Multiple Testing
+## When to use Monte Carlo for estimating false positive rates?
 
 
 ## References

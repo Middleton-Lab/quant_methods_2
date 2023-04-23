@@ -188,9 +188,9 @@ p + theme(legend.background = element_rect(fill = "gray85",
 Examples:
 
 - Many phenotypes: Normal distribution
+    - Bounded by values?
 - Presence/absence: Binomial
 - RNA Sequencing reads: Negative binomial
-- 
 
 ## What effect sizes are reasonable to consider? 
 
@@ -340,3 +340,5 @@ nonzero |>
 ## 2      1.0 0.925
 ## 3      2.0 0.935
 ```
+
+## When to use Monte Carlo for estimating false negative rates?
