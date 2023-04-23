@@ -40,6 +40,17 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 set.seed(6452730)
 ```
 
+- Rejection algorithm
+
+[@Tavare1997-lg]
+
+[@Weiss1998-ce]
+
+[@Pritchard1999-uh]
+
+[@Beaumont2002-kn] History
+
+Tutorials: [@Turner2012-rw] [@Csillery2010-dj]
 
 
 ## References
