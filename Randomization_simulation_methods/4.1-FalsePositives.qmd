@@ -85,15 +85,15 @@ nn <- 10
 group1.mean <- 6
 group2.mean <- 6
 niter <- 1000
-ps<-data.frame('p1' = numeric(length = niter),
-               'p2' = numeric(length = niter))
+ps <- data.frame('p1' = numeric(length = niter),
+                 'p2' = numeric(length = niter))
 
 for(ii in 1:niter) {
   yy1 <- c(rnorm(nn, group1.mean, 1), rnorm(nn, group2.mean, 1))
   yy2 <- c(rnorm(nn, group1.mean, 1), rnorm(nn, group2.mean, 1))
   gg <- c(rep('a', nn), rep('b', nn))
-  ps[ii,1] <- summary(lm(yy1 ~ gg))$coefficients[2, 4]
-  ps[ii,2] <- summary(lm(yy2 ~ gg))$coefficients[2, 4]
+  ps[ii, 1] <- summary(lm(yy1 ~ gg))$coefficients[2, 4]
+  ps[ii, 2] <- summary(lm(yy2 ~ gg))$coefficients[2, 4]
 }
 ```
 
@@ -150,7 +150,7 @@ If so, the more relevant quantity to control is the false discovery rate (FDR).
 
 Proposed by Benjamini and Hochberg [-@Benjamini1995-cw].
 
-- Also see Curran-Everett [-@Curran-Everett2000-qv].
+- Also see Curran-Everett [-@Curran-Everett2000-qv] for discusion
 
 Controls FDR (i.e., rate of Type I errors), rather than FWER
 
@@ -276,7 +276,8 @@ ggplot(tibble(sampPs), aes(sampPs)) +
 
 ## Repeat 1000 times
 
-```{r loop1}
+```{r}
+#| label: loop1
 #| eval: false
 
 niter <- 1000
