@@ -249,3 +249,94 @@ print(c(mean(phenos[genos==0]),mean(phenos[genos==1])))
 <img src="https://i.imgur.com/qHWfIa6.png" width="60%" />
 </center>
 
+
+## Power for craniofacial growth
+
+![](Images/Picture1.png){fig-align="center"}
+
+
+## Power for craniofacial growth
+
+![](Images/Picture2.png){fig-align="center"}
+
+
+## Power for craniofacial growth
+
+![](Images/Picture3.png){fig-align="center" width=60%}
+
+
+## Growth function
+
+$$ length(age) = \frac{a_1}{1 + \exp{(-b_1 (age - c_1))}} + \frac{a_2}{1 + \exp{(-b_2 (age - c_2))}}$$
+
+- $a_1$ and $a_2$ are lengths in mm
+- $b_1$ and $b_2$ are rates in mm / year
+- $c_1$ and $c_2$ are ages in years
+
+
+## Growth function
+
+![](Images/Picture4.png){fig-align="center" width=75%}
+
+
+## Power to detect differences in parameters
+
+$$ length(age) = \frac{a_1 + \Delta a_1}{1 + \exp{((-b_1 + \Delta b_1) (age - c_1 + \Delta c_1))}} + \\ \frac{a_2 + \Delta a_2}{1 + \exp{((-b_2 + \Delta b_2) (age - c_2 + \Delta c_2))}}$$
+
+
+## Power to detect differences in parameters (3,400 models)
+
+```
+##    a1_delta a2_delta b1_delta b2_delta c1_delta c2_delta     n median_elpd_diff
+##  1        0        0     0        0         0        0.5   200             7.32
+##  2        0        0     0        0         0        1     200            30.7 
+##  3        0        0     0        0         0        2     200           110.  
+##  4        0        0     0        0         0.5      0     200            11.9 
+##  5        0        0     0        0         1        0     200            50.1 
+##  6        0        0     0        0         2        0     200           211.  
+##  7        0        0     0        0.02      0        0     200             2.94
+##  8        0        0     0        0.05      0        0     200             2.78
+##  9        0        0     0        0.1       0        0     200             2.44
+## 10        0        0     0.02     0         0        0     200      3.74e- 2
+## 11        0        0     0.05     0         0        0     200      6.68e- 8
+## 12        0        1     0        0         0        0     200      9.61e- 2
+## 13        0        2     0        0         0        0     200      1.14e- 4
+## 14        0        3     0        0         0        0     200      2.23e- 9
+## 15        1        0     0        0         0        0     200      3.09e- 1
+## 16        2        0     0        0         0        0     200      2.34e- 1
+## 17        3        0     0        0         0        0     200      2.23e- 1
+```
+
+
+## Power to detect differences in parameters
+
+```{r}
+#| echo: true
+#| eval: false
+nonzero |> 
+  filter(a2_delta != 0) |> 
+  group_by(a2_delta) |> 
+  summarise(power = mean(if_else(a2_Q2.5 > 0 | a2_Q97.5 < 0, 1, 0)),
+            .groups = "drop") |> 
+  as.data.frame()
+```
+
+```
+##   a2_delta power
+## 1        1 0.000
+## 2        2 0.300
+## 3        3 0.985
+```
+
+```
+##   b1_delta power
+## 1     0.02  0.23
+## 2     0.05  0.80
+```
+
+```
+##   c2_delta power
+## 1      0.5 0.890
+## 2      1.0 0.925
+## 3      2.0 0.935
+```
