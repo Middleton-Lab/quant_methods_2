@@ -19,10 +19,9 @@ csl: evolution.csl
 
 ## This Week
 
-- Sampling from data sets: decision errors and predicting new data
-    - Decision errors: False Positives 
-    - Decision errors: False Negatives
-    - Prediction: Cross-validation
+1. Sampling for parameter estimation
+2. XYZ
+3. XYZ
 
 
 ## Sampling for parameter estimation
@@ -41,16 +40,22 @@ set.seed(6452730)
 ```
 
 - Rejection algorithm
+- "Likelihood-free"
 
-[@Tavare1997-lg]
-
-[@Weiss1998-ce]
-
-[@Pritchard1999-uh]
+Population genetics: [@Tavare1997-lg], [@Weiss1998-ce], [@Pritchard1999-uh]
 
 [@Beaumont2002-kn] History
 
 Tutorials: [@Turner2012-rw] [@Csillery2010-dj]
+
+Book: [@Sisson2018-ke]
+
+
+## ABC
+
+> "At its heart, ABC is a very sim- ple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
+
+## MCMC
 
 
 ## References
