@@ -53,7 +53,7 @@ Book: [@Sisson2018-ke]
 
 ## ABC
 
-> "At its heart, ABC is a very sim- ple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
+> "At its heart, ABC is a very simple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
 
 ## MCMC
 
