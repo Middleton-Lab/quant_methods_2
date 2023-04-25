@@ -1,5 +1,5 @@
 ---
-title: "Appriximate Bayesian Computation"
+title: "Approximate Bayesian Computation"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -17,13 +17,6 @@ csl: evolution.csl
 ---
 
 
-## This Week
-
-1. Sampling for parameter estimation
-2. XYZ
-3. XYZ
-
-
 ## Sampling for parameter estimation
 
 ```{r}
@@ -35,27 +28,387 @@ csl: evolution.csl
 library(tidyverse)
 library(cowplot)
 library(viridis)
+library(tictoc)
+
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 set.seed(6452730)
 ```
 
-- Rejection algorithm
-- "Likelihood-free"
+Many problems are more easily (or possibly) solved by not using a model with a traditional likelihood
 
-Population genetics: [@Tavare1997-lg], [@Weiss1998-ce], [@Pritchard1999-uh]
+1. Sample from distributions and compare to observed values
+2. Generate "populations" of parameters and let them "evolve" across geenerations
 
-[@Beaumont2002-kn] History
 
-Tutorials: [@Turner2012-rw] [@Csillery2010-dj]
+## Approximate Bayesian Computation (ABC)
 
-Book: [@Sisson2018-ke]
+> "At its heart, ABC is a very simple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
 
 
 ## ABC
 
-> "At its heart, ABC is a very simple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
+- "Likelihood-free"
+    - Evaluating the likelihood function is not required
+- Rejection algorithm
+    - Sample and keep if the error term is less than a threshold
+- Originally used for population genetics [@Tavare1997-lg], [@Weiss1998-ce], [@Pritchard1999-uh]
+- History [@Beaumont2002-kn]
+- Tutorials [@Turner2012-rw] [@Csillery2010-dj]
+- Book [@Sisson2018-ke]
 
-## MCMC
+
+## Why not MCMC?
+
+
+
+## Basics of ABC
+
+- Write a model statement (function)
+- Choose an error term (MSE, MAE, etc.) or use the likelihood
+- Draw data from distributions for each parameter
+- Evaluate the parameters given the model
+    - Rejection sampling
+    - Collect all samples and evaluate later
+
+
+## Simulate data
+
+[Gamma distribution](https://statisticsbyjim.com/probability/gamma-distribution/)
+
+- Common continuous for biological variables
+- Properties of a normal distribution
+- Bounded at zero
+- Can have a long tail
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(234798)
+y <- rgamma(500, shape = 3, rate = 3)
+
+ggplot(tibble(y), aes(y)) +
+  geom_histogram(bins = 30)
+```
+
+
+## Model statement and function
+
+$$y \sim Gamma(shape, rate)$$
+
+```{r}
+#| echo: true
+
+gamma_sim <- function(ii, y) {
+  shape <- truncnorm::rtruncnorm(1, a = 0, mean = 0, sd = 5)
+  rate <- truncnorm::rtruncnorm(1, a = 0, mean = 0, sd = 5)
+  log_lik <- sum(dgamma(y, shape, rate, log = TRUE))
+  return(c(ii = ii, shape = shape, rate = rate, log_lik = log_lik))
+}
+
+gamma_sim(1, 1:10)
+```
+
+
+## Choosing the parameter "search" space
+
+- What are the likely values for the parameters?
+    - What distributions?
+    - What limits?
+- Similar to choosing Bayesian priors
+- Uniform priors will work fine
+
+
+## How large will my object be?
+
+Be careful about how many samples you will take:
+
+```{r}
+#| echo: true
+samples <- matrix(NA, nrow = 1e5, ncol = 4)
+colnames(samples) <- c("ii", "shape", "rate", "log_lik")
+
+format(object.size(samples), units = "Mb")
+```
+
+ABC works best with loops
+
+- Too much overhead in the `purrr`/`furrr` functions
+
+
+## Generating samples
+
+```{r}
+#| echo: true
+
+for (ii in seq_len(1e5)) {
+  samples[ii, ] <- gamma_sim(ii, y)
+}
+
+head(samples)
+```
+
+
+## Processing samples
+
+```{r}
+#| echo: true
+
+samples <- samples |> 
+  as_tibble() |> 
+  arrange(desc(log_lik)) |> 
+  slice(1:5000)
+
+samples |> summarise(across(2:3, ~ median(.x)))
+```
+
+
+## Visualizing samples
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+samples |> 
+  select(shape, rate) |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(value)) +
+  geom_density() +
+  facet_grid(name ~ .)
+```
+
+
+## Change the model
+
+```{r}
+samples <- matrix(NA, nrow = 1e5, ncol = 4)
+colnames(samples) <- c("ii", "shape", "rate", "log_lik")
+```
+
+```{r}
+#| echo: true
+
+gamma_sim_uniform <- function(ii, y) {
+  shape <- runif(1, 0.1, 10)
+  rate <- runif(1, 0.1, 10)
+  log_lik <- sum(dgamma(y, shape, rate, log = TRUE))
+  return(c(ii = ii, shape = shape, rate = rate, log_lik = log_lik))
+}
+
+for (ii in seq_len(1e5)) {
+  samples[ii, ] <- gamma_sim_uniform(ii, y)
+}
+
+samples <- samples |> 
+  as_tibble() |> 
+  arrange(desc(log_lik)) |> 
+  slice(1:5000)
+
+samples |> summarise(across(2:3, ~ median(.x)))
+```
+
+
+## Visualizing samples
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+samples |> 
+  select(shape, rate) |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(value)) +
+  geom_density() +
+  facet_grid(name ~ .)
+```
+
+
+## Rejection sampling
+
+- Choose a minimum threshold to keep a sample
+- If the error term is lower, keep
+    - Otherwise reject
+- Can determine the output size ahead
+    - Use matrices for memory saving
+
+
+## Challenging models
+
+- "Intractable" likelihoods
+    - Flat or oddly shaped surfaces
+- Nonlinear models
+- Multiple optima
+
+
+## Non-linear model: Gompertz growth equation
+
+$$y(t) = a e^{-b e^{-c t}}$$
+
+- *a* is the asymptotic size
+- *b* is the $x$ displacement of the entire curve
+- *c* is growth rate
+
+```{r}
+#| echo: true
+
+Gompertz <- function(t, a, b, c) {
+  a * exp(-b * exp(-c * t))
+}
+
+```
+
+
+## Testing
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+GG <- tibble(t = seq(0, 15, length.out = 200),
+             y = Gompertz(t, a = 5, b = 1, c = 0.5))
+
+ggplot(GG, aes(t, y)) +
+  geom_line(linewidth = 1) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## Simulate data
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(436578)
+GGsim <- tibble(t = runif(20, min = 0, max = 25),
+             y = Gompertz(t, a = 5, b = 1, c = 0.5) + rnorm(20, 0, 0.25))
+
+ggplot() +
+  geom_line(data = GG, aes(t, y), linewidth = 1) +
+  geom_point(data = GGsim, aes(t, y), size = 2) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## Set up for rejection sampling
+
+- Pre-determine number of samples
+- Decide on error term
+- Decide on minimum error term
+
+```{r}
+#| echo: true
+
+samples <- matrix(NA, nrow = 1e3, ncol = 5)
+colnames(samples) <- c("ii", "a", "b", "c", "MAE")
+```
+
+
+## Sampling: `while()` loops
+
+```{r}
+#| echo: true
+
+total_iterations <- 0
+sample_counter <- 1
+min_MAE <- 0.5
+
+tic()
+while (sample_counter <= nrow(samples)) {
+  total_iterations <- total_iterations + 1
+  if (total_iterations %% 100000 == 0) message(total_iterations)
+  
+  a <- truncnorm::rtruncnorm(1, a = 0, mean = 5, sd = 2)
+  b <- rnorm(1, 0, 4)
+  c <- rexp(1, rate = 5)
+  
+  predicted <- Gompertz(t = GGsim$t, a, b, c)
+  MAE <- mean(abs(GGsim$y - predicted))
+  
+  if (MAE <= min_MAE) {
+    samples[sample_counter, ] <- c(sample_counter, a, b, c, MAE)
+    sample_counter <- sample_counter + 1
+  }
+}
+toc()
+
+total_iterations
+```
+
+
+## Samples
+
+```{r}
+#| echo: true
+
+samples[1:10, ]
+
+(pars <- samples |> as_tibble() |> summarise(across(2:4, ~ median(.x))))
+```
+
+
+## Visualizing samples
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+samples |> 
+  as_tibble() |> 
+  select(a, b, c) |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(value)) +
+  geom_density() +
+  facet_grid(name ~ ., scales = "free")
+```
+
+
+## Visualizing the model
+
+```{r}
+ggplot() +
+  geom_line(data = GG, aes(t, y), linewidth = 1) +
+  geom_line(
+    data = tibble(t = seq(0, 25, length.out = 200),
+                  y = Gompertz(t, a = pars$a, b = pars$b, c = pars$c)),
+    aes(t, y),
+    color = "red", linewidth = 1) +
+  geom_point(data = GGsim, aes(t, y)) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## Timing
+
+```{r}
+timing <- tribble(~ MAE, ~ `Total Samples`, ~ `Time (s)`,
+        1, 11654, 0.31,
+        0.75, 20373, 0.51,
+        0.5, 53788, 1.25,
+        0.4, 105585, 2.43,
+        0.25, 642067, 14.61,
+        0.2, 2282010, 50.31)
+timing |> knitr::kable()
+```
+
+
+## Timing
+
+```{r}
+timing |> 
+  ggplot(aes(MAE, `Time (s)`)) +
+  geom_point(size = 2) +
+  scale_x_reverse()
+```
+
+
+## ABC Pros and Cons
+
+- Works very well for all kinds of problems
+- Works fine with multimodal distributions
+
+- Slow and (very) inefficient
+- Choice of prior can have a large effect (as in Bayesian inference)
 
 
 ## References
