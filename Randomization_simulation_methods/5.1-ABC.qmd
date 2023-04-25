@@ -161,6 +161,8 @@ samples <- samples |>
   arrange(desc(log_lik)) |> 
   slice(1:5000)
 
+head(samples)
+
 samples |> summarise(across(2:3, ~ median(.x)))
 ```
 
@@ -266,7 +268,7 @@ Gompertz <- function(t, a, b, c) {
 #| echo: true
 #| output-location: slide
 
-GG <- tibble(t = seq(0, 15, length.out = 200),
+GG <- tibble(t = seq(0, 25, length.out = 200),
              y = Gompertz(t, a = 5, b = 1, c = 0.5))
 
 ggplot(GG, aes(t, y)) +
@@ -304,6 +306,8 @@ ggplot() +
 
 samples <- matrix(NA, nrow = 1e3, ncol = 5)
 colnames(samples) <- c("ii", "a", "b", "c", "MAE")
+
+min_MAE <- 0.5
 ```
 
 
@@ -314,13 +318,11 @@ colnames(samples) <- c("ii", "a", "b", "c", "MAE")
 
 total_iterations <- 0
 sample_counter <- 1
-min_MAE <- 0.5
 
 tic()
 while (sample_counter <= nrow(samples)) {
   total_iterations <- total_iterations + 1
-  if (total_iterations %% 100000 == 0) message(total_iterations)
-  
+
   a <- truncnorm::rtruncnorm(1, a = 0, mean = 5, sd = 2)
   b <- rnorm(1, 0, 4)
   c <- rexp(1, rate = 5)
@@ -400,15 +402,19 @@ timing |> knitr::kable()
 ```{r}
 timing |> 
   ggplot(aes(MAE, `Time (s)`)) +
-  geom_point(size = 2) +
+  geom_point(size = 3) +
   scale_x_reverse()
 ```
 
 
 ## ABC Pros and Cons
 
+Pros
+
 - Works very well for all kinds of problems
 - Works fine with multimodal distributions
+
+Cons
 
 - Slow and (very) inefficient
 - Choice of prior can have a large effect (as in Bayesian inference)
