@@ -1,0 +1,143 @@
+---
+title: "Problem Set 4"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+---
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(furrr)
+library(purrr)
+library(cowplot)
+theme_set(theme_cowplot())
+set.seed(54633)
+
+# Required files for this problem set:
+#   - 
+
+```
+
+
+## 
+
+- small genome scan 
+- beavis
+- cross val
+
+
+- false pos
+
+
+-
+
+
+## Sampling strategy 
+
+Imagine you are planning an experiment looking at the response of a plant population to herbivory by aphids. You plan to measure salicylic acid (SA) in plants in two treatments, either with or without aphids. There is known technical variation in the assay for salicylic acid so you want to plan how many technical replicates (sampling from a plant and assaying aliquots from the same sample multiple times) versus biological samples (assaying additional plants) you should do. 
+
+Let's walk through a single simulated dataset to consider how we might simulate date to assess power. As you go through these, print and check things are behaving as expected often. You may want to set some extreme values to start so you can visually detect that simulated values are what you expect them to be (e.g. a really big difference in groups).
+
+1) Create the following as objects (you choose some values to start with):
+    - the number of biological samples in each group
+    - the difference in means between the aphid group and control
+    - the standard deviation in the aphid group (how much variation in SA is there among different plants exposed to aphids)
+    - the standard deviation in the control group (how much variation in SA is there among different plants not exposed to aphids)
+2) Make a tibble holding the treatment ids and SA values for your simulated data. Use a normal distribution to create your SA values using the parameters you've defined. Use 0 as the mean for the control and 0 + your difference between groups for the aphid treatment. Because we are interested in the relative differences in groups, we don't need to use absolute numbers on the scale you measure SA on.   
+
+```{r}
+
+## FIXME
+
+Nbio <- 20
+
+muN <- 0
+dmus <- 1
+
+varN <- 1
+varA <- 1
+
+DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
+             SA = c(rnorm(Nbio, muN, varN),
+                    rnorm(Nbio, muN + dmus, varA)))
+
+```
+
+Now we can think about the technical variation in the test. Let's use the values you just simulated as the true SA values for each of your biological samples. Then we can generate a number of technical replicates using these values. 
+
+3) Create the following as objects (you choose some values to start with):
+    - the number of technical replicates
+    - the standard deviation of the technical replicates (how much variation is there for repeated measurements of the same sample?)
+4) Create a new tibble with a column with PlantID, Treatment, and your SA values. Use the normal distribution to generate a set of values for each of your plants using each of the values you made above as the mean for a given plant and the variation for technical replication you have set. 
+
+You can pass a vector of means and standard deviations to `rnorm`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and sds. That might require repeating values if you need more than one sample for a combination. 
+
+```{r}
+## DO NOT FIXME
+num <- 10
+mu <- 0
+ss <- 1
+
+rnorm(num, mu, ss)
+
+mus <- c(rep(0,num/2), rep(20,num/2))
+sss <- rep(1, num)
+
+rnorm(num, mus, sss)
+
+
+```
+
+
+```{r}
+
+## FIXME
+
+Ntech <- 3
+varT <- 1
+
+DD.all <- tibble(PlantId = rep(paste0("P",1:Nbio),each = Ntech, times = 2),
+                 Treatment = rep(c("N","A"), each = Nbio*Ntech),
+                 SA = rnorm(Ntech*Nbio*2, rep(DD$SA, each = Ntech), rep(varT,Ntech*Nbio*2)))
+
+
+
+```
+
+5) Now fit a mixed model predicting SA from treatment with your plant ids as a grouping variable and extract the p-value for treatment. 
+
+```{r}
+
+library(nlme)
+
+fm <- lme(SA ~ Treatment, random = ~ 1 | PlantId, data = DD.all)
+
+
+```
+
+Now you have all the tools you need to set up a simulation where you could explore:
+
+1) the number of biological replicates
+2) the number of technical replicates
+3) the variation within treatment groups
+4) the variation within technical replicate groups
+5) the difference between the treatment and control groups
+
+Choose ??
+
+
+
+
+
+
+
+
+
