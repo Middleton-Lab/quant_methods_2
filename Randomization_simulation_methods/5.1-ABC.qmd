@@ -36,8 +36,8 @@ set.seed(6452730)
 
 Many problems are more easily (or possibly) solved by not using a model with a traditional likelihood
 
-1. Sample from distributions and compare to observed values
-2. Generate "populations" of parameters and let them "evolve" across geenerations
+1. Sample from distributions and compare to observed values (Approximate Bayesian Computation)
+2. Generate "populations" of parameters and let them "evolve" across generations (Genetic Algorithm)
 
 
 ## Approximate Bayesian Computation (ABC)
@@ -57,18 +57,20 @@ Many problems are more easily (or possibly) solved by not using a model with a t
 - Book [@Sisson2018-ke]
 
 
-## Why not MCMC?
+## Relationship to MCMC
 
+- Similar ideas (sampling from distributions of priors to give distributions of posteriors)
+- ABC works when the likelihood isn't available (population genetics questions)
 
 
 ## Basics of ABC
 
 - Write a model statement (function)
-- Choose an error term (MSE, MAE, etc.) or use the likelihood
-- Draw data from distributions for each parameter
+- Choose an error term (MSE, MAE, etc.) or use the (log) likelihood
+- Draw candidate parameter values from distributions for each parameter
 - Evaluate the parameters given the model
-    - Rejection sampling
-    - Collect all samples and evaluate later
+    - Rejection sampling (choose a target number of samples *a priori*)
+    - Collect all samples and evaluate later (sample and filter)
 
 
 ## Simulate data
@@ -77,7 +79,7 @@ Many problems are more easily (or possibly) solved by not using a model with a t
 
 - Common continuous for biological variables
 - Properties of a normal distribution
-- Bounded at zero
+- Positive, bounded at zero
 - Can have a long tail
 
 ```{r}
