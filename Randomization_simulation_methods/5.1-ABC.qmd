@@ -281,7 +281,8 @@ ggplot(GG, aes(t, y)) +
 
 set.seed(436578)
 GGsim <- tibble(t = runif(20, min = 0, max = 25),
-             y = Gompertz(t, a = 5, b = 1, c = 0.5) + rnorm(20, 0, 0.25))
+                y = Gompertz(t, a = 5, b = 1, c = 0.5) +
+                  rnorm(20, 0, 0.25))
 
 ggplot() +
   geom_line(data = GG, aes(t, y), linewidth = 1) +
