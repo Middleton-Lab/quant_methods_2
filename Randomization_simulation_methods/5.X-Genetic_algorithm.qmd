@@ -1,0 +1,218 @@
+---
+title: "Genetic algorithm"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
+---
+
+
+## Sampling for parameter estimation
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(rgenoud)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(6452730)
+```
+
+Many problems are more easily (or possibly) solved by not using a model with a traditional likelihood
+
+1. Sample from distributions and compare to observed values (Approximate Bayesian Computation)
+2. Generate "populations" of parameters and let them "evolve" across generations (Genetic Algorithm)
+
+
+## Genetic algorithm
+
+- "Genetic" in name only
+    - Inspired by ideas from evolution (populations, selection, mutation, crossover)
+- General optimization approach
+    - "Stochastic search algorithm" [@Scrucca2013-jf]
+    - No likelihood needed
+
+
+## Genetic algorithm history
+
+- Introduced / synthesized: [@Holland1975-nz; @Goldberg1989-zk]
+- Modern implementation with derivatives: [@Sekhon1998-hs; @Mebane2011-vy]
+
+
+## Benefits
+
+
+## R packages for GA
+
+1. [`rgenoud`](http://sekhon.berkeley.edu/rgenoud)
+2. `GA` [@Scrucca2013-jf]
+
+
+## Simulate data
+
+```{r}
+#| echo: false
+
+set.seed(234798)
+y <- rgamma(500, shape = 3, rate = 3)
+
+ggplot(tibble(y), aes(y)) +
+  geom_histogram(bins = 30)
+```
+
+
+## Model statement and function
+
+$$y \sim Gamma(shape, rate)$$
+
+```{r}
+#| echo: true
+
+gamma_sim <- function(p) {
+  log_lik <- sum(dgamma(y, p[1], p[2], log = TRUE))
+  return(log_lik)
+}
+
+gamma_sim(c(3, 3))
+```
+
+
+## Choosing the parameter "search" space
+
+- What are the likely values for the parameters?
+    - What distributions?
+    - What limits?
+- Similar to choosing Bayesian priors
+- Uniform priors will work fine
+
+
+## `genoud()` options: `P1` - `P9`
+
+
+## Fitting the model
+
+```{r}
+genoud(gamma_sim,
+       nvars = 2,
+       max = TRUE,
+       Domains = matrix(c(0, 10, 
+                          0, 10), nrow = 2, byrow = TRUE),
+       pop.size = 5000)
+```
+
+
+## Differences from ABC
+
+- No prior distributions to draw from
+- No samples to process
+
+
+## Challenging models
+
+- "Intractable" likelihoods
+    - Flat or oddly shaped surfaces
+- Nonlinear models
+- Multiple optima
+
+
+## Non-linear model: Gompertz growth equation
+
+$$y(t) = a e^{-b e^{-c t}}$$
+
+- *a* is the asymptotic size
+- *b* is the $x$ displacement of the entire curve
+- *c* is growth rate
+
+```{r}
+#| echo: true
+
+Gompertz <- function(t, a, b, c) {
+  a * exp(-b * exp(-c * t))
+}
+
+```
+
+
+## Testing
+
+```{r}
+#| echo: false
+
+GG <- tibble(t = seq(0, 25, length.out = 200),
+             y = Gompertz(t, a = 5, b = 1, c = 0.5))
+
+ggplot(GG, aes(t, y)) +
+  geom_line(linewidth = 1) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## Simulate data
+
+```{r}
+#| echo: false
+
+set.seed(436578)
+GGsim <- tibble(t = runif(20, min = 0, max = 25),
+                y = Gompertz(t, a = 5, b = 1, c = 0.5) +
+                  rnorm(20, 0, 0.25))
+
+ggplot() +
+  geom_line(data = GG, aes(t, y), linewidth = 1) +
+  geom_point(data = GGsim, aes(t, y), size = 3) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## Setting up `genoud()`
+
+```{r}
+Gomp_MSE <- function(p, GGsim) {
+  pred <- Gompertz(GGsim$t, p[1], p[2], p[3])
+  obs <- GGsim$y
+  return(mean((obs - pred) ^ 2))
+}
+
+gen <- genoud(fn = Gomp_MSE,
+              GGsim = GGsim,
+              nvars = 3,
+              pop.size = 20000)
+```
+
+
+## Visualizing the model
+
+```{r}
+ggplot() +
+  geom_line(data = GG, aes(t, y), linewidth = 1) +
+  geom_line(
+    data = tibble(t = seq(0, 25, length.out = 200),
+                  y = Gompertz(t, a = gen$par[1], b = gen$par[2],
+                               c = gen$par[3])),
+    aes(t, y),
+    color = "red", linewidth = 1) +
+  geom_point(data = GGsim, aes(t, y), size = 3) +
+  scale_y_continuous(limits = c(0, 6))
+```
+
+
+## References
+
+::: {#refs}
+:::
+
