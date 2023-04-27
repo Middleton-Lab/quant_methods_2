@@ -15,6 +15,7 @@ format:
 #| message: false
 
 library(tidyverse)
+library(readxl)
 library(furrr)
 library(purrr)
 library(cowplot)
@@ -29,9 +30,12 @@ set.seed(54633)
 
 # Sticklebacks Revisited
 
-Reopen problem set 2 and revisit the Sticklebacks randomization test you performed. In that activity, you already calculated the expected false positive rate from your empirical null based on 10,000 randomizations for a single threshold median difference value. Let's use the method we discussed in lecture to calculate the 5% FWER threshold. This threshold is what would typically be used for a test like this when using post-hoc tests (e.g. Tukey's). For each of your 10,000 randomizations, keep the maximum absolute median difference across the three pairwise median differences you calculated and make a histogram. Then use the `quantile` function to find the 5% FWER threshold (i.e. the median difference threshold where you only find any greater difference randomly 5% of the time.). Note you should only include your shuffled data here, not your observed set in row 1.   
+Reopen problem set 2 and revisit the Sticklebacks randomization test you performed. In that activity, you already calculated the expected false positive rate from your empirical null based on 10,000 randomizations for a single threshold median difference value. Let's use the method we discussed in lecture to calculate the 5% FWER threshold. This threshold is what would typically be used for a test like this when using post-hoc tests (e.g. Tukey's). For each of your 10,000 randomizations, keep the maximum absolute median difference across the three pairwise median differences you calculated and make a histogram. Then use the `quantile()` function to find the 5% FWER threshold (i.e., the median difference threshold where you only find any greater difference randomly 5% of the time). Note you should only include your shuffled data here, not your observed set in row 1.   
 
 ```{r}
+#| echo: true
+
+# FIXME
 SP <- abdData::SticklebackPlates
 niter <- 10000
 output_r <- tibble("MM_Mm_mean" = rep(NA, niter),
@@ -67,18 +71,18 @@ for (ii in 2:niter) {
     summarize(Mean = mean(plates),
               Median = median(plates))
   
-  output_r$MM_Mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+  output_r$MM_Mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="MM"] -
     rand.st$Mean[rand.st$genotype=="Mm"]
-  output_r$MM_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="MM"] -
+  output_r$MM_mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="MM"] -
     rand.st$Mean[rand.st$genotype=="mm"]
-  output_r$Mm_mm_mean[ii] <-  rand.st$Mean[rand.st$genotype=="Mm"] -
+  output_r$Mm_mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="Mm"] -
     rand.st$Mean[rand.st$genotype=="mm"]
   
-  output_r$MM_Mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+  output_r$MM_Mm_median[ii] <- rand.st$Median[rand.st$genotype=="MM"] -
     rand.st$Median[rand.st$genotype=="Mm"]
-  output_r$MM_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="MM"] -
+  output_r$MM_mm_median[ii] <- rand.st$Median[rand.st$genotype=="MM"] -
     rand.st$Median[rand.st$genotype=="mm"]
-  output_r$Mm_mm_median[ii] <-  rand.st$Median[rand.st$genotype=="Mm"] -
+  output_r$Mm_mm_median[ii] <- rand.st$Median[rand.st$genotype=="Mm"] -
     rand.st$Median[rand.st$genotype=="mm"]
 }
 
@@ -93,9 +97,13 @@ quantile(maxs, 0.95)
 
 ```
 
-Using false discovery methods using empirical distributions will typically be applicable when you are performing many more than just 3 tests. Take a second to consider what your possible FDR values can be in the Sticklebacks example. Let's now consider a hypothetical gene expression data set measuring the expression of 9000 genes comparing two salinity treatments in a set of sticklebacks. Read in the `Stickleback_Salinity.csv` file and examine its structure. There is a Salinity column denoting the treatment with 10 samples in each. Then, each column represents the expression values for one gene. 
+Using false discovery methods using empirical distributions will typically be applicable when you are performing many more than just 3 tests. Take a second to consider what your possible FDR values can be in the Sticklebacks example. Let's now consider a hypothetical gene expression data set measuring the expression of 9,000 genes comparing two salinity treatments in a set of sticklebacks. Read in the `Stickleback_Salinity.csv` file and examine its structure. There is a `Salinity` column denoting the treatment with 10 samples in each. Then, each column represents the expression values for one gene. 
 
 ```{r}
+#| echo: false
+
+# FIXME
+# Simulate data
 
 set.seed(4112548)
 Ngene <- 9000
@@ -124,15 +132,20 @@ write_csv(metaM, "../Data/Stickleback_Salinity.csv")
 ```
 
 ```{r}
+#| echo: false
 
-SS <- read_csv(file = "../Data/Stickleback_Salinity.csv")
+# FIXME
+
+SS <- read_csv(file = "../Data/Stickleback_Salinity.csv", show_col_types = FALSE)
 glimpse(SS[,1:10])
 
 ```
 
-Use a single `lm` to predict the matrix of gene expression measures from the salinity treatment for your observed data. Use the function provided below to extract the p-values for your 9000 y's and save this as an object. Note your y's will need to be a matrix for this to work and don't forget to not include the treatment column. Hint: tibbles keep their dimensions when you use `[]` to select a single column so you might want to use the `$` method to select your treatment variable. Or you can use `drop = TRUE`. Make a histogram of your observed p-values.
+Use a single `lm()` to predict the matrix of gene expression measures from the salinity treatment for your observed data. Use the function provided below to extract the p-values for your 9,000 y's and save this as an object. Note your y's will need to be a matrix for this to work and don't forget to not include the treatment column. Hint: tibbles keep their dimensions when you use `[]` to select a single column so you might want to use the `$` method to select your treatment variable. Or you can use `drop = TRUE`. Make a histogram of your observed *P*-values.
 
 ```{r}
+#| echo: true
+
 # DO NOT FIXME
 
 getP <- function(fm) {
@@ -144,8 +157,11 @@ getP <- function(fm) {
 ```
 
 ```{r}
+#| echo: false
 
-mods <- lm(as.matrix(SS[ ,2:ncol(SS)]) ~ SS[,1,drop=TRUE])
+# FIXME
+
+mods <- lm(as.matrix(SS[ , 2:ncol(SS)]) ~ SS[ , 1, drop = TRUE])
 
 obsPs <- getP(mods)
 
@@ -156,13 +172,16 @@ obsPs |>
 
 ```
 
-Write a function set up for using future_map that will do one randomization and return the number of false positives for a range of thresholds. 
+Write a function set up for using `future_map()` that will do one randomization and return the number of false positives for a range of thresholds. 
 
 ```{r}
+#| echo: false
+
+# FIXME
 
 rand_expr <- function(ii, SS, ths) {
   Rand_Salinity <- sample(SS$Salinity)
-  mods.s <- lm(as.matrix(SS[ ,2:ncol(SS)]) ~ Rand_Salinity)
+  mods.s <- lm(as.matrix(SS[ , 2:ncol(SS)]) ~ Rand_Salinity)
   s.Ps <- getP(mods.s)
   fps <- sapply(ths, function(x) sum(s.Ps < x))
   return(fps)
@@ -170,33 +189,40 @@ rand_expr <- function(ii, SS, ths) {
 
 ```
 
-Now use `future_map` to do 1000 permutations, keeping the number of false positives for your range of thresholds. You should do fewer until you are sure everything is working ok. It will take a few minutes to run 1000, even in parallel. You will end up with a list with each element containing the set of false positives for your thresholds for one permutation.
+Now use `future_map()` to do 1,000 permutations, keeping the number of false positives for your range of thresholds. You should do fewer permuations until you are sure everything is working ok. It will take a few minutes to run 1,000, even in parallel. You will end up with a list with each element containing the set of false positives for your thresholds for one permutation.
 
 ```{r}
+#| echo: false
+
+# FIXME
 
 niter <- 1000
-  
+
 ncores <- parallelly::availableCores(omit = 1)
 
 plan(multisession, workers = ncores)
 
-fps_expr <- future_map(.x = seq_len(niter), .f = rand_expr, 
-               SS = SS, 
-               ths = c(seq(1e-8,0.01, length.out = 20)),
-               .options = furrr_options(seed = 2572))
+fps_expr <- future_map(.x = seq_len(niter),
+                       .f = rand_expr, 
+                       SS = SS, 
+                       ths = c(seq(1e-8, 0.01, length.out = 20)),
+                       .options = furrr_options(seed = 2572))
 
-
+plan(sequential)
 ```
 
-Use `as.data.frame` to turn the list output into a dataframe with the permutations in columns and thresholds in rows. The column names will be crazy but that is ok. You can rename them with `colnames` if you want. Get the average number of false positives at each threshold. Then calculate the number of positives in your observed data at each threshold. Finally calculate the FDR at each threshold and plot FDR vs threshold.
+Use `as.data.frame()` to turn the list output into a data.frame with the permutations in columns and thresholds in rows. The column names will be crazy but that is ok. You can rename them with `colnames()` if you want. Get the average number of false positives at each threshold. Then calculate the number of positives in your observed data at each threshold. Finally calculate the FDR at each threshold and plot FDR vs threshold.
 
 ```{r}
+#| echo: false
+
+# FIXME
 
 fps_expr <- as.data.frame(fps_expr)
-colnames(fps_expr) <- seq(1,niter)
+colnames(fps_expr) <- seq(1, niter)
 muFP <- apply(fps_expr, 1, mean)
 
-ths <- c(seq(1e-8,0.01, length.out = 20))
+ths <- c(seq(1e-8, 0.01, length.out = 20))
 obsPos <- sapply(ths, function(x) sum(obsPs < x))
 
 FDRs <- muFP/obsPos
@@ -204,28 +230,31 @@ FDRs <- muFP/obsPos
 pp <- tibble(threshold = ths, FDR = FDRs, obs = obsPos)
 
 ggplot(pp, aes(threshold, FDR)) +
+  geom_hline(yintercept = 0.05, linetype = "dotted") +
   geom_point()
 
 ```
 
-What p-value threshold would you recommend for this study?
+What *P*-value threshold would you recommend for this study?
 
 > It looks like a threshold of 0.005 corresponds to an FDR of ~5%. This results in a little over 800 significant differences in gene expression. 
+
 
 ## Sampling strategies
 
 Imagine you are planning an experiment looking at the response of a plant population to herbivory by aphids. You plan to measure salicylic acid (SA) in plants in two treatments, either with or without aphids. There is known technical variation in the assay for salicylic acid so you want to plan how many technical replicates (sampling from a plant and assaying aliquots from the same sample multiple times) versus biological samples (assaying additional plants) you should do. 
 
-Let's walk through a single simulated dataset to consider how we might simulate date to assess power. As you go through these, print and check things are behaving as expected often. You may want to set some extreme values to start so you can visually detect that simulated values are what you expect them to be (e.g. a really big difference in groups).
+Let's walk through a single simulated dataset to consider how we might simulate date to assess power. As you go through these, print and check things are behaving as expected often. You may want to set some extreme values to start so you can visually detect that simulated values are what you expect them to be (e.g., a really big difference in groups).
 
-1) Create the following as objects (you choose some values to start with):
+1. Create the following as objects (you choose some values to start with):
     - the number of biological samples in each group
     - the difference in means between the aphid group and control
     - the standard deviation in the aphid group (how much variation in SA is there among different plants exposed to aphids)
     - the standard deviation in the control group (how much variation in SA is there among different plants not exposed to aphids)
-2) Make a tibble holding the treatment ids and SA values for your simulated data. Use a normal distribution to create your SA values using the parameters you've defined. Use 0 as the mean for the control and 0 + your difference between groups for the aphid treatment. Because we are interested in the relative differences in groups, we don't need to use absolute numbers on the scale you measure SA on.   
+2. Make a tibble holding the treatment ids and SA values for your simulated data. Use a normal distribution to create your SA values using the parameters you've defined. Use 0 as the mean for the control and 0 + your difference between groups for the aphid treatment. Because we are interested in the relative differences in groups, we don't need to use absolute numbers on the scale you measure SA on.   
 
 ```{r}
+#| echo: true
 
 ## FIXME
 
@@ -245,12 +274,12 @@ DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
 
 Now we can think about the technical variation in the test. Let's use the values you just simulated as the true SA values for each of your biological samples. Then we can generate a number of technical replicates using these values. 
 
-3) Create the following as objects (you choose some values to start with):
+3. Create the following as objects (you choose some values to start with):
     - the number of technical replicates
     - the standard deviation of the technical replicates (how much variation is there for repeated measurements of the same sample?)
-4) Create a new tibble with a column with PlantID, Treatment, and your SA values. Use the normal distribution to generate a set of values for each of your plants using each of the values you made above as the mean for a given plant and the variation for technical replication you have set. 
+4. Create a new tibble with a column with `PlantID`, `Treatment`, and your SA values. Use the normal distribution to generate a set of values for each of your plants using each of the values you made above as the mean for a given plant and the variation for technical replication you have set. 
 
-You can pass a vector of means and standard deviations to `rnorm`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and sds. That might require repeating values if you need more than one sample for a combination. 
+You can pass a vector of means and standard deviations to `rnorm()`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and sds. That might require repeating values if you need more than one sample for a combination. 
 
 ```{r}
 ## DO NOT FIXME
@@ -260,57 +289,62 @@ ss <- 1
 
 rnorm(num, mu, ss)
 
-mus <- c(rep(0,num/2), rep(20,num/2))
+mus <- c(rep(0, num/2), rep(20, num/2))
 sss <- rep(1, num)
 
 rnorm(num, mus, sss)
-
 
 ```
 
 
 ```{r}
+#| echo: true
 
 ## FIXME
 
 Ntech <- 3
 varT <- 1
 
-DD.all <- tibble(PlantId = rep(paste0("P",1:(Nbio*2)),each = Ntech),
-                 Treatment = rep(c("N","A"), each = Nbio*Ntech),
-                 SA = rnorm(Ntech*Nbio*2, rep(DD$SA, each = Ntech), rep(varT,Ntech*Nbio*2)))
-
-
+DD.all <- tibble(
+  PlantId = rep(paste0("P", 1:(Nbio * 2)), each = Ntech),
+  Treatment = rep(c("N", "A"), each = Nbio * Ntech),
+  SA = rnorm(Ntech * Nbio * 2, rep(DD$SA, each = Ntech), rep(varT, Ntech * Nbio * 2)))
 
 ```
 
-5) Now fit a mixed model predicting SA from treatment with your plant ids as a grouping variable and extract the p-value for treatment . 
+5. Now fit a mixed model predicting SA from treatment with your plant ids as a grouping variable and extract the *P*-value for treatment . 
 
 ```{r}
+#| echo: false
+
+# FIXME
 
 library(nlme)
 
 fm <- lme(SA ~ Treatment, random = ~ 1 | PlantId, data = DD.all)
-
-
+smry <- summary(fm)
+pval <- smry$tTable[2, 5]
 ```
 
 Now you have all the tools you need to set up a simulation where you could explore:
 
-1) the number of biological replicates
-2) the number of technical replicates
-3) the variation within treatment groups
-4) the variation within technical replicate groups
-5) the difference between the treatment and control groups
+1. the number of biological replicates
+2. the number of technical replicates
+3. the variation within treatment groups
+4. the variation within technical replicate groups
+5. the difference between the treatment and control groups
 
-Focus on exploring the number of biological vs technical replicates an how that changes with the variation within technical replicate groups. Choose a single parameter value for the variation within treatment groups (e.g. 1) and the difference between the treatment and control groups. Choose a total number of samples (e.g. 100) and test a range of values allocating these to biological samples or technical replicates. Then do a simulation with a range of values for the variation in technical replicate groups and visualize your results. 
+Focus on exploring the number of biological vs technical replicates an how that changes with the variation within technical replicate groups. Choose a single parameter value for the variation within treatment groups (e.g., 1) and the difference between the treatment and control groups. Choose a total number of samples (e.g., 100) and test a range of values allocating these to biological samples or technical replicates. Then do a simulation with a range of values for the variation in technical replicate groups and visualize your results. 
 
 ```{r}
 #FIXME
 
 ```
 
-In QMLS1, problem set 10, you analyzed data from Snyder et al. (2015), in which they collected data on the response of water temperature to air temperature to better understand the time scale of how changing air temperature affects water temperature (e.g., as a result of global climate change). The data they collected are in the file Streams.xlsx, the raw data file provided by the authors on Dryad.
+
+## Cross-validation
+
+In QMLS1, problem set 10, you analyzed data from Snyder et al. (2015), in which they collected data on the response of water temperature to air temperature to better understand the time scale of how changing air temperature affects water temperature (e.g., as a result of global climate change). The data they collected are in the file `Streams.xlsx`, the raw data file provided by the authors on Dryad.
 
 One goal is to be able to predict water temperature only using air temperature (since air temperature is more efficiently measured at large scale).
 
@@ -333,7 +367,7 @@ MM <- MM |>
 
 ```
 
-In QMLS1, we fit two models to these data. In both models we want to model water temperature by predicted air temperature. The difference between the models will be in the random effects. Let's fit these same two using `lme` here to start. 
+In QMLS1, we fit two models to these data. In both models we want to model water temperature by predicted air temperature. The difference between the models will be in the random effects. Let's fit these same two using `lme()` here to start. 
 
 1. Fit a multilevel model where the intercept for site nested in stream is random (`~ 1 | ...`). This model allows each `Site` to have it's own intercept, which is nested within `Stream_Name`. But this value does not change over time.
 2. Fit a multilevel model where the intercept for site nested in stream is random and day is also included as a continuous random predictor (`~ Day | ...`).
@@ -351,7 +385,9 @@ fm2 <- lme(WaterTemp ~ AirTempPredicted,
 summary(fm2)
 ```
 
-In QMLS1, we compared models using AIC. Let's take a cross-validation approach here. The approach to leaving observations out is not straight-forward here, given the observations are not independent. Let's take the approach where we leave one stream out at a time. Do this and fit both models as above. Then, use `predict` to get predicted values for the stream you left out. Compare this set of values to the observed values to get the mean absolute error and keep this value for each stream.   
+In QMLS1, we compared models using AIC. Let's take a cross-validation approach here. The approach to leaving observations out is not straight-forward here, given the observations are not independent. Let's take the approach where we leave one observation out at a time. This leave-one-out approach is not ideal, because sites are nested within streams, but if we leave out an entire site or stream, then we can't do prediction in the usual way (i.e., with `predict()`).
+
+Use LOOCV to compare both models above, using `predict()` to get predicted values for the observation you left out. Compare this set of values to the observed values to get the mean absolute error and keep this value for each stream. There are 3,744 observations, so you might consider using `future_map()`.
 
 ```{r}
 
