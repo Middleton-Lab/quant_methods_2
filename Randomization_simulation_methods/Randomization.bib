@@ -120,6 +120,91 @@
   original_id = "42551e24-cdd3-0e20-8f12-bfcc634958d6"
 }
 
+@ARTICLE{Blum2010-ol,
+  title       = "Non-linear regression models for Approximate Bayesian
+                 Computation",
+  author      = "Blum, Michael G B and François, Olivier",
+  abstract    = "Approximate Bayesian inference on the basis of summary
+                 statistics is well-suited to complex problems for which the
+                 likelihood is either mathematically or computationally
+                 intractable. However the methods that use rejection suffer
+                 from the curse of dimensionality when the number of summary
+                 statistics is increased. Here we propose a machine-learning
+                 approach to the estimation of the posterior density by
+                 introducing two innovations. The new method fits a nonlinear
+                 conditional heteroscedastic regression of the parameter on the
+                 summary statistics, and then adaptively improves estimation
+                 using importance sampling. The new algorithm is compared to
+                 the state-of-the-art approximate Bayesian methods, and
+                 achieves considerable reduction of the computational burden in
+                 two examples of inference in statistical genetics and in a
+                 queueing model.",
+  journal     = "Stat. Comput.",
+  publisher   = "Springer US",
+  volume      =  20,
+  number      =  1,
+  pages       = "63--73",
+  month       =  jan,
+  year        =  2010,
+  url         = "http://link.springer.com/article/10.1007/s11222-009-9116-0",
+  keywords    = "ABC;Module - Randomization;Bayes Readings;Module - Bayes",
+  language    = "en",
+  issn        = "0960-3174, 1573-1375",
+  doi         = "10.1007/s11222-009-9116-0",
+  original_id = "3154d38c-98ee-09d6-b910-2d5db2013a92"
+}
+
+@ARTICLE{Brauer2002-ks,
+  title       = "Genetic algorithms and parallel processing in
+                 maximum-likelihood phylogeny inference",
+  author      = "Brauer, M and Holder, Mark and Dries, L and Zwickl, Derrick
+                 and Lewis, Paul O and Hillis, David M",
+  abstract    = "We investigated the usefulness of a parallel genetic algorithm
+                 for phylogenetic inference under the maximum-likelihood (NIL)
+                 optimality criterion. Parallelization was accomplished by
+                 assigning each ``individual'' in the genetic algorithm
+                 ``population'' to a separate processor so that the number of
+                 processors used was equal to the size of the evolving
+                 population (plus one additional processor for the control of
+                 operations). The genetic algorithm incorporated branch-length
+                 and topological mutation, recombination, selection on the ML
+                 score, and (in some cases) migration and recombination among
+                 subpopulations. We tested this parallel genetic algorithm with
+                 large (228 taxa) data sets of both empirically observed DNA
+                 sequence data (for angiosperms) as well as simulated DNA
+                 sequence data. For both observed and simulated data,
+                 search-time improvement was nearly linear with respect to the
+                 number of processors, so the parallelization strategy appears
+                 to be highly effective at improving computation time for large
+                 phylogenetic problems using the genetic algorithm. We also
+                 explored various ways of optimizing and tuning the parameters
+                 of the genetic algorithm. Under the conditions of our
+                 analyses, we did not find the best-known solution using the
+                 genetic algorithm approach before terminating each run. We
+                 discuss some possible limitations of the current
+                 implementation of this genetic algorithm as well as of avenues
+                 for its future improvement.",
+  journal     = "Mol. Biol. Evol.",
+  volume      =  19,
+  number      =  10,
+  pages       = "1717--1726",
+  year        =  2002,
+  keywords    = "Genetic algorithm;Module - Randomization",
+  issn        = "0737-4038",
+  original_id = "e8a5f52b-c7cf-0d21-be86-98ed49f2a111"
+}
+
+@ARTICLE{Zwickl2008-yy,
+  title       = "{GARLI}: Genetic Algorithm for Rapid Likelihood Inference",
+  author      = "Zwickl, Derrick",
+  journal     = "Presentations",
+  pages       = "87",
+  year        =  2008,
+  keywords    = "Genetic algorithm;Module - Randomization",
+  issn        = "1041-9780",
+  original_id = "713926f5-5cac-0978-82f5-2d0699cf0931"
+}
+
 @ARTICLE{Csillery2010-dj,
   title       = "Approximate Bayesian Computation ({ABC}) in practice",
   author      = "Csilléry, Katalin and Blum, Michael G B and Gaggiotti, Oscar E
@@ -175,6 +260,73 @@
   issn        = "0016-6731, 1943-2631",
   pmid        = "12524368",
   original_id = "76290b01-59ff-0930-8ea5-fb8d032ed3ec"
+}
+
+@ARTICLE{Scrucca2013-jf,
+  title    = "{GA}: A Package for Genetic Algorithms in {R}",
+  author   = "Scrucca, Luca",
+  abstract = "Genetic algorithms (GAs) are stochastic search algorithms
+              inspired by the basic principles of biological evolution and
+              natural selection. GAs simulate the evolution of living
+              organisms, where the fittest individuals dominate over the weaker
+              ones, by mimicking the biological mechanisms of evolution, such
+              as selection, crossover and mutation. GAs have been successfully
+              applied to solve optimization problems, both for continuous
+              (whether differentiable or not) and discrete functions. This
+              paper describes the R package GA, a collection of general purpose
+              functions that provide a flexible set of tools for applying a
+              wide range of genetic algorithm methods. Several examples are
+              discussed, ranging from mathematical functions in one and two
+              dimensions known to be hard to optimize with standard
+              derivative-based methods, to some selected statistical problems
+              which require the optimization of user defined objective
+              functions. (This paper contains animations that can be viewed
+              using the Adobe Acrobat PDF viewer.)",
+  journal  = "Journal of Statistical Software, Articles",
+  volume   =  53,
+  number   =  4,
+  pages    = "1--37",
+  year     =  2013,
+  url      = "https://www.jstatsoft.org/v053/i04",
+  keywords = "Genetic algorithm;Module - Randomization",
+  issn     = "1548-7660",
+  doi      = "10.18637/jss.v053.i04"
+}
+
+@ARTICLE{Mebane2011-vy,
+  title    = "Genetic Optimization Using Derivatives: The rgenoud Package for
+              {R}",
+  author   = "Mebane, Jr., Walter and Sekhon, Jasjeet",
+  abstract = "genoud is an R function that combines evolutionary algorithm
+              methods with a derivative-based (quasi-Newton) method to solve
+              difficult optimization problems. genoud may also be used for
+              optimization problems for which derivatives do not exist. genoud
+              solves problems that are nonlinear or perhaps even discontinuous
+              in the parameters of the function to be optimized. When the
+              function to be optimized (for example, a log-likelihood) is
+              nonlinear in the model's parameters, the function will generally
+              not be globally concave and may have irregularities such as
+              saddlepoints or discontinuities. Optimization methods that rely
+              on derivatives of the objective function may be unable to find
+              any optimum at all. Multiple local optima may exist, so that
+              there is no guarantee that a derivative-based method will
+              converge to the global optimum. On the other hand, algorithms
+              that do not use derivative information (such as pure genetic
+              algorithms) are for many problems needlessly poor at local hill
+              climbing. Most statistical problems are regular in a neighborhood
+              of the solution. Therefore, for some portion of the search space,
+              derivative information is useful. The function supports parallel
+              processing on multiple CPUs on a single machine or a cluster of
+              computers.",
+  journal  = "Journal of Statistical Software",
+  volume   =  42,
+  number   =  11,
+  pages    = "1--26",
+  year     =  2011,
+  url      = "https://www.jstatsoft.org/v042/i11",
+  keywords = "Genetic algorithm;Module - Randomization",
+  issn     = "1548-7660",
+  doi      = "10.18637/jss.v042.i11"
 }
 
 @ARTICLE{Turner2012-rw,
@@ -245,6 +397,95 @@
   doi      = "10.1093/oxfordjournals.molbev.a026091"
 }
 
+@ARTICLE{Sekhon1998-hs,
+  title    = "Genetic Optimization Using Derivatives",
+  author   = "Sekhon, Jasjeet S and Mebane, Walter R",
+  abstract = "[We describe a new computer program that combines evolutionary
+              algorithm methods with a derivative-based, quasi-Newton method to
+              solve difficult unconstrained optimization problems. The program,
+              called GENOUD (GENetic Optimization Using Derivatives),
+              effectively solves problems that are nonlinear or perhaps even
+              discontinuous in the parameters of the function to be optimized.
+              When a statistical model's estimating function (for example, a
+              log-likelihood) is nonlinear in the model's parameters, the
+              function to be optimized will usually not be globally concave and
+              may contain irregularities such as saddlepoints or discontinuous
+              jumps. Optimization methods that rely on derivatives of the
+              objective function may be unable to find any optimum at all. Or
+              multiple local optima may exist, so that there is no guarantee
+              that a derivative-based method will converge to the global
+              optimum. We discuss the theoretical basis for expecting GENOUD to
+              have a high probability of finding global optima. We conduct
+              Monte Carlo experiments using scalar Normal mixture densities to
+              illustrate this capability. We also use a system of four
+              simultaneous nonlinear equations that has many parameters and
+              multiple local optima to compare the performance of GENOUD to
+              that of the Gauss-Newton algorithm in SAS's PROC MODEL.]",
+  journal  = "Polit. Anal.",
+  volume   =  7,
+  pages    = "187--210",
+  year     =  1998,
+  url      = "https://www.cambridge.org/core/journals/political-analysis/article/genetic-optimization-using-derivatives/9C2ACCE0EF8AA8E7E905DC4130D9660D",
+  keywords = "Genetic algorithm;Module - Randomization",
+  issn     = "1047-1987, 1476-4989",
+  doi      = "10.1093/pan/7.1.187"
+}
+
+@BOOK{Goldberg1989-zk,
+  title     = "Genetic Algorithms in Search, Optimization, and Machine Learning",
+  author    = "Goldberg, David E",
+  publisher = "Addison-Wesley",
+  year      =  1989,
+  keywords  = "Genetic algorithm;Module - Randomization"
+}
+
+@INPROCEEDINGS{Grefenstette1989-qz,
+  title     = "How Genetic Algorithms Work: A Critical Look at Implicit
+               Parallelism",
+  booktitle = "Proceedings of the third international conference on Genetic
+               algorithms",
+  author    = "Grefenstette, John J and Baker, James E",
+  pages     = "20--27",
+  year      =  1989,
+  keywords  = "Genetic algorithm;Module - Randomization"
+}
+
+@BOOK{Holland1975-nz,
+  title     = "Adaptation in Natural and Artificial Systems: An Introductory
+               Analysis with Applications to Biology, Control, and Artificial
+               Intelligence",
+  author    = "Holland, John Henry",
+  abstract  = "Genetic algorithms are playing an increasingly important role in
+               studies of complex adaptive systems, ranging from adaptive
+               agents in economic theory to the use of machine learning
+               techniques in the design of complex devices such as aircraft
+               turbines and integrated circuits. Adaptation in Natural and
+               Artificial Systems is the book that initiated this field of
+               study, presenting the theoretical foundations and exploring
+               applications. In its most familiar form, adaptation is a
+               biological process, whereby organisms evolve by rearranging
+               genetic material to survive in environments confronting them. In
+               this now classic work, Holland presents a mathematical model
+               that allows for the nonlinearity of such complex interactions.
+               He demonstrates the model's universality by applying it to
+               economics, physiological psychology, game theory, and artificial
+               intelligence and then outlines the way in which this approach
+               modifies the traditional views of mathematical genetics.
+               Initially applying his concepts to simply defined artificial
+               systems with limited numbers of parameters, Holland goes on to
+               explore their use in the study of a wide range of complex,
+               naturally occuring processes, concentrating on systems having
+               multiple factors that interact in nonlinear ways. Along the way
+               he accounts for major effects of coadaptation and coevolution:
+               the emergence of building blocks, or schemata, that are
+               recombined and passed on to succeeding generations to provide,
+               innovations and improvements.",
+  publisher = "University of Michigan Press",
+  year      =  1975,
+  keywords  = "Genetic algorithm;Module - Randomization",
+  isbn      = "9780262581110"
+}
+
 @ARTICLE{Tavare1997-lg,
   title    = "Inferring coalescence times from {DNA} sequence data",
   author   = "Tavaré, S and Balding, D J and Griffiths, R C and Donnelly, P",
@@ -304,7 +545,7 @@
   month     =  sep,
   year      =  2018,
   url       = "https://play.google.com/store/books/details?id=t969tQEACAAJ",
-  keywords  = "Module - Randomization",
+  keywords  = "ABC;Module - Randomization",
   language  = "en",
   isbn      = "9781315117195"
 }
@@ -345,4 +586,37 @@
   pmid     = "9649540",
   doi      = "10.1093/genetics/149.3.1539",
   pmc      = "PMC1460236"
+}
+
+@ARTICLE{Scrucca2017-yg,
+  title     = "On Some Extensions to {GA} Package: Hybrid Optimisation,
+               Parallelisation and Islands Evolution",
+  author    = "Scrucca, Luca",
+  abstract  = "Genetic algorithms are stochastic iterative algorithms in which
+               a population of individuals evolve by emulating the process of
+               biological evolution and natural selection. The R package GA
+               provides a collection of general purpose functions for
+               optimisation using genetic algorithms. This paper describes some
+               enhancements recently introduced in version 3 of the package. In
+               particular, hybrid GAs have been implemented by including the
+               option to perform local searches during the evolution. This
+               allows to combine the power of genetic algorithms with the speed
+               of a local optimiser. Another major improvement is the provision
+               of facilities for parallel computing. Parallelisation has been
+               implemented using both the master-slave approach and the islands
+               evolution model. Several examples of usage are presented, with
+               both real-world data examples and benchmark functions, showing
+               that often high-quality solutions can be obtained more
+               efficiently.",
+  journal   = "R Journal",
+  publisher = "The R Foundation",
+  volume    =  9,
+  number    =  1,
+  pages     = "187",
+  year      =  2017,
+  url       = "https://journal.r-project.org/archive/2017/RJ-2017-008/index.html",
+  keywords  = "Genetic algorithm;Module - Randomization",
+  language  = "en",
+  issn      = "2073-4859",
+  doi       = "10.32614/rj-2017-008"
 }
