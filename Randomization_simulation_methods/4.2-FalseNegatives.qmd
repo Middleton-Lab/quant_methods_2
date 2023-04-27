@@ -192,12 +192,14 @@ Examples:
 - Presence/absence: Binomial
 - RNA Sequencing reads: Negative binomial
 
+
 ## What effect sizes are reasonable to consider? 
 
 - Biologically realistic differences (Normal distribution)
 - Genetic effects: Exponential distribution
 - Presence/absence: Range from 0 - 1
 - RNA Sequencing reads?
+
 
 ## What are the sources and magnitudes of variation? {.smaller}
 
@@ -211,6 +213,7 @@ Examples:
 - RNA Sequencing reads
     - Batch effects
     - Coverage
+
 
 ## Power in multi-parent genetic mapping populations (MPPs)
 

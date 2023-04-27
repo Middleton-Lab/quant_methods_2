@@ -34,7 +34,7 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 set.seed(6452730)
 ```
 
-Many problems are more easily (or possibly) solved by not using a model with a traditional likelihood
+Many problems are more easily (or possibly) solved without a traditional likelihood
 
 1. Sample from distributions and compare to observed values (Approximate Bayesian Computation)
 2. Generate "populations" of parameters and let them "evolve" across generations (Genetic Algorithm)
@@ -90,13 +90,13 @@ set.seed(234798)
 y <- rgamma(500, shape = 3, rate = 3)
 
 ggplot(tibble(y), aes(y)) +
-  geom_histogram(bins = 30)
+  geom_histogram(bins = 30, fill = "darkorange3")
 ```
 
 
 ## Model statement and function
 
-$$y \sim Gamma(shape, rate)$$
+$$y \sim Gamma(shape,~rate)$$
 
 ```{r}
 #| echo: true
@@ -240,6 +240,7 @@ samples |>
 
 - "Intractable" likelihoods
     - Flat or oddly shaped surfaces
+    - Discontinuous likelihood
 - Nonlinear models
 - Multiple optima
 
@@ -290,7 +291,7 @@ GGsim <- tibble(t = runif(20, min = 0, max = 25),
 
 ggplot() +
   geom_line(data = GG, aes(t, y), linewidth = 1) +
-  geom_point(data = GGsim, aes(t, y), size = 2) +
+  geom_point(data = GGsim, aes(t, y), size = 3) +
   scale_y_continuous(limits = c(0, 6))
 ```
 
@@ -378,7 +379,7 @@ ggplot() +
                   y = Gompertz(t, a = pars$a, b = pars$b, c = pars$c)),
     aes(t, y),
     color = "red", linewidth = 1) +
-  geom_point(data = GGsim, aes(t, y)) +
+  geom_point(data = GGsim, aes(t, y), size = 3) +
   scale_y_continuous(limits = c(0, 6))
 ```
 
