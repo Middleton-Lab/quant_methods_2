@@ -70,7 +70,7 @@ Many problems are more easily (or possibly) solved without a traditional likelih
 
 1. `rgenoud` (GENetic Optimization Using Derivatives) [@Sekhon1998-hs]
     - Combines derivative-based optimization with an evolutionary algorithm
-2. `GA` [@Scrucca2013-jf]
+2. `GA` [@Scrucca2013-jf; @Scrucca2017-yg]
 
 
 ## Simulate data: Gamma(3, 3)
