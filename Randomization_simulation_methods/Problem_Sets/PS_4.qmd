@@ -20,10 +20,10 @@ library(furrr)
 library(purrr)
 library(cowplot)
 theme_set(theme_cowplot())
-set.seed(54633)
 
 # Required files for this problem set:
 #   - Stickleback_Salinity.csv
+#   - Streams.xlsx
 
 ```
 
@@ -35,109 +35,15 @@ Reopen problem set 2 and revisit the Sticklebacks randomization test you perform
 ```{r}
 #| echo: true
 
-# FIXME
-SP <- abdData::SticklebackPlates
-niter <- 10000
-output_r <- tibble("MM_Mm_mean" = rep(NA, niter),
-                   "MM_mm_mean" = rep(NA, niter),
-                   "Mm_mm_mean" = rep(NA, niter),
-                   "MM_Mm_median" = rep(NA, niter),
-                   "MM_mm_median" = rep(NA, niter),
-                   "Mm_mm_median" = rep(NA, niter))
-obs.st <- SP |> 
-  group_by(genotype) |>
-  summarize(Mean = mean(plates),
-            Median = median(plates))
 
-output_r$MM_Mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="MM"] -
-  obs.st$Mean[obs.st$genotype=="Mm"]
-output_r$MM_mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="MM"] -
-  obs.st$Mean[obs.st$genotype=="mm"]
-output_r$Mm_mm_mean[1] <-  obs.st$Mean[obs.st$genotype=="Mm"] -
-  obs.st$Mean[obs.st$genotype=="mm"]
-
-output_r$MM_Mm_median[1] <-  obs.st$Median[obs.st$genotype=="MM"] -
-  obs.st$Median[obs.st$genotype=="Mm"]
-output_r$MM_mm_median[1] <-  obs.st$Median[obs.st$genotype=="MM"] -
-  obs.st$Median[obs.st$genotype=="mm"]
-output_r$Mm_mm_median[1] <-  obs.st$Median[obs.st$genotype=="Mm"] -
-  obs.st$Median[obs.st$genotype=="mm"]
-  
-for (ii in 2:niter) {
-  SP.s <- SP
-  SP.s$genotype <- sample(SP.s$genotype)
-  rand.st <- SP.s |> 
-    group_by(genotype) |>
-    summarize(Mean = mean(plates),
-              Median = median(plates))
-  
-  output_r$MM_Mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="MM"] -
-    rand.st$Mean[rand.st$genotype=="Mm"]
-  output_r$MM_mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="MM"] -
-    rand.st$Mean[rand.st$genotype=="mm"]
-  output_r$Mm_mm_mean[ii] <- rand.st$Mean[rand.st$genotype=="Mm"] -
-    rand.st$Mean[rand.st$genotype=="mm"]
-  
-  output_r$MM_Mm_median[ii] <- rand.st$Median[rand.st$genotype=="MM"] -
-    rand.st$Median[rand.st$genotype=="Mm"]
-  output_r$MM_mm_median[ii] <- rand.st$Median[rand.st$genotype=="MM"] -
-    rand.st$Median[rand.st$genotype=="mm"]
-  output_r$Mm_mm_median[ii] <- rand.st$Median[rand.st$genotype=="Mm"] -
-    rand.st$Median[rand.st$genotype=="mm"]
-}
-
-maxs <- apply(output_r[-1,3:6], 1, function(x) abs(max(x)))
-
-maxs |>
-  tibble() |>
-  ggplot(aes(maxs)) +
-  geom_histogram(bins = 50, fill = "grey75")
-
-quantile(maxs, 0.95)
 
 ```
 
 Using false discovery methods using empirical distributions will typically be applicable when you are performing many more than just 3 tests. Take a second to consider what your possible FDR values can be in the Sticklebacks example. Let's now consider a hypothetical gene expression data set measuring the expression of 9,000 genes comparing two salinity treatments in a set of sticklebacks. Read in the `Stickleback_Salinity.csv` file and examine its structure. There is a `Salinity` column denoting the treatment with 10 samples in each. Then, each column represents the expression values for one gene. 
 
-```{r}
-#| echo: false
-
-# FIXME
-# Simulate data
-
-set.seed(4112548)
-Ngene <- 9000
-Neffs <- 3000
-effs <- rep(0, Ngene - Neffs)
-effs <- c(effs, rexp(Neffs))
-effs <- sample(effs)
-
-NN <- 10
-metaM <- matrix(NA, NN * 2, Ngene)
-base <- 20
-
-for (ii in 1:Ngene) {
- metaM[,ii] <- c(rnorm(NN, base, 1),
-                 rnorm(NN, base + effs[ii], 1))
-}
-
-metaM <- as.data.frame(metaM)
-colnames(metaM) <- paste0("G", 1:Ngene) 
-
-metaM <- cbind(rep(c("S1", "S2"),each = NN), metaM)
-colnames(metaM)[1] <- "Salinity"
-
-write_csv(metaM, "../Data/Stickleback_Salinity.csv")
-
-```
 
 ```{r}
-#| echo: false
-
-# FIXME
-
-SS <- read_csv(file = "../Data/Stickleback_Salinity.csv", show_col_types = FALSE)
-glimpse(SS[,1:10])
+#| echo: true
 
 ```
 
@@ -145,8 +51,6 @@ Use a single `lm()` to predict the matrix of gene expression measures from the s
 
 ```{r}
 #| echo: true
-
-# DO NOT FIXME
 
 getP <- function(fm) {
   sum.set <- summary(fm)
@@ -157,88 +61,39 @@ getP <- function(fm) {
 ```
 
 ```{r}
-#| echo: false
+#| echo: true
 
-# FIXME
 
-mods <- lm(as.matrix(SS[ , 2:ncol(SS)]) ~ SS[ , 1, drop = TRUE])
-
-obsPs <- getP(mods)
-
-obsPs |>
-  tibble() |>
-  ggplot(aes(obsPs)) +
-  geom_histogram(fill = "grey75", bins = 50)
 
 ```
 
 Write a function set up for using `future_map()` that will do one randomization and return the number of false positives for a range of thresholds. 
 
 ```{r}
-#| echo: false
+#| echo: true
 
-# FIXME
-
-rand_expr <- function(ii, SS, ths) {
-  Rand_Salinity <- sample(SS$Salinity)
-  mods.s <- lm(as.matrix(SS[ , 2:ncol(SS)]) ~ Rand_Salinity)
-  s.Ps <- getP(mods.s)
-  fps <- sapply(ths, function(x) sum(s.Ps < x))
-  return(fps)
-}
 
 ```
 
 Now use `future_map()` to do 1,000 permutations, keeping the number of false positives for your range of thresholds. You should do fewer permuations until you are sure everything is working ok. It will take a few minutes to run 1,000, even in parallel. You will end up with a list with each element containing the set of false positives for your thresholds for one permutation.
 
 ```{r}
-#| echo: false
+#| echo: true
 
-# FIXME
-
-niter <- 1000
-
-ncores <- parallelly::availableCores(omit = 1)
-
-plan(multisession, workers = ncores)
-
-fps_expr <- future_map(.x = seq_len(niter),
-                       .f = rand_expr, 
-                       SS = SS, 
-                       ths = c(seq(1e-8, 0.01, length.out = 20)),
-                       .options = furrr_options(seed = 2572))
-
-plan(sequential)
 ```
 
 Use `as.data.frame()` to turn the list output into a data.frame with the permutations in columns and thresholds in rows. The column names will be crazy but that is ok. You can rename them with `colnames()` if you want. Get the average number of false positives at each threshold. Then calculate the number of positives in your observed data at each threshold. Finally calculate the FDR at each threshold and plot FDR vs threshold.
 
 ```{r}
-#| echo: false
+#| echo: true
 
-# FIXME
 
-fps_expr <- as.data.frame(fps_expr)
-colnames(fps_expr) <- seq(1, niter)
-muFP <- apply(fps_expr, 1, mean)
-
-ths <- c(seq(1e-8, 0.01, length.out = 20))
-obsPos <- sapply(ths, function(x) sum(obsPs < x))
-
-FDRs <- muFP/obsPos
-
-pp <- tibble(threshold = ths, FDR = FDRs, obs = obsPos)
-
-ggplot(pp, aes(threshold, FDR)) +
-  geom_hline(yintercept = 0.05, linetype = "dotted") +
-  geom_point()
 
 ```
 
 What *P*-value threshold would you recommend for this study?
 
-> It looks like a threshold of 0.005 corresponds to an FDR of ~5%. This results in a little over 800 significant differences in gene expression. 
-
+> 
 
 ## Sampling strategies
 
@@ -256,19 +111,7 @@ Let's walk through a single simulated dataset to consider how we might simulate 
 ```{r}
 #| echo: true
 
-## FIXME
 
-Nbio <- 20
-
-muN <- 0
-dmus <- 1
-
-varN <- 1
-varA <- 1
-
-DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
-             SA = c(rnorm(Nbio, muN, varN),
-                    rnorm(Nbio, muN + dmus, varA)))
 
 ```
 
@@ -282,7 +125,8 @@ Now we can think about the technical variation in the test. Let's use the values
 You can pass a vector of means and standard deviations to `rnorm()`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and sds. That might require repeating values if you need more than one sample for a combination. 
 
 ```{r}
-## DO NOT FIXME
+#| echo: true
+
 num <- 10
 mu <- 0
 ss <- 1
@@ -300,15 +144,7 @@ rnorm(num, mus, sss)
 ```{r}
 #| echo: true
 
-## FIXME
 
-Ntech <- 3
-varT <- 1
-
-DD.all <- tibble(
-  PlantId = rep(paste0("P", 1:(Nbio * 2)), each = Ntech),
-  Treatment = rep(c("N", "A"), each = Nbio * Ntech),
-  SA = rnorm(Ntech * Nbio * 2, rep(DD$SA, each = Ntech), rep(varT, Ntech * Nbio * 2)))
 
 ```
 
@@ -317,13 +153,7 @@ DD.all <- tibble(
 ```{r}
 #| echo: false
 
-# FIXME
 
-library(nlme)
-
-fm <- lme(SA ~ Treatment, random = ~ 1 | PlantId, data = DD.all)
-smry <- summary(fm)
-pval <- smry$tTable[2, 5]
 ```
 
 Now you have all the tools you need to set up a simulation where you could explore:
@@ -337,7 +167,8 @@ Now you have all the tools you need to set up a simulation where you could explo
 Focus on exploring the number of biological vs technical replicates an how that changes with the variation within technical replicate groups. Choose a single parameter value for the variation within treatment groups (e.g., 1) and the difference between the treatment and control groups. Choose a total number of samples (e.g., 100) and test a range of values allocating these to biological samples or technical replicates. Then do a simulation with a range of values for the variation in technical replicate groups and visualize your results. 
 
 ```{r}
-#FIXME
+#| echo: true
+
 
 ```
 
@@ -351,7 +182,8 @@ One goal is to be able to predict water temperature only using air temperature (
 Run the chunk below to load the data and set it up as we did in QMLS1. You may need to change the path depending on where you store the data. 
 
 ```{r}
-#DO NOT FIXME
+#| echo: true
+
 Temp_Data <- read_excel("../Data/Streams.xlsx",
                         sheet = "TemperatureData")
 
@@ -373,16 +205,8 @@ In QMLS1, we fit two models to these data. In both models we want to model water
 2. Fit a multilevel model where the intercept for site nested in stream is random and day is also included as a continuous random predictor (`~ Day | ...`).
 
 ```{r}
-# FIXME
-fm1 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ 1 | Stream_Name/Site,
-           data = MM)
-summary(fm1)
+#| echo: true
 
-fm2 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ Day | Stream_Name/Site,
-           data = MM)
-summary(fm2)
 ```
 
 In QMLS1, we compared models using AIC. Let's take a cross-validation approach here. The approach to leaving observations out is not straight-forward here, given the observations are not independent. Let's take the approach where we leave one observation out at a time. This leave-one-out approach is not ideal, because sites are nested within streams, but if we leave out an entire site or stream, then we can't do prediction in the usual way (i.e., with `predict()`).
@@ -390,24 +214,7 @@ In QMLS1, we compared models using AIC. Let's take a cross-validation approach h
 Use LOOCV to compare both models above, using `predict()` to get predicted values for the observation you left out. Compare this set of values to the observed values to get the mean absolute error and keep this value for each stream. There are 3,744 observations, so you might consider using `future_map()`.
 
 ```{r}
-
-streams <- unique(MM$Stream_Name)
-
-for(ii in 1:length(streams))
-{
-  stream.test <- MM |>
-    filter(Stream_Name == streams[ii])
-  stream.train <- MM |>
-    filter(Stream_Name != streams[ii])
-  fm1 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ 1 | Stream_Name/Site,
-           data = stream.train)
-  fm2 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ Day | Stream_Name/Site,
-           data = stream.train)
-  predict(fm1, stream.test)
-}
-
+#| echo: true
 
 ```
 
