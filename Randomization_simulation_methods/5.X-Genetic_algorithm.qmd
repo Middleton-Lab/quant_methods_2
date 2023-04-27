@@ -58,7 +58,7 @@ Many problems are more easily (or possibly) solved without a traditional likelih
 
 - General solution for optimization
 - Resists getting stuck in local optima
-- Fast by combining derivative-based optimization with an evolutionary algorithm
+- Can be fast, even for large datasets
 
 
 ## GA schematic
@@ -69,6 +69,7 @@ Many problems are more easily (or possibly) solved without a traditional likelih
 ## R packages for GA
 
 1. `rgenoud` (GENetic Optimization Using Derivatives) [@Sekhon1998-hs]
+    - Combines derivative-based optimization with an evolutionary algorithm
 2. `GA` [@Scrucca2013-jf]
 
 
@@ -104,15 +105,11 @@ gamma_sim(c(3, 3))
 ## Choosing the parameter "search" space
 
 - What are the likely values for the parameters?
-    - What distributions?
     - What limits?
-- Similar to choosing Bayesian priors
-- Uniform priors will work fine
+- Options to strictly stay in the bounds or allow broader search
 
 
 ## `genoud()` options: `P1` - `P9`
-
-Much detail in Mebane and Sekhon [-@Mebane2011-vy]
 
 1. Cloning
 2. Uniform mutation
@@ -128,12 +125,15 @@ Much detail in Mebane and Sekhon [-@Mebane2011-vy]
 ## Fitting the model
 
 ```{r}
-genoud(gamma_sim,
-       nvars = 2,
-       max = TRUE,
-       Domains = matrix(c(0, 10, 
-                          0, 10), nrow = 2, byrow = TRUE),
-       pop.size = 5000)
+#| echo: true
+#| output-location: slide
+
+fm <- genoud(gamma_sim,
+             nvars = 2,
+             max = TRUE,
+             Domains = matrix(c(0, 10, 
+                                0, 10), nrow = 2, byrow = TRUE),
+             pop.size = 5000)
 ```
 
 
@@ -192,10 +192,11 @@ ggplot() +
 ```
 
 
-## Setting up `genoud()`
+## Fitting the model
 
 ```{r}
 #| echo: true
+#| output-location: slide
 
 Gomp_MSE <- function(p, GGsim) {
   pred <- Gompertz(GGsim$t, p[1], p[2], p[3])
@@ -206,7 +207,7 @@ Gomp_MSE <- function(p, GGsim) {
 gen <- genoud(fn = Gomp_MSE,
               GGsim = GGsim,
               nvars = 3,
-              pop.size = 20000)
+              pop.size = 5000)
 ```
 
 
