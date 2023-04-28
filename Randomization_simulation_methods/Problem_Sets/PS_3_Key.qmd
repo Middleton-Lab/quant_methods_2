@@ -133,7 +133,7 @@ mean(out <= out[1])
 
 Compare your results to the output of the `chisq.test()` function with simulation you used above.
 
->
+> The results are very similar, as you'd expect because we are performing the same type of simulation as the function but just doing so "by hand". 
 
 Now consider another similar back-cross experiment looking at a different phenotype, a white head fur blaze, with a much smaller sample size. Here, 12 individuals had the white blaze and 9 did not. Repeat all the steps above for this example.  
 
@@ -161,7 +161,7 @@ mean(out <= out[1])
 
 Consider how the "null hypothesis" is being used statistically here. How well do you think this test supports a conclusion of a 1:1 ratio in the second example and how certain should you be about that conclusion? Do you have any ideas for a different simulation that might be more appropriate for making a conclusion about the inheritance mechanism of the white blaze?
 
-> 
+> The test is not significant but our sample size is also really low so we might not have much power to detect a difference even if there is one there. The statistical null hypothesis in this case is actually the model we want to make a conclusion about. Thus, that conclusion depends strongly on our power to detect a difference when there really is one there. With a low sample size, our conclusion that the ratio is 1:1 is very uncertain here. 
 
 
 ## Restoration Treatments in Prairies in a Block Design
