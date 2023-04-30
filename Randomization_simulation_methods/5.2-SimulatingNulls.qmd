@@ -1,0 +1,222 @@
+---
+title: "Simulating null distributions"
+subtitle: "Beyond only sampling error"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
+---
+
+## Null hypothesis
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(viridis)
+library(tictoc)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(6452730)
+```
+
+- The baseline expectation 
+- In statistics, often this is our expectation when only sampling and measurement error are causing variation
+- This is the default hypothesis: we require evidence against it to reject it in favor of an alternative
+- Hypotheses are never proven true
+    - Null is rejected or failed to be rejected
+
+
+## Null Distribution 
+
+- We can evaluate evidence in the context of the null hypothesis if we have a null distribution for some parameter of interest
+- How to get the null distribution
+    - Empirically
+    - Simulation
+    - From analytical solutions (mathematical formulas)
+    
+## When the Null Hypothesis is not only Sampling Error
+
+- Detecting selection
+    - Null: genetic drift is driving differences
+- Similarities and differences between species
+    - Null: common ancestry is causing similarity
+- Patterns of species diveristy
+    - Null: random extinction, speciation, & dispersal events drive patterns
+
+## Simulated Null Distribution
+
+```{r}
+set.seed(736902)
+muH <- 1
+muL <- 1 / 3
+sd1 <- sd2 <- 1
+n1 <- n2 <- 20
+
+DD <- tibble(
+  growthR = c(rnorm(n1, muL, sd1),
+              rnorm(n2, muH, sd2)),
+  Temperature = c(rep("Low", times = n1),
+                  rep("High", times = n2))
+)
+d <- DD |> group_by(Temperature) |>                             
+  summarize(xbar = mean(growthR)) |>                            
+  pivot_wider(names_from = Temperature, values_from = xbar) |>  
+  mutate(d = High - Low) |>                                     
+  pull(d) 
+mu_both <- mean(c(muL, muH))                       
+nreps <- 1e4
+diffs.s <- numeric(length = nreps)
+for (ii in 1:nreps) {
+  diffs.s[ii] <- mean(rnorm(n1, mu_both, sd1)) -
+    mean(rnorm(n2, mu_both, sd2))
+}
+
+ps <- ggplot(data.frame(diffs.s), aes(diffs.s)) +
+  geom_histogram(binwidth = 0.1, fill = "gray75") +
+  geom_segment(x = d, xend = d,
+               y = 0, yend = Inf,
+               linewidth = 2,
+               color = "firebrick4") +
+  ylim(c(0, 1500)) +
+  xlim(c(-1.2, 1.2)) +
+  labs(x = "Difference (High - Low)", y = "Count")
+ps
+
+```
+
+## Identifying Random Processes
+
+- Define the experimental question
+- What baseline random processes could produce a similar result?
+
+## A Simple Example: Drift at One Variant in a Population
+
+```{r}
+#| echo: true
+
+set.seed(8487264)
+
+snpF <- 0.41
+
+NN <- 100
+
+pop <- tibble("C1" = rbinom(NN, 1, snpF),
+              "C2" = rbinom(NN, 1, snpF))
+
+newF <- mean(c(pop$C1, pop$C2))
+
+newF
+
+```
+
+
+## A Simple Example: Drift at One Variant in a Population
+
+```{r}
+#| echo: true
+
+ngen <- 10
+
+npops <- 10
+
+snpG <- rep(snpF, npops)
+
+output <- matrix(NA, ngen+1, npops)
+output[1,] <- snpG
+
+for(gg in 1:ngen){
+  snpG <- sapply(snpG, function(x) mean(rbinom(NN*2,1,x)))
+  output[(gg+1),] <- snpG
+}
+
+```
+
+## A Simple Example: Drift at One Variant in a Population
+
+```{r}
+
+outputT <- as_tibble(output)  
+colnames(outputT) <- paste0("Pop",seq(1:npops))
+outputT$Generation <- seq(1, (ngen+1))
+
+outputT |>
+  pivot_longer(-Generation,names_to = "Population", values_to = "AlleleF") |>
+  ggplot(aes(Generation, AlleleF, color=Population, group=Population)) +
+  geom_point() +
+  geom_line()
+
+```
+
+## A Simple Example: Drift at One Variant in a Population
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ngen <- 10
+
+npops <- 1000
+
+snpG <- rep(snpF, npops)
+
+output <- matrix(NA, ngen+1, npops)
+output[1,] <- snpG
+
+for(gg in 1:ngen){
+  snpG <- sapply(snpG, function(x) mean(rbinom(NN*2,1,x)))
+  output[(gg+1),] <- snpG
+}
+
+allD <- abs(apply(combn(output[(ngen + 1),],2), 2, diff))
+
+allD |>
+  tibble() |>
+  ggplot(aes(allD)) +
+  geom_histogram(fill = "grey75") +
+  xlab("Allele Frequency Difference")
+
+```
+
+## Comparison to Sampling Error Only
+
+```{r}
+
+setF <- rbinom(npops,NN*2,snpF)/(NN*2)
+seD <- abs(apply(combn(setF,2), 2, diff))
+
+compD <- tibble("ID" = c(rep("SamplingError", length(seD)),
+                         rep("Drift",length(allD))),
+                "Diffs" = c(seD,allD))
+ggplot(compD, aes(x = Diffs, color = ID, fill = ID)) +
+  geom_histogram(alpha = 1/2) +
+  xlab("Allele Frequency Difference")
+
+```
+
+
+## Adding Complexity
+
+- Random differences in reproductive success
+- Replicate populations
+- Many loci
+- Other evolutionary models
+
+
+
+
+

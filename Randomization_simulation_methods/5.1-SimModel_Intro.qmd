@@ -1,0 +1,114 @@
+---
+title: "Simulation Modeling"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
+---
+
+## This Week
+
+- Simulating data for inference
+    - Introduction to simulation modeling
+    - Simulating null distributions: Beyond only sampling error
+    - Approximate Bayesian Computation
+    - Genetic Algorithms
+
+## Models {.smaller}
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(viridis)
+library(tictoc)
+
+ggplot2::theme_set(theme_cowplot(font_size = 18))
+set.seed(89796)
+```
+
+Models are simplifications of reality that help us to understand some aspect of our world
+
+>All models are false, but some are useful 
+    - George Box
+
+>Models do not investigate nature. Instead, they investigate the validity of our own thinking, i.e. whether the logic behind an argument is correct. ... Once one begins to think of models as ‘thinking aids’ rather than investigations of natural phenomena, one could even go as far as to say that we only need models because our brains suffer from too many limitations, and are not able to consider all sides of a complicated argument in a balanced way. 
+    - Hannah Kokko in [Modelling for Field Biologists and Other Interesting People](https://www.cambridge.org/core/books/modelling-for-field-biologists-and-other-interesting-people/98929D784764A2B409411AC073878819)
+
+## Generality vs Realism
+
+Making a model is like making a map
+
+![](Images/map_model.png){width=100% fig-align="center"}
+
+## Models tell you what will occur *if the model's assumptions are true*
+
+If: 
+
+- there is no difference in two groups
+- the variable of interest is normally distributed
+- you randomly sample 20 from each group
+
+Then:
+
+- you can predict exactly what outcomes will occur with some probability
+
+## Types of Models
+
+- Analytical models
+- Simulation models
+
+## Statistical Inference as Modeling 
+
+Remember the Goal of Statistics
+
+> "a way of taming **uncertainty**, of turning raw **data** into arguments that can resolve profound questions" [@Amabile1989-pf]
+
+- The statistical analyses that you carry out are *models*.
+- Inference depends on evaluating the relative support for different models.
+
+## Example: Wing Dimorphic Crickets
+
+> Do long-winged crickets have a higher resting metabolic rate than short-winged crickets?
+
+:::: {.columns}
+
+::: {.column width="50%"}
+<img src="https://i.imgur.com/kgPmw0b.jpg" width="100%" />
+:::
+
+::: {.column width="50%"}
+Controlling for body mass,
+
+- Metabolic rates do not differ
+- Average metabolic rate of long-wings is higher
+- Average  metabolic rate of long-wings is lower
+:::
+
+::::
+
+
+## Statistical Inference as Modeling 
+
+Many problems are more easily (or possibly) solved without a traditional likelihood
+
+1. Simulate your own null distribution to test your hypothesis   
+2. Sample from distributions and compare to observed values (Approximate Bayesian Computation)
+3. Generate "populations" of parameters and let them "evolve" across generations (Genetic Algorithm)
+
+## References

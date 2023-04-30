@@ -17,7 +17,7 @@ csl: evolution.csl
 ---
 
 
-## Sampling for parameter estimation
+## Approximate Bayesian Computation (ABC)
 
 ```{r}
 #| label: setup
@@ -34,13 +34,6 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
 set.seed(6452730)
 ```
 
-Many problems are more easily (or possibly) solved without a traditional likelihood
-
-1. Sample from distributions and compare to observed values (Approximate Bayesian Computation)
-2. Generate "populations" of parameters and let them "evolve" across generations (Genetic Algorithm)
-
-
-## Approximate Bayesian Computation (ABC)
 
 > "At its heart, ABC is a very simple method: numerical evaluation of the likelihood function is replaced with an assessment of how likely it is the model could have produced the observed data, based on simulating pseudo-data from the model and comparing it to the observed data." [@Sisson2018-ke]
 
