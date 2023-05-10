@@ -374,6 +374,7 @@ In QMLS1, we fit two models to these data. In both models we want to model water
 
 ```{r}
 # FIXME
+library(nlme)
 fm1 <- lme(WaterTemp ~ AirTempPredicted,
            random = ~ 1 | Stream_Name/Site,
            data = MM)
@@ -393,21 +394,21 @@ Use LOOCV to compare both models above, using `predict()` to get predicted value
 
 streams <- unique(MM$Stream_Name)
 
-for(ii in 1:length(streams))
-{
+for (ii in 1:length(streams)) {
   stream.test <- MM |>
     filter(Stream_Name == streams[ii])
   stream.train <- MM |>
     filter(Stream_Name != streams[ii])
   fm1 <- lme(WaterTemp ~ AirTempPredicted,
            random = ~ 1 | Stream_Name/Site,
-           data = stream.train)
+           data = stream.train,
+           method = "ML")
   fm2 <- lme(WaterTemp ~ AirTempPredicted,
            random = ~ Day | Stream_Name/Site,
-           data = stream.train)
+           data = stream.train,
+           method = "ML")
   predict(fm1, stream.test)
 }
-
 
 ```
 
@@ -415,7 +416,4 @@ for(ii in 1:length(streams))
 Which model would you conclude is preferable?
 
 >
-
-
-
 
