@@ -339,6 +339,40 @@ Focus on exploring the number of biological vs technical replicates an how that 
 ```{r}
 #FIXME
 
+var_list <- expand_grid("Nbio" = c(10,20,50,100),
+                  "varN" = c(1, 3, 5),
+                  "varT" = c(1, 3, 5))
+
+var_list$Ntech <- 100/var_list$Nbio
+
+pwr_biotech <- function(Nbio, varN, varT, Ntech){
+  Niter <- 1000
+  muN <- 0
+  dmus <- 1
+  pvals <- rep(NA, Niter)
+  for(ii in 1:Niter){
+    DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
+                 SA = c(rnorm(Nbio, muN, varN),
+                        rnorm(Nbio, muN + dmus, varN)))
+    Ntech <- 3
+    varT <- 1
+    
+    DD.all <- tibble(
+      PlantId = rep(paste0("P", 1:(Nbio * 2)), each = Ntech),
+      Treatment = rep(c("N", "A"), each = Nbio * Ntech),
+      SA = rnorm(Ntech * Nbio * 2, rep(DD$SA, each = Ntech), rep(varT, Ntech * Nbio * 2)))
+    
+    fm <- lme(SA ~ Treatment, random = ~ 1 | PlantId, data = DD.all)
+    smry <- summary(fm)
+    pval[ii] <- smry$tTable[2, 5]
+  }
+  return(mean(pval <= 0.05))
+}
+
+
+#tester <- pmap(var_list[1:3,], pwr_biotech)
+
+
 ```
 
 
@@ -392,23 +426,29 @@ Use LOOCV to compare both models above, using `predict()` to get predicted value
 
 ```{r}
 
-streams <- unique(MM$Stream_Name)
-
-for (ii in 1:length(streams)) {
-  stream.test <- MM |>
-    filter(Stream_Name == streams[ii])
-  stream.train <- MM |>
-    filter(Stream_Name != streams[ii])
+crossv <- function(jj){
+  stream.test <- MM[jj,]
+  stream.train <- MM[-jj,]
   fm1 <- lme(WaterTemp ~ AirTempPredicted,
            random = ~ 1 | Stream_Name/Site,
-           data = stream.train,
-           method = "ML")
+           data = stream.train)
   fm2 <- lme(WaterTemp ~ AirTempPredicted,
            random = ~ Day | Stream_Name/Site,
-           data = stream.train,
-           method = "ML")
-  predict(fm1, stream.test)
+           data = stream.train)
+  p1 <- predict(fm1, stream.test)
+  p2 <- predict(fm2, stream.test)
+  return(c(p1, p2))
 }
+  
+ncores <- parallelly::availableCores(omit = 1)
+
+plan(multisession, workers = ncores)
+
+cvs <- future_map(.x = 1:5,
+                       .f = crossv, 
+                       .options = furrr_options(seed = 85477))
+
+plan(sequential)
 
 ```
 
