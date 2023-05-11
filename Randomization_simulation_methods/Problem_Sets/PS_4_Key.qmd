@@ -30,7 +30,7 @@ set.seed(54633)
 
 # Sticklebacks Revisited
 
-Reopen problem set 2 and revisit the Sticklebacks randomization test you performed. In that activity, you already calculated the expected false positive rate from your empirical null based on 10,000 randomizations for a single threshold median difference value. Let's use the method we discussed in lecture to calculate the 5% FWER threshold. This threshold is what would typically be used for a test like this when using post-hoc tests (e.g. Tukey's). For each of your 10,000 randomizations, keep the maximum absolute median difference across the three pairwise median differences you calculated and make a histogram. Then use the `quantile()` function to find the 5% FWER threshold (i.e., the median difference threshold where you only find any greater difference randomly 5% of the time). Note you should only include your shuffled data here, not your observed set in row 1.   
+Reopen problem set 2 and revisit the Sticklebacks randomization test you performed. In that activity, you already calculated the expected false positive rate from your empirical null based on 10,000 randomizations for a single threshold median difference value. Let's use the method we discussed in lecture to calculate the 5% FWER threshold. This threshold is what would typically be used for a test like this when using post-hoc tests (e.g., Tukey's). For each of your 10,000 randomizations, keep the maximum absolute median difference across the three pairwise median differences you calculated and make a histogram. Then use the `quantile()` function to find the 5% FWER threshold (i.e., the median difference threshold where you only find any greater difference randomly 5% of the time). Note you should only include your shuffled data here, not your observed set in row 1.   
 
 ```{r}
 #| echo: true
@@ -279,7 +279,7 @@ Now we can think about the technical variation in the test. Let's use the values
     - the standard deviation of the technical replicates (how much variation is there for repeated measurements of the same sample?)
 4. Create a new tibble with a column with `PlantID`, `Treatment`, and your SA values. Use the normal distribution to generate a set of values for each of your plants using each of the values you made above as the mean for a given plant and the variation for technical replication you have set. 
 
-You can pass a vector of means and standard deviations to `rnorm()`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and sds. That might require repeating values if you need more than one sample for a combination. 
+You can pass a vector of means and standard deviations to `rnorm()`. This can be handy for these kinds of simulations. Look at the code below to see how this works. Note, that it won't work to pass it a vector of `n`s. You should tell it how many samples you need and then provide vectors of that same length of means and standard deviations. That might require repeating values if you need more than one sample for a combination. 
 
 ```{r}
 ## DO NOT FIXME
@@ -308,7 +308,9 @@ varT <- 1
 DD.all <- tibble(
   PlantId = rep(paste0("P", 1:(Nbio * 2)), each = Ntech),
   Treatment = rep(c("N", "A"), each = Nbio * Ntech),
-  SA = rnorm(Ntech * Nbio * 2, rep(DD$SA, each = Ntech), rep(varT, Ntech * Nbio * 2)))
+  SA = rnorm(Ntech * Nbio * 2,
+             rep(DD$SA, each = Ntech),
+             rep(varT, Ntech * Nbio * 2)))
 
 ```
 
@@ -340,27 +342,28 @@ Focus on exploring the number of biological vs technical replicates an how that 
 #FIXME
 
 var_list <- expand_grid("Nbio" = c(10,20,50,100),
-                  "varN" = c(1, 3, 5),
-                  "varT" = c(1, 3, 5))
+                        "varN" = c(1, 3, 5),
+                        "varT" = c(1, 3, 5))
 
-var_list$Ntech <- 100/var_list$Nbio
+var_list$Ntech <- 100 / var_list$Nbio
 
-pwr_biotech <- function(Nbio, varN, varT, Ntech){
+pwr_biotech <- function(ii, Nbio, varN, varT, Ntech = 3){
   Niter <- 1000
   muN <- 0
   dmus <- 1
   pvals <- rep(NA, Niter)
+  
   for(ii in 1:Niter){
     DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
                  SA = c(rnorm(Nbio, muN, varN),
                         rnorm(Nbio, muN + dmus, varN)))
-    Ntech <- 3
-    varT <- 1
-    
+
     DD.all <- tibble(
       PlantId = rep(paste0("P", 1:(Nbio * 2)), each = Ntech),
       Treatment = rep(c("N", "A"), each = Nbio * Ntech),
-      SA = rnorm(Ntech * Nbio * 2, rep(DD$SA, each = Ntech), rep(varT, Ntech * Nbio * 2)))
+      SA = rnorm(Ntech * Nbio * 2,
+                 rep(DD$SA, each = Ntech),
+                 rep(varT, Ntech * Nbio * 2)))
     
     fm <- lme(SA ~ Treatment, random = ~ 1 | PlantId, data = DD.all)
     smry <- summary(fm)
@@ -369,6 +372,10 @@ pwr_biotech <- function(Nbio, varN, varT, Ntech){
   return(mean(pval <= 0.05))
 }
 
+
+tic()
+pwr_biotech(1, 10, 1, 1)
+toc()
 
 #tester <- pmap(var_list[1:3,], pwr_biotech)
 
@@ -427,28 +434,34 @@ Use LOOCV to compare both models above, using `predict()` to get predicted value
 ```{r}
 
 crossv <- function(jj){
-  stream.test <- MM[jj,]
-  stream.train <- MM[-jj,]
+  stream_test <- MM[jj, ]
+  stream_train <- MM[-jj, ]
   fm1 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ 1 | Stream_Name/Site,
-           data = stream.train)
+             random = ~ 1 | Stream_Name/Site,
+             data = stream_train)
   fm2 <- lme(WaterTemp ~ AirTempPredicted,
-           random = ~ Day | Stream_Name/Site,
-           data = stream.train)
-  p1 <- predict(fm1, stream.test)
-  p2 <- predict(fm2, stream.test)
-  return(c(p1, p2))
+             random = ~ Day | Stream_Name/Site,
+             data = stream_train)
+  p1 <- predict(fm1, stream_test)
+  p2 <- predict(fm2, stream_test)
+  return(tibble(No_day = p1, With_day = p2))
 }
-  
+
 ncores <- parallelly::availableCores(omit = 1)
 
 plan(multisession, workers = ncores)
 
-cvs <- future_map(.x = 1:5,
-                       .f = crossv, 
-                       .options = furrr_options(seed = 85477))
+tic()
+cvs <- future_map(.x = seq_len(nrow(MM)),
+                  .f = crossv, 
+                  .progress = TRUE,
+                  .options = furrr_options(seed = 85477)) |> 
+  list_rbind()
+toc()
 
 plan(sequential)
+
+colMeans(cvs)
 
 ```
 
