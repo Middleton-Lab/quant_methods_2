@@ -339,7 +339,7 @@ Now you have all the tools you need to set up a simulation where you could explo
 Focus on exploring the number of biological vs technical replicates an how that changes with the variation within technical replicate groups. Choose a single parameter value for the variation within treatment groups (e.g., 1) and the difference between the treatment and control groups. Choose a total number of samples (e.g., 100) and test a range of values allocating these to biological samples or technical replicates. Then do a simulation with a range of values for the variation in technical replicate groups and visualize your results. 
 
 ```{r}
-#FIXME
+# FIXME
 
 var_list <- expand_grid("Nbio" = c(10,20,50,100),
                         "varN" = c(1, 3, 5),
@@ -353,7 +353,7 @@ pwr_biotech <- function(ii, Nbio, varN, varT, Ntech = 3){
   dmus <- 1
   pvals <- rep(NA, Niter)
   
-  for(ii in 1:Niter){
+  for (ii in 1:Niter) {
     DD <- tibble(Treatment = rep(c("N","A"), each = Nbio),
                  SA = c(rnorm(Nbio, muN, varN),
                         rnorm(Nbio, muN + dmus, varN)))
@@ -369,7 +369,7 @@ pwr_biotech <- function(ii, Nbio, varN, varT, Ntech = 3){
     smry <- summary(fm)
     pval[ii] <- smry$tTable[2, 5]
   }
-  return(mean(pval <= 0.05))
+  return(tibble(Nbio = Nbio, varN = varN, varT = varT, pval = mean(pval <= 0.05)))
 }
 
 
@@ -377,7 +377,16 @@ tic()
 pwr_biotech(1, 10, 1, 1)
 toc()
 
-#tester <- pmap(var_list[1:3,], pwr_biotech)
+ncores <- parallelly::availableCores(omit = 1)
+plan(multisession, workers = ncores)
+
+future_pmap(.l = var_list, 
+            .f = pwr_biotech,
+            .progress = TRUE,
+            .options = furrr_options(seed = 85477)) |> 
+  list_rbind()
+
+plan(sequential)
 
 
 ```
