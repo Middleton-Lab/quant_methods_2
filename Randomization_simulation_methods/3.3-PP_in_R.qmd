@@ -13,6 +13,8 @@ format:
     slide-number: true
     show-slide-number: all
 code-annotations: hover
+bibliography: Randomization.bib
+csl: evolution.csl
 ---
 
 ## Parallel Processing
@@ -30,6 +32,7 @@ library(viridis)
 library(parallel)
 library(parallelly)
 library(furrr)
+library(tictoc)
 
 ggplot2::theme_set(theme_cowplot(font_size = 18))
 ```
@@ -39,6 +42,7 @@ ggplot2::theme_set(theme_cowplot(font_size = 18))
     - Often low memory usage
 - Iterations are well suited to parallelization 
     - Run sets of iterations on each core
+    - Often get time close to 1 / n cores
 
 
 ## Local and Remote Computers
@@ -90,9 +94,8 @@ for (ii in 2:nreps) { # <2>
     mean(MM$Mandible[Rand_Sex == "M"])
 }
 
-#two-tailed test
+# Two-tailed test
 round(mean(abs(diffs) >= abs(diffs[1])), 4) # <3>
-
 ```
 
 1. Setting different seeds for iterations
@@ -191,30 +194,48 @@ lapply(seq_len(10), FUN = rand_diffs, MM = MM) |>
 ```
 
 
-## `mclapply()`: `lapply()` in parallel
+## Parallelizing `lapply()`
+
+`mclapply()` and `parLapply()`
+
+- Manually start and stop the cluster
+- Tend to the random number generator
+
+OS differences
+
+- Linux & MacOS: `mclapply()`
+- Windows: `parLapply()`
+
+
+## `mclapply()`
 
 ```{r}
 #| echo: true
 
-RNGkind("L'Ecuyer-CMRG") # <1>
-set.seed(123, "L'Ecuyer")
-
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
+if (Sys.info()[['sysname']] != "Windows") {
+  RNGkind("L'Ecuyer-CMRG") # <1>
+  set.seed(123, "L'Ecuyer")
+  
+  mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
+           mc.set.seed = TRUE,
+           mc.cores = ncores) |> as.numeric()
+  mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
+           mc.set.seed = TRUE,
+           mc.cores = ncores) |> as.numeric()
+}
 ```
 
 1. Set up a parallel-friendly random number generator
 
 ```{r}
 #| echo: true
-RNGkind("Mersenne-Twister") # <2>
-mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
-         mc.set.seed = TRUE,
-         mc.cores = ncores) |> as.numeric()
+
+if (Sys.info()[['sysname']] != "Windows") {
+  RNGkind("Mersenne-Twister") # <2>
+  mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
+           mc.set.seed = TRUE,
+           mc.cores = ncores) |> as.numeric()
+}
 ```
 
 2. Reset to the default R random number generator
@@ -226,17 +247,28 @@ mclapply(seq_len(10), FUN = rand_diffs, MM = MM,
 #| label: compare_lapply_mclapply
 #| echo: true
 
-library(tictoc)
-tic()
-x <- lapply(seq_len(1e6), FUN = rand_diffs, MM = MM) |> as.numeric()
-toc()
-
-tic()
-x <- mclapply(seq_len(1e6), FUN = rand_diffs, MM = MM,
-              mc.set.seed = TRUE,
-              mc.cores = ncores) |> as.numeric()
-toc()
+if (Sys.info()[['sysname']] != "Windows") {
+  tic()
+  x <- lapply(seq_len(1e6), FUN = rand_diffs, MM = MM) |> as.numeric()
+  toc()
+  
+  tic()
+  x <- mclapply(seq_len(1e6), FUN = rand_diffs, MM = MM,
+                mc.set.seed = TRUE,
+                mc.cores = ncores) |> as.numeric()
+  toc()
+}
 ```
+
+
+## The futureverse
+
+- More information: [https://www.futureverse.org/](https://www.futureverse.org/) [@Bengtsson2021-su]
+- Unification of parallelization for R
+    - No windows vs. non-windows code differences
+- "Drop in" replacements for
+    - `lapply()` $\rightarrow$ future_lapply() (`future.apply` package)
+    - `map()` $\rightarrow$ `future_map()` (`furrr` package)
 
 
 ## `purrr` and `furrr`
@@ -261,10 +293,9 @@ future_map_dbl(.x = seq_len(10),
                .f = rand_diffs,
                MM = MM,
                .options = furrr_options(seed = TRUE))
-
 ```
 
-- `.options = furrr_options(seed = TRUE)` handles the random number generator
+`.options = furrr_options(seed = TRUE)` handles setting the random number generator
 
 
 ## Parallelization with `furrr`
@@ -309,3 +340,8 @@ x <- future_map_dbl(.x = seq_len(1e6), .f = rand_diffs, MM = MM,
 toc()
 ```
 
+
+## References
+
+::: {#refs}
+:::
