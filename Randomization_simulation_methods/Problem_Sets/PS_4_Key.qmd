@@ -369,24 +369,26 @@ pwr_biotech <- function(ii, Nbio, varN, varT, Ntech = 3){
     smry <- summary(fm)
     pval[ii] <- smry$tTable[2, 5]
   }
-  return(tibble(Nbio = Nbio, varN = varN, varT = varT, pval = mean(pval <= 0.05)))
+  return(tibble(Nbio = Nbio, Ntech = Ntech, varN = varN, varT = varT, pwr = mean(pval <= 0.05)))
 }
 
 
-tic()
 pwr_biotech(1, 10, 1, 1)
-toc()
 
 ncores <- parallelly::availableCores(omit = 1)
 plan(multisession, workers = ncores)
 
-future_pmap(.l = var_list, 
+pwr_out <- future_pmap(.l = var_list, 
             .f = pwr_biotech,
             .progress = TRUE,
             .options = furrr_options(seed = 85477)) |> 
   list_rbind()
 
 plan(sequential)
+
+pwr_out |>
+  ggplot(aes(Nbio, pwr, color = as.factor(varT), shape = as.factor(varN))) +
+  geom_point(size = 3, alpha = 1/2)
 
 
 ```
@@ -460,22 +462,24 @@ ncores <- parallelly::availableCores(omit = 1)
 
 plan(multisession, workers = ncores)
 
-tic()
 cvs <- future_map(.x = seq_len(nrow(MM)),
                   .f = crossv, 
                   .progress = TRUE,
                   .options = furrr_options(seed = 85477)) |> 
   list_rbind()
-toc()
 
 plan(sequential)
 
-colMeans(cvs)
+cvs$MAE_noday <- abs(MM$WaterTemp - cvs$No_day)
+
+cvs$MAE_day <- abs(MM$WaterTemp - cvs$With_day)
+
+colMeans(cvs[,3:4])
 
 ```
 
 
 Which model would you conclude is preferable?
 
->
+> The model that includes day has a lower absolute error and is able to predict new data better than the model without day. 
 
