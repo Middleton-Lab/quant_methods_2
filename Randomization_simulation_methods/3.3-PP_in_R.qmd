@@ -162,7 +162,7 @@ stopCluster(cl)
 
 ## Converting a loop for parallelization
 
-Notice that we don't use `ii` in the function.
+Notice that we don't use `ii` in the function. It's there for "accounting" later on.
 
 ```{r}
 #| echo: true
