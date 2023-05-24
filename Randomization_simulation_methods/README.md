@@ -1,4 +1,4 @@
-# Randomization and simulation
+# Randomization and Simulation Methods
 
 [Video playlist on YouTube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqz0XnoLuUZFcNYWRnKvUgQH)
 
