@@ -4,28 +4,26 @@
 
 ## Units
 
-1. What do you want to say with your plot?
+1. Core concepts: In what ways is random sampling useful for data analysis?
     - Introduction
-    - Plot styles
-    - Data wrangling
-    - Ethics
-2. Mapping information onto a plot
-    - Aesthetics
-    - Faceting
-    - Themes
-    - Accessibility
-3. Constructing complex plots
-    - Combining data sources
-    - Adding plot elements
-    - Highlighting
-    - Reusable themes
-4. Designing reusable plotting code
-    - Plots as objects
-    - Composite figures
-    - Dynamic plot creation
-    - Processing lists of plots
-5. Finishing touches
-    - Introduction to publication-ready figures
-    - Changing sizes
-    - Complex plot maneuvers
-    - Reproducible visualization
+    - Why Monte Carlo methods?
+    - Distributions and null models
+    - Use cases
+2. Sampling from data sets: foundations
+    - The Jackknife
+    - The Bootstrap
+    - Randomization
+3. Sampling from data sets: complex designs
+    - Complex models
+    - Beyond traditional models
+    - Parallel processing in R
+    - Parallel processing with Rscript
+4. Sampling from data sets: decision errors and predicting new data
+    - False positives
+    - False negatives
+    - Cross-validation
+5. Simulating data for inference
+    - Introduction to simulation modeling
+    - Simulating null distributions
+    - Approximate Bayesian computation
+    - Genetic algorithm
