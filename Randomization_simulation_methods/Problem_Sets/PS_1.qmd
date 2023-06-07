@@ -291,3 +291,4 @@ Now do the same sampling this time calculating the proportion of packs that are 
 #| echo: true
 
 ```
+
